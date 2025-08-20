@@ -1,22 +1,69 @@
-# Ignorar el entorno virtual
+# ------------------------------
+# Entornos virtuales
+# ------------------------------
 venv/
 env/
+.venv/
 
-# Archivos de configuración sensibles
+# ------------------------------
+# Configuración sensible
+# ------------------------------
 *.env
 config.json
+.env.local
+.env.*.local
 
-# Archivos de caché y compilación
+# ------------------------------
+# Archivos de compilación/cache
+# ------------------------------
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.pdb
+*.egg-info/
+*.egg
+*.manifest
+*.spec
 
-# Base de datos SQLite (si estás usando SQLite en desarrollo)
+# ------------------------------
+# Archivos temporales de editores
+# ------------------------------
+*.log
+*.pot
+*.mo
+*.swp
+*.swo
+*.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.iml
+
+# ------------------------------
+# Archivos de bases de datos locales
+# ------------------------------
 db.sqlite3
 
-app_project_sanes/node_modules/
-# Ignorar node_modules
-node_modules/
+# ------------------------------
+# Archivos estáticos y media (si los generas en deploy)
+# ------------------------------
+/staticfiles/
+/media/
 
-sanes_project/node_modules/
+# ------------------------------
+# Frontend (Node, build, etc.)
+# ------------------------------
+node_modules/
+/dist/
+/build/
+/coverage/
+
+# ------------------------------
+# Docker y otros entornos
+# ------------------------------
+*.pid
+*.seed
+*.pid.lock
+*.coveragerc
+celerybeat-schedule
