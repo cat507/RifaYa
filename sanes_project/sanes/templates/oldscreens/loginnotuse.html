@@ -1,0 +1,101 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio de Sesión</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Fondo oculto y personalizable */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 1); /* Fondo blanco con transparencia */
+            background-image: url('{% static "images.jpg" %}'); /* Cambia la ruta de tu imagen */
+            opacity: 0.5;
+            background-size: cover;
+            background-position: center;
+            z-index: -1; /* Mantener en el fondo */
+        }
+
+        /* Estilo de la card */
+        .card {
+            box-shadow: 0 32px 64px rgba(0, 0, 0, 0.2);  /* Sombra sutil */
+            border-radius: 10px;  /* Esquinas redondeadas */
+            border: none;  /* Sin borde */
+        }
+
+        .card-body {
+            padding: 2rem;  /* Espaciado interno */
+        }
+
+        .card-title {
+            margin-bottom: 1.5rem;  /* Espacio debajo del título */
+            font-weight: 600;  /* Negrita */
+        }
+
+        .form-control {
+            width: 100%;  /* Asegura que los campos ocupen todo el ancho */
+        }
+
+        .text-danger {
+            font-size: 0.875rem;  /* Tamaño del texto de error */
+        }
+    </style>
+</head>
+<body>
+
+<!-- Contenedor de fondo oculto -->
+<div class="background-container"></div>
+
+<!-- Contenedor principal con la card -->
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="card" style="width: 20rem;">
+        <div class="card-body">
+            <h5 class="card-title text-center">Iniciar Sesión</h5>
+            {% if messages %}
+                <div class="alert alert-warning">
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="id_username" class="form-label">Correo Electrónico o Usuario</label>
+                    <input type="text" name="username" id="id_username" class="form-control" value="{{ form.username.value|default_if_none:'' }}">
+                    {% if form.username.errors %}
+                        <div class="text-danger">
+                            {% for error in form.username.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="id_password" class="form-label">Contraseña</label>
+                    <input type="password" name="password" id="id_password" class="form-control">
+                    {% if form.password.errors %}
+                        <div class="text-danger">
+                            {% for error in form.password.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn btn-primary w-100 mt-4">Iniciar Sesión</button>
+            </form>
+            <div class="mt-3 text-center">
+                <p>¿No estás registrado? <a href="{% url 'register' %}">Regístrate aquí</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

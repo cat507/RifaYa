@@ -1,0 +1,147 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Fondo oculto y personalizable */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 1); /* Fondo blanco con transparencia */
+            background-image: url('{% static "images.jpg" %}'); /* Cambia la ruta de tu imagen */
+            opacity: 0.5;
+            background-size: cover;
+            background-position: center;
+            z-index: -1; /* Mantener en el fondo */
+        }
+
+        /* Estilo de la card */
+        .card {
+            box-shadow: 0 32px 64px rgba(0, 0, 0, 0.2);  /* Sombra sutil */
+            border-radius: 10px;  /* Esquinas redondeadas */
+            border: none;  /* Sin borde */
+        }
+
+        .card-body {
+            padding: 2rem;  /* Espaciado interno */
+        }
+
+        .card-title {
+            margin-bottom: 1.5rem;  /* Espacio debajo del título */
+            font-weight: 600;  /* Negrita */
+        }
+
+        /* Ajustes adicionales para los campos de formulario */
+        .form-control {
+            width: 100%;  /* Asegura que los campos ocupen todo el ancho */
+        }
+
+        .text-danger {
+            font-size: 0.875rem;  /* Tamaño del texto de error */
+        }
+    </style>
+</head>
+<body>
+
+<!-- Contenedor de fondo oculto -->
+<div class="background-container"></div>
+
+<!-- Contenedor principal con la card -->
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="card" style="width: 20rem;">
+        <div class="card-body">
+            <h5 class="card-title text-center">Registrarse</h5>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="id_username">Usuario</label>
+                    <input type="text" name="username" id="id_username" class="form-control" value="{{ form.username.value|default_if_none:'' }}">
+                    {% if form.username.errors %}
+                        <div class="text-danger">
+                            {% for error in form.username.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="id_email">Correo Electrónico</label>
+                    <input type="email" name="email" id="id_email" class="form-control" value="{{ form.email.value|default_if_none:'' }}">
+                    {% if form.email.errors %}
+                        <div class="text-danger">
+                            {% for error in form.email.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="id_password1">Contraseña</label>
+                    <input type="password" name="password1" id="id_password1" class="form-control">
+                    {% if form.password1.errors %}
+                        <div class="text-danger">
+                            {% for error in form.password1.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="id_password2">Confirmar Contraseña</label>
+                    <input type="password" name="password2" id="id_password2" class="form-control">
+                    {% if form.password2.errors %}
+                        <div class="text-danger">
+                            {% for error in form.password2.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="id_cedula">Cédula</label>
+                    <input type="text" name="cedula" id="id_cedula" class="form-control" value="{{ form.cedula.value|default_if_none:'' }}">
+                    {% if form.cedula.errors %}
+                        <div class="text-danger">
+                            {% for error in form.cedula.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="id_oficio">Oficio</label>
+                    <input type="text" name="oficio" id="id_oficio" class="form-control" value="{{ form.oficio.value|default_if_none:'' }}">
+                    {% if form.oficio.errors %}
+                        <div class="text-danger">
+                            {% for error in form.oficio.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="id_telefono">Teléfono</label>
+                    <input type="text" name="telefono" id="id_telefono" class="form-control" value="{{ form.telefono.value|default_if_none:'' }}">
+                    {% if form.telefono.errors %}
+                        <div class="text-danger">
+                            {% for error in form.telefono.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn btn-primary w-100 mt-4">Registrar</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

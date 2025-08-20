@@ -1,0 +1,17 @@
+<form method="POST" enctype="multipart/form-data"></form>
+    {% csrf_token %}
+    <p>Monto en Bs: {{ monto_bs }}</p>
+    <p>Monto en Pesos: {{ monto_pesos }}</p>
+    <p>Monto en USD: {{ monto_usd }}</p>
+
+    <label for="metodo_pago">Método de Pago:</label>
+    <select name="metodo_pago">
+        <option value="transferencia">Transferencia Bancaria</option>
+        <option value="efectivo">Efectivo</option>
+    </select>
+    
+    <label for="comprobante">Subir comprobante de pago:</label>
+    <input type="file" name="comprobante">
+
+    <button type="submit">Confirmar</button>
+</form>

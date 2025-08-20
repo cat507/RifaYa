@@ -1,0 +1,29 @@
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header">
+            <h2>Confirmar Compra</h2>
+        </div>
+        <div class="card-body">
+            <p>Estás comprando un cupo en el San <strong>{{ san.nombre }}</strong>.</p>
+            <p>Monto a pagar en la primera cuota:</p>
+            <ul class="list-group mb-3">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <strong>{{ monto_usd_total }} USD</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <strong>{{ monto_bs }} BS</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <strong>{{ monto_pesos }} COP</strong>
+                </li>
+            </ul>
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary btn-block">Confirmar Compra</button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,89 @@
+{% load static %}
+{% load widget_tweaks %}
+{% load socialaccount %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>RaffleApp | Register</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@400;500;700;800"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  </head>
+  <body class="bg-[#fbf9f9]" style="font-family: 'Plus Jakarta Sans', 'Noto Sans', sans-serif;">
+    <div class="min-h-screen flex flex-col">
+      <!-- Header -->
+      <header class="flex items-center justify-between border-b border-[#f1e9ea] px-10 py-3">
+        <div class="flex items-center gap-4 text-[#191011]">
+          <div class="size-4">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 4H17.3334V17.3334H30.6666V30.6666H44V44H4V4Z" fill="currentColor"></path>
+            </svg>
+          </div>
+          <h2 class="text-lg font-bold tracking-tight">RaffleApp</h2>
+        </div>
+      </header>
+
+      <!-- Register Form -->
+      <main class="flex justify-center py-8 px-4 grow">
+        <div class="w-full max-w-md bg-white rounded-xl shadow p-6 space-y-6">
+          <div>
+            <h1 class="text-2xl font-bold text-[#191011]">Create your account</h1>
+            <p class="text-[#8b5b5d] text-sm">Please fill in the details below to create your account.</p>
+          </div>
+
+          <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            <!-- Si usas crispy forms -->
+            {# {{ form|crispy }} #}
+
+            <!-- Si quieres controlar cada campo manualmente -->
+            <div>
+              <label for="id_username" class="text-sm font-medium text-[#191011]">Username</label>
+              {{ form.username|add_class:"form-input w-full h-12 mt-1 rounded-xl bg-[#f1e9ea] border-none text-[#191011] placeholder-[#8b5b5d] px-4" }}
+              {{ form.username.errors }}
+            </div>
+
+            <div>
+              <label for="id_email" class="text-sm font-medium text-[#191011]">Email</label>
+              {{ form.email|add_class:"form-input w-full h-12 mt-1 rounded-xl bg-[#f1e9ea] border-none text-[#191011] placeholder-[#8b5b5d] px-4" }}
+              {{ form.email.errors }}
+            </div>
+
+            <div>
+              <label for="id_password1" class="text-sm font-medium text-[#191011]">Password</label>
+              {{ form.password1|add_class:"form-input w-full h-12 mt-1 rounded-xl bg-[#f1e9ea] border-none text-[#191011] placeholder-[#8b5b5d] px-4" }}
+              {{ form.password1.errors }}
+            </div>
+
+            <div>
+              <label for="id_password2" class="text-sm font-medium text-[#191011]">Confirm Password</label>
+              {{ form.password2|add_class:"form-input w-full h-12 mt-1 rounded-xl bg-[#f1e9ea] border-none text-[#191011] placeholder-[#8b5b5d] px-4" }}
+              {{ form.password2.errors }}
+            </div>
+
+            <button type="submit" class="w-full h-12 bg-[#e8b4b7] rounded-full font-bold text-[#191011]">
+              Sign Up
+            </button>
+          </form>
+
+          <div class="text-center">
+            <p class="text-sm text-[#8b5b5d]">Or</p>
+            <a href="{% provider_login_url 'google' %}" class="mt-2 inline-flex items-center justify-center gap-2 text-sm font-medium text-[#191011] border border-gray-300 rounded-full px-4 py-2 bg-white hover:bg-gray-100">
+              <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" class="h-5 w-5" />
+              Sign up with Google
+            </a>
+          </div>
+
+          <p class="text-center text-sm text-[#8b5b5d] underline">
+            Already have an account? <a href="{% url 'account_login' %}">Sign in</a>
+          </p>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

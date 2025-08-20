@@ -1,0 +1,251 @@
+{% load static %}
+{% load widget_tweaks %}
+{% load socialaccount %}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link rel="stylesheet" as="style" onload="this.rel='stylesheet'"
+        href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans%3Awght@400%3B500%3B700%3B900&family=Plus+Jakarta+Sans%3Awght@400%3B500%3B700%3B800" />
+    <title>{{ raffle.title }}</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+    </script>
+</head>
+
+<body>
+    <div class="relative flex size-full min-h-screen flex-col bg-[#fcf8f8] group/design-root overflow-x-hidden"
+        style='--select-button-svg: url('data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724px%27 height=%2724px%27 fill=%27rgb(153,77,81)%27 viewBox=%270 0 256 256%27%3e%3cpath d=%27M181.66,170.34a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-48-48a8,8,0,0,1,11.32-11.32L128,212.69l42.34-42.35A8,8,0,0,1,181.66,170.34Zm-96-84.68L128,43.31l42.34,42.35a8,8,0,0,0,11.32-11.32l-48-48a8,8,0,0,0-11.32,0l-48,48A8,8,0,0,0,85.66,85.66Z%27%3e%3c/path%3e%3c/svg%3e'); font-family: "Plus Jakarta Sans" , "Noto Sans" , sans-serif;'>
+        <div class="layout-container flex h-full grow flex-col">
+            <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f3e7e8] px-10 py-3">
+                <div class="flex items-center gap-8">
+                    <div class="flex items-center gap-4 text-[#1b0e0e]">
+                        <div class="size-4">
+                            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <g clip-path="url(#clip0_6_535)">
+                                    <path fill-rule="evenodd" clip-rule="evenodd"
+                                        d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"
+                                        fill="currentColor"></path>
+                                </g>
+                                <defs>
+                                    <clipPath id="clip0_6_535">
+                                        <rect width="48" height="48" fill="white"></rect>
+                                    </clipPath>
+                                </defs>
+                            </svg>
+                        </div>
+                        <h2 class="text-[#1b0e0e] text-lg font-bold leading-tight tracking-[-0.015em]">RaffleHub</h2>
+                    </div>
+                    <div class="hidden sm:flex flex-1 justify-end gap-8" id="main-nav-desktop">
+                        <div class="flex items-center gap-9">
+                            <a class="text-[#1b0e0e] text-sm font-medium leading-normal" href="{% url 'home' %}">How it works</a>
+                            <a class="text-[#1b0e0e] text-sm font-medium leading-normal" href="{% url 'san_list' %}">Browse</a>
+                            <a class="text-[#1b0e0e] text-sm font-medium leading-normal" href="{% url 'create_san' %}">Create</a>
+                        </div>
+                        <div class="flex gap-2">
+                            {% if not user.is_authenticated %}
+                            <a href="{% url 'register' %}" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#e92932] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em]">
+                                <span class="truncate">Sign Up</span>
+                            </a>
+                            <a href="{% url 'login' %}" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#f3e7e8] text-[#1b0e0e] text-sm font-bold leading-normal tracking-[0.015em]">
+                                <span class="truncate">Log In</span>
+                            </a>
+                            {% else %}
+                            <a href="{% url 'user_profile' %}" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#f3e7e8] text-[#1b0e0e] text-sm font-bold leading-normal tracking-[0.015em]">
+                                <span class="truncate">My Profile</span>
+                            </a>
+                            <a href="{% url 'logout' %}" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#e92932] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em]">
+                                <span class="truncate">Log Out</span>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <button class="sm:hidden text-[#1b0e0e] focus:outline-none" onclick="toggleMobileMenu()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </header>
+            <div id="mobile-menu" class="hidden sm:hidden flex flex-col items-center border-b border-solid border-b-[#f3e7e8] bg-[#fcf8f8] py-4">
+                <a class="text-[#1b0e0e] text-base font-medium leading-normal py-2" href="{% url 'home' %}">How it works</a>
+                <a class="text-[#1b0e0e] text-base font-medium leading-normal py-2" href="{% url 'san_list' %}">Browse</a>
+                <a class="text-[#1b0e0e] text-base font-medium leading-normal py-2" href="{% url 'create_san' %}">Create</a>
+                <div class="flex flex-col gap-2 w-full px-4 mt-4">
+                    {% if not user.is_authenticated %}
+                    <a href="{% url 'register' %}" class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#e92932] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em]">
+                        <span class="truncate">Sign Up</span>
+                    </a>
+                    <a href="{% url 'login' %}" class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#f3e7e8] text-[#1b0e0e] text-sm font-bold leading-normal tracking-[0.015em]">
+                        <span class="truncate">Log In</span>
+                    </a>
+                    {% else %}
+                    <a href="{% url 'user_profile' %}" class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#f3e7e8] text-[#1b0e0e] text-sm font-bold leading-normal tracking-[0.015em]">
+                        <span class="truncate">My Profile</span>
+                    </a>
+                    <a href="{% url 'logout' %}" class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#e92932] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em]">
+                        <span class="truncate">Log Out</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="px-40 flex flex-1 justify-center py-5">
+                <div class="layout-content-container flex flex-col max-w-[960px] flex-1">
+                    <div class="flex flex-wrap gap-2 p-4">
+                        <a class="text-[#994d51] text-base font-medium leading-normal" href="#">Home</a>
+                        <span class="text-[#994d51] text-base font-medium leading-normal">/</span>
+                        <span class="text-[#1b0e0e] text-base font-medium leading-normal">Raffle Details</span>
+                    </div>
+                    <h2 class="text-[#1b0e0e] tracking-light text-[28px] font-bold leading-tight px-4 text-left pb-3 pt-5">
+                        {{ raffle.title }}
+                    </h2>
+                    <div class="flex w-full grow bg-[#fcf8f8] @container p-4">
+                        <div class="w-full gap-1 overflow-hidden bg-[#fcf8f8] @[480px]:gap-2 aspect-[3/2] rounded-lg grid">
+                            {% if raffle.image %}
+                            <div class="w-full bg-center bg-no-repeat bg-cover aspect-auto rounded-lg"
+                                style='background-image: url("{{ raffle.image.url }}");'>
+                            </div>
+                            {% else %}
+                            <div class="w-full aspect-square bg-cover rounded-lg flex flex-col bg-gray-300 flex items-center justify-center text-gray-500">
+                                No Image Available
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <h2 class="text-[#1b0e0e] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">
+                        About the Prize
+                    </h2>
+                    <p class="text-[#1b0e0e] text-base font-normal leading-normal pb-3 pt-1 px-4">
+                        {{ raffle.description }}
+                    </p>
+                    <h2 class="text-[#1b0e0e] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">
+                        Raffle Details
+                    </h2>
+                    <div class="p-4 grid grid-cols-[20%_1fr] gap-x-6">
+                        <div class="col-span-2 grid grid-cols-subgrid border-t border-t-[#e7d0d1] py-5">
+                            <p class="text-[#994d51] text-sm font-normal leading-normal">Ticket Price</p>
+                            <p class="text-[#1b0e0e] text-sm font-normal leading-normal">${{ raffle.ticket_price }}</p>
+                        </div>
+                        <div class="col-span-2 grid grid-cols-subgrid border-t border-t-[#e7d0d1] py-5">
+                            <p class="text-[#994d51] text-sm font-normal leading-normal">Tickets Available</p>
+                            <p class="text-[#1b0e0e] text-sm font-normal leading-normal">{{ tickets_available }} / {{raffle.total_tickets }}</p>
+                        </div>
+                        <div class="col-span-2 grid grid-cols-subgrid border-t border-t-[#e7d0d1] py-5">
+                            <p class="text-[#994d51] text-sm font-normal leading-normal">Closing Date</p>
+                            <p class="text-[#1b0e0e] text-sm font-normal leading-normal">{{ raffle.draw_date|date:"F d, Y, h:i A" }}</p>
+                        </div>
+                    </div>
+                    <div id="countdown-timer" class="flex gap-4 py-6 px-4" data-end-date="{{ raffle.draw_date|date:"c" }}">
+                        <div class="flex grow basis-0 flex-col items-stretch gap-4">
+                            <div class="flex h-14 grow items-center justify-center rounded-lg px-3 bg-[#f3e7e8]">
+                                <p id="countdown-days" class="text-[#1b0e0e] text-lg font-bold leading-tight tracking-[-0.015em]"></p>
+                            </div>
+                            <div class="flex items-center justify-center">
+                                <p class="text-[#1b0e0e] text-sm font-normal leading-normal">Days</p>
+                            </div>
+                        </div>
+                        <div class="flex grow basis-0 flex-col items-stretch gap-4">
+                            <div class="flex h-14 grow items-center justify-center rounded-lg px-3 bg-[#f3e7e8]">
+                                <p id="countdown-hours" class="text-[#1b0e0e] text-lg font-bold leading-tight tracking-[-0.015em]"></p>
+                            </div>
+                            <div class="flex items-center justify-center">
+                                <p class="text-[#1b0e0e] text-sm font-normal leading-normal">Hours</p>
+                            </div>
+                        </div>
+                        <div class="flex grow basis-0 flex-col items-stretch gap-4">
+                            <div class="flex h-14 grow items-center justify-center rounded-lg px-3 bg-[#f3e7e8]">
+                                <p id="countdown-minutes" class="text-[#1b0e0e] text-lg font-bold leading-tight tracking-[-0.015em]"></p>
+                            </div>
+                            <div class="flex items-center justify-center">
+                                <p class="text-[#1b0e0e] text-sm font-normal leading-normal">Minutes</p>
+                            </div>
+                        </div>
+                        <div class="flex grow basis-0 flex-col items-stretch gap-4">
+                            <div class="flex h-14 grow items-center justify-center rounded-lg px-3 bg-[#f3e7e8]">
+                                <p id="countdown-seconds" class="text-[#1b0e0e] text-lg font-bold leading-tight tracking-[-0.015em]"></p>
+                            </div>
+                            <div class="flex items-center justify-center">
+                                <p class="text-[#1b0e0e] text-sm font-normal leading-normal">Seconds</p>
+                            </div>
+                        </div>
+                    </div>
+                    <h2 class="text-[#1b0e0e] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">
+                        Buy Tickets
+                    </h2>
+                    {% if messages %}
+                    <div class="px-4">
+                        {% for message in messages %}
+                        <div class="{% if message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %} p-4 rounded-lg">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <form action="{% url 'buy_raffle_tickets' raffle_id=raffle.id %}" method="post">
+                        {% csrf_token %}
+                        <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+                            <label class="flex flex-col min-w-40 flex-1">
+                                <select name="quantity" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#1b0e0e] focus:outline-0 focus:ring-0 border border-[#e7d0d1] bg-[#fcf8f8] focus:border-[#e7d0d1] h-14 bg-[image:--select-button-svg] placeholder:text-[#994d51] p-[15px] text-base font-normal leading-normal">
+                                    {% if tickets_available > 0 %}
+                                        {% for i in "x"|ljust:tickets_available|make_list %}
+                                        <option value="{{ forloop.counter }}">{{ forloop.counter }}</option>
+                                        {% endfor %}
+                                    {% else %}
+                                        <option value="" disabled selected>No tickets available</option>
+                                    {% endif %}
+                                </select>
+                            </label>
+                        </div>
+                        <div class="flex px-4 py-3">
+                            <button type="submit" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 flex-1 bg-[#e92932] text-[#fcf8f8] text-base font-bold leading-normal tracking-[0.015em]"
+                                {% if tickets_available == 0 %}disabled{% endif %}>
+                                <span class="truncate">Buy Tickets</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function updateCountdown() {
+            const countdownElement = document.getElementById('countdown-timer');
+            if (!countdownElement) return;
+
+            const endDate = new Date(countdownElement.dataset.endDate);
+            const now = new Date();
+            const difference = endDate - now;
+
+            if (difference <= 0) {
+                document.getElementById('countdown-days').innerText = '00';
+                document.getElementById('countdown-hours').innerText = '00';
+                document.getElementById('countdown-minutes').innerText = '00';
+                document.getElementById('countdown-seconds').innerText = '00';
+                return;
+            }
+
+            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+            document.getElementById('countdown-days').innerText = String(days).padStart(2, '0');
+            document.getElementById('countdown-hours').innerText = String(hours).padStart(2, '0');
+            document.getElementById('countdown-minutes').innerText = String(minutes).padStart(2, '0');
+            document.getElementById('countdown-seconds').innerText = String(seconds).padStart(2, '0');
+        }
+
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+    </script>
+</body>
+
+</html>

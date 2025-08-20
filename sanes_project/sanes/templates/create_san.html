@@ -1,0 +1,138 @@
+{% load static %}
+{% load widget_tweaks %}
+
+<html>
+<head>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link rel="stylesheet"
+          as="style"
+          onload="this.rel='stylesheet'"
+          href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@400;500;700;800">
+    <title>Crear un nuevo SAN</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+        .form-input {
+            border-color: #e3d4d4;
+            background-color: #fbf9f9;
+            color: #191010;
+        }
+        .form-input:focus {
+            border-color: #e3d4d4;
+            outline: none;
+            ring: none;
+        }
+        .form-input::placeholder {
+            color: #8b5b5c;
+        }
+    </style>
+</head>
+<body>
+<div class="relative flex size-full min-h-screen flex-col bg-[#fbf9f9] group/design-root overflow-x-hidden"
+     style="font-family: 'Plus Jakarta Sans','Noto Sans', sans-serif;">
+    <div class="layout-container flex h-full grow flex-col">
+
+        <!-- HEADER -->
+        <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f1e9ea] px-10 py-3">
+            <div class="flex items-center gap-4 text-[#191010]">
+                <h2 class="text-[#191010] text-lg font-bold leading-tight">Coop</h2>
+            </div>
+        </header>
+
+        <!-- FORM -->
+        <div class="px-40 flex flex-1 justify-center py-5">
+            <div class="layout-content-container flex flex-col w-[512px] max-w-[960px] py-5 flex-1">
+                <div class="flex flex-wrap justify-between gap-3 p-4">
+                    <p class="text-[#191010] text-[32px] font-bold leading-tight">Crear un nuevo SAN</p>
+                </div>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <!-- Nombre del SAN -->
+                    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+                        <label class="flex flex-col flex-1">
+                            <p class="text-base font-medium pb-2">Nombre del SAN</p>
+                            {% render_field form.name class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] text-base" placeholder="Ingrese el nombre del SAN" %}
+                        </label>
+                    </div>
+
+                    <!-- Organizador -->
+                    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+                        <label class="flex flex-col flex-1">
+                            <p class="text-base font-medium pb-2">Organizador</p>
+                            {% render_field form.organizador class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] text-base" placeholder="Ingrese el organizador" %}
+                        </label>
+                    </div>
+
+                    <!-- Fecha de Inicio -->
+                    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+                        <label class="flex flex-col flex-1">
+                            <p class="text-base font-medium pb-2">Fecha de Inicio</p>
+                            {% render_field form.fecha_inicio class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] text-base" type="date" %}
+                        </label>
+                    </div>
+
+                    <!-- Precio Total -->
+                    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+                        <label class="flex flex-col flex-1">
+                            <p class="text-base font-medium pb-2">Precio Total</p>
+                            {% render_field form.total_price class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] text-base" placeholder="Ingrese el precio total" %}
+                        </label>
+                    </div>
+
+                    <!-- Número de Cuotas -->
+                    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+                        <label class="flex flex-col flex-1">
+                            <p class="text-base font-medium pb-2">Número de Cuotas</p>
+                            {% render_field form.num_cuotas class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] text-base" placeholder="Ingrese el número de cuotas" %}
+                        </label>
+                    </div>
+
+                    <!-- Frecuencia de Pago -->
+                    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+                        <label class="flex flex-col flex-1">
+                            <p class="text-base font-medium pb-2">Frecuencia de Pago</p>
+                            {% render_field form.payment_frequency class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] text-base" %}
+                        </label>
+                    </div>
+
+                    <!-- Tipo de SAN -->
+                    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+                        <label class="flex flex-col flex-1">
+                            <p class="text-base font-medium pb-2">Tipo de SAN</p>
+                            {% render_field form.type_of_san class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] text-base" %}
+                        </label>
+                    </div>
+
+                    <!-- Imagen -->
+                    <div class="flex flex-col p-4">
+                        <div class="flex flex-col items-center gap-6 rounded-xl border-2 border-dashed border-[#e3d4d4] px-6 py-14">
+                            <p class="text-lg font-bold text-center">Imagen del SAN</p>
+                            {% render_field form.image class="w-full text-[#191010] text-sm" %}
+                        </div>
+                    </div>
+
+                    <!-- Participantes -->
+                    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+                        <label class="flex flex-col flex-1">
+                            <p class="text-base font-medium pb-2">Total de Participantes</p>
+                            {% render_field form.total_participantes class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] text-base" placeholder="Ingrese el total de participantes" %}
+                        </label>
+                    </div>
+
+                    <!-- Botón -->
+                    <div class="flex px-4 py-3 justify-end">
+                        <button type="submit"
+                                class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#e8b5b7] text-[#191010] text-sm font-bold">
+                            Crear SAN
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

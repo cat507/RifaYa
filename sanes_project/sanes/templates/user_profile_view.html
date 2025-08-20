@@ -1,0 +1,120 @@
+{% load static %}
+{% load widget_tweaks %}
+{% load socialaccount %}
+
+<html>
+
+<head>
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+  <link rel="stylesheet" as="style" onload="this.rel='stylesheet'"
+    href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@400;500;700;800" />
+  <title>Perfil - RaffleApp</title>
+  <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+</head>
+
+<body>
+  <div class="relative flex size-full min-h-screen flex-col bg-[#fbf9f9] overflow-x-hidden"
+    style='font-family: "Plus Jakarta Sans", "Noto Sans", sans-serif;'>
+    <div class="layout-container flex h-full grow flex-col">
+
+      <!-- HEADER -->
+      <header class="flex items-center justify-between border-b border-[#f1e9ea] px-10 py-3">
+        <div class="flex items-center gap-4 text-[#191010]">
+          <div class="size-4">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 4H17.3334V17.3334H30.6666V30.6666H44V44H4V4Z" fill="currentColor"></path>
+            </svg>
+          </div>
+          <h2 class="text-lg font-bold">RaffleApp</h2>
+        </div>
+        <div class="flex gap-9">
+          <a class="text-sm font-medium" href="#">Explore</a>
+          <a class="text-sm font-medium" href="#">My Raffles</a>
+          <a class="text-sm font-medium" href="#">Create</a>
+        </div>
+      </header>
+
+      <!-- CONTENIDO -->
+      <div class="px-40 flex flex-1 justify-center py-5">
+        <div class="flex flex-col max-w-[960px] flex-1">
+
+          <!-- FOTO DE PERFIL EDITABLE -->
+          <div class="flex p-4 justify-center">
+            {% load static %}
+
+            <form method="POST" action="{% url 'cambiar_foto_perfil' %}" enctype="multipart/form-data">
+              {% csrf_token %}
+              <label
+                class="relative group cursor-pointer block w-32 h-32 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-300 shadow-md transition hover:opacity-80">
+                <img
+                  src="{% if user.foto_perfil %}{{ user.foto_perfil.url }}{% else %}{% static 'img/default_avatar.png' %}{% endif %}"
+                  alt="Foto de perfil" class="object-cover w-full h-full" />
+                <div
+                  class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                  <p class="text-white text-sm font-semibold">Cambiar</p>
+                </div>
+<input type="file" name="foto_perfil" accept="image/*" class="hidden" onchange="this.form.submit()" />
+              </label>
+            </form>
+          </div>
+
+          <!-- DATOS DEL USUARIO -->
+          <div class="flex flex-col items-center text-center">
+            <p class="text-[22px] font-bold">{{ user.first_name }} {{ user.last_name }}</p>
+            <p class="text-[#8b5b5c]">@{{ user.username }}</p>
+            <p class="text-[#8b5b5c]">Joined {{ user.date_joined|date:"Y" }}</p>
+          </div>
+
+          <!-- ESTADÍSTICAS -->
+          <div class="flex flex-wrap gap-3 px-4 py-5">
+            <div class="flex flex-1 min-w-[111px] flex-col gap-2 rounded-lg border border-[#e3d4d4] p-3 items-center">
+              <p class="text-2xl font-bold">{{ rifas_ganadas }}</p>
+              <p class="text-[#8b5b5c] text-sm">Raffles Won</p>
+            </div>
+            <div class="flex flex-1 min-w-[111px] flex-col gap-2 rounded-lg border border-[#e3d4d4] p-3 items-center">
+              <p class="text-2xl font-bold">{{ tickets_activos }}</p>
+              <p class="text-[#8b5b5c] text-sm">Active Tickets</p>
+            </div>
+            <div class="flex flex-1 min-w-[111px] flex-col gap-2 rounded-lg border border-[#e3d4d4] p-3 items-center">
+              <p class="text-2xl font-bold">{{ proximos_vencimientos }}</p>
+              <p class="text-[#8b5b5c] text-sm">Upcoming Due Dates</p>
+            </div>
+          </div>
+
+          <!-- CONTACTO -->
+          <h3 class="text-lg font-bold px-4 pb-2 pt-4">Contact</h3>
+          <div class="flex items-center gap-4 bg-[#fbf9f9] px-4 min-h-14">
+            <div class="bg-[#f1e9ea] rounded-lg flex items-center justify-center size-10">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor"
+                viewBox="0 0 256 256">
+                <path
+                  d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48Zm-96,85.15L52.57,64H203.43ZM98.71,128,40,181.81V74.19Zm11.84,10.85,12,11.05a8,8,0,0,0,10.82,0l12-11.05,58,53.15H52.57ZM157.29,128,216,74.18V181.82Z">
+                </path>
+              </svg>
+            </div>
+            <p class="text-base flex-1 truncate">{{ user.email }}</p>
+          </div>
+
+          <!-- BOTÓN EDITAR PERFIL -->
+          <div class="flex justify-end px-5 pb-5">
+            <button
+              class="flex items-center gap-4 rounded-full h-14 px-5 bg-[#e8b5b7] text-[#191010] text-base font-bold">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor"
+                viewBox="0 0 256 256">
+                <path
+                  d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z">
+                </path>
+              </svg>
+              <span>Edit Profile</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+
+</html>

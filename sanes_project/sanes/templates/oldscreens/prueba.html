@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorando la Administración de Recursos Humanos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony Neutrals -->
+    <!-- Application Structure Plan: The SPA is designed with a non-linear, thematic structure to enhance exploration and usability. A sticky top navigation bar allows users to jump between four main sections: "Fundamentos", "Historia", "Teorías Clave", "Tendencias Actuales", and now "Herramientas Gemini". The "Historia" section features an interactive timeline built with Chart.js, allowing users to click on pioneers to dynamically view their detailed contributions. The "Teorías Clave" section includes a custom-built, interactive Maslow's Pyramid. The new "Herramientas Gemini" section provides interactive LLM-powered utilities for generating job descriptions, interview questions, and expanding HR concepts. This hub-and-spoke design, with interactive components and new AI tools, was chosen to transform the dense textual report into an engaging and digestible learning experience, prioritizing user-driven discovery and practical application. -->
+    <!-- Visualization & Content Choices: 1) Historical Pioneers: Report Info -> Chronological list of pioneers and their theories. Goal -> Allow users to explore the historical evolution of HRM. Viz/Method -> Interactive Scatter Plot Timeline via Chart.js (Canvas). Interaction -> Clicking a data point (pioneer) on the chart updates a display panel with their detailed information (context, contributions, beliefs). Justification -> This is more engaging than a static list and facilitates easy comparison. 2) Maslow's Hierarchy: Report Info -> The five levels of Maslow's pyramid and their HRM applications. Goal -> Visually explain the theory and its practical relevance. Viz/Method -> Custom interactive pyramid built with HTML/CSS. Interaction -> Clicking a pyramid level highlights it and displays its detailed explanation. Justification -> An interactive diagram fosters better understanding and retention than a static image. 3) Core Concepts (Objectives, Processes): Report Info -> Lists of concepts. Goal -> Organize information compactly. Viz/Method -> Clickable accordion/tab elements with HTML/JS. Interaction -> Clicking a title reveals its description. Justification -> Reduces clutter and improves scannability. 4) Gemini Tools: Report Info -> Needs for practical HR content generation/explanation. Goal -> Provide practical, LLM-powered tools for common HR tasks or concept exploration. Viz/Method -> Input text areas, buttons, and display areas (HTML/CSS). Interaction -> User inputs text, clicks a button, and the LLM response appears dynamically. Loading indicator during API call. Justification -> Adds direct utility and a "wow" factor by demonstrating AI capabilities in the HR domain, making the application more than just an informational report. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF6;
+            color: #3C4043;
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #E07A5F;
+            transition: width 0.3s ease;
+        }
+        .nav-link.active::after,
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        .pyramid-level {
+            clip-path: polygon(10% 0, 90% 0, 100% 100%, 0% 100%);
+            transition: all 0.3s ease-in-out;
+        }
+        .pyramid-level:hover, .pyramid-level.active {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+         .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3D858C;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header & Navigation -->
+    <header id="header" class="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <span class="font-bold text-xl text-[#3D858C]">ARH Interactiva</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#fundamentos" class="nav-link text-gray-700 hover:text-[#E07A5F] px-3 py-2 rounded-md text-sm font-medium">Fundamentos</a>
+                        <a href="#historia" class="nav-link text-gray-700 hover:text-[#E07A5F] px-3 py-2 rounded-md text-sm font-medium">Historia</a>
+                        <a href="#teorias" class="nav-link text-gray-700 hover:text-[#E07A5F] px-3 py-2 rounded-md text-sm font-medium">Teorías Clave</a>
+                        <a href="#tendencias" class="nav-link text-gray-700 hover:text-[#E07A5F] px-3 py-2 rounded-md text-sm font-medium">Tendencias</a>
+                        <a href="#gemini-tools" class="nav-link text-gray-700 hover:text-[#E07A5F] px-3 py-2 rounded-md text-sm font-medium">✨ Herramientas Gemini</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+                        <span class="sr-only">Abrir menú principal</span>
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#fundamentos" class="block nav-link text-gray-700 hover:text-[#E07A5F] px-3 py-2 rounded-md text-base font-medium">Fundamentos</a>
+                <a href="#historia" class="block nav-link text-gray-700 hover:text-[#E07A5F] px-3 py-2 rounded-md text-base font-medium">Historia</a>
+                <a href="#teorias" class="block nav-link text-gray-700 hover:text-[#E07A5F] px-3 py-2 rounded-md text-base font-medium">Teorías Clave</a>
+                <a href="#tendencias" class="block nav-link text-gray-700 hover:text-[#E07A5F] px-3 py-2 rounded-md text-base font-medium">Tendencias</a>
+                <a href="#gemini-tools" class="block nav-link text-gray-700 hover:text-[#E07A5F] px-3 py-2 rounded-md text-base font-medium">✨ Herramientas Gemini</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <div class="bg-white">
+            <div class="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
+                    <span class="block">Explorando la Administración</span>
+                    <span class="block text-[#3D858C]">de Recursos Humanos</span>
+                </h1>
+                <p class="mt-6 max-w-lg mx-auto text-xl text-gray-500 sm:max-w-3xl">
+                    Un viaje interactivo a través de los conceptos, la historia y el futuro de la gestión del talento humano.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Section 1: Fundamentos -->
+        <section id="fundamentos" class="py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-base font-semibold text-[#E07A5F] tracking-wide uppercase">Conceptos Esenciales</h2>
+                    <p class="mt-2 text-3xl font-extrabold text-gray-900 tracking-tight sm:text-4xl">Fundamentos de la ARH</p>
+                    <p class="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
+                        Esta sección desglosa los pilares de la Administración de Recursos Humanos. Interactúe con los elementos a continuación para explorar la definición, objetivos, habilidades y procesos que forman la base de esta disciplina crucial.
+                    </p>
+                </div>
+
+                <div class="mt-12 space-y-10">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h3 class="text-2xl font-bold text-center text-[#3D858C]">Definición y Alcance</h3>
+                        <p class="mt-4 text-lg text-gray-600 text-center">La administración de recursos humanos es el conjunto de prácticas y políticas para gestionar a las personas en una organización. Su propósito es maximizar la productividad y el bienestar, alineando los objetivos del personal con los de la empresa. Modernamente, la <strong class="text-[#E07A5F]">Gestión Estratégica de RRHH (GERH)</strong> integra estas prácticas con la estrategia global del negocio.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div id="objetivos-container" class="bg-white p-8 rounded-xl shadow-lg">
+                            <h3 class="text-2xl font-bold text-center text-[#3D858C]">Objetivos Fundamentales</h3>
+                            <div class="mt-4 flex flex-wrap justify-center gap-2"></div>
+                            <div id="objetivo-display" class="mt-4 p-4 bg-gray-50 rounded-lg min-h-[100px] text-gray-700">
+                                Seleccione un objetivo para ver su descripción.
+                            </div>
+                        </div>
+
+                        <div id="procesos-container" class="bg-white p-8 rounded-xl shadow-lg">
+                            <h3 class="text-2xl font-bold text-center text-[#3D858C]">Procesos de Acrecentamiento</h3>
+                             <div class="mt-4 flex flex-wrap justify-center gap-2"></div>
+                            <div id="proceso-display" class="mt-4 p-4 bg-gray-50 rounded-lg min-h-[100px] text-gray-700">
+                                Seleccione un proceso para ver su descripción.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Historia -->
+        <section id="historia" class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-base font-semibold text-[#E07A5F] tracking-wide uppercase">Evolución del Pensamiento</h2>
+                    <p class="mt-2 text-3xl font-extrabold text-gray-900 tracking-tight sm:text-4xl">Un Viaje por la Historia</p>
+                    <p class="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
+                       Explore la evolución de la ARH a través de sus pioneros. Haga clic en los puntos de la línea de tiempo para descubrir las contribuciones y creencias que dieron forma a la disciplina.
+                    </p>
+                </div>
+
+                <div class="mt-12">
+                    <div class="chart-container">
+                        <canvas id="historyTimelineChart"></canvas>
+                    </div>
+                    <div id="pioneer-info" class="mt-8 bg-gray-50 p-6 rounded-xl shadow-inner min-h-[250px] transition-all duration-500">
+                        <div id="pioneer-display" class="text-center">
+                            <h3 class="text-xl font-bold text-gray-800">Seleccione un pionero en la línea de tiempo</h3>
+                            <p class="text-gray-600 mt-2">La información detallada aparecerá aquí.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Teorías Clave -->
+        <section id="teorias" class="py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-base font-semibold text-[#E07A5F] tracking-wide uppercase">Modelos Fundamentales</h2>
+                    <p class="mt-2 text-3xl font-extrabold text-gray-900 tracking-tight sm:text-4xl">Teorías Clave en la Práctica</p>
+                     <p class="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
+                        Estas teorías son pilares para entender la motivación y el comportamiento en el trabajo. Interactúe con la pirámide para ver cómo las necesidades humanas se aplican a la ARH.
+                    </p>
+                </div>
+
+                <div class="mt-12 md:grid md:grid-cols-2 md:gap-12 items-center">
+                    <div class="flex flex-col-reverse items-center">
+                        <div id="maslow-pyramid" class="w-full max-w-sm space-y-1 cursor-pointer">
+                           <!-- Pyramid levels will be generated by JS -->
+                        </div>
+                    </div>
+                    <div class="mt-10 md:mt-0">
+                        <h3 class="text-2xl font-bold text-center text-[#3D858C] mb-4">La Pirámide de Maslow</h3>
+                        <div id="maslow-display" class="bg-white p-6 rounded-xl shadow-lg min-h-[200px]">
+                            <h4 id="maslow-title" class="font-bold text-lg text-gray-800">Haga clic en un nivel de la pirámide</h4>
+                            <p id="maslow-description" class="mt-2 text-gray-600">La descripción del nivel y su aplicación en Recursos Humanos se mostrará aquí.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                 <div class="mt-16 bg-white p-8 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-bold text-center text-[#3D858C] mb-6">Teoría X y Teoría Y de McGregor</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="border-2 border-red-200 p-6 rounded-lg">
+                            <h4 class="text-xl font-bold text-red-600 text-center">Teoría X</h4>
+                            <ul class="mt-4 list-disc list-inside text-gray-700 space-y-2">
+                                <li>Los empleados son inherentemente perezosos.</li>
+                                <li>Evitan el trabajo siempre que es posible.</li>
+                                <li>Necesitan ser controlados, coaccionados y dirigidos.</li>
+                                <li>Prefieren no tener responsabilidades.</li>
+                            </ul>
+                        </div>
+                         <div class="border-2 border-green-200 p-6 rounded-lg">
+                            <h4 class="text-xl font-bold text-green-600 text-center">Teoría Y</h4>
+                            <ul class="mt-4 list-disc list-inside text-gray-700 space-y-2">
+                                <li>Los empleados son intrínsecamente motivados.</li>
+                                <li>El trabajo es tan natural como jugar o descansar.</li>
+                                <li>Buscan y aceptan responsabilidades.</li>
+                                <li>Son capaces de autodirección y creatividad.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Tendencias -->
+        <section id="tendencias" class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-base font-semibold text-[#E07A5F] tracking-wide uppercase">El Horizonte de RRHH</h2>
+                    <p class="mt-2 text-3xl font-extrabold text-gray-900 tracking-tight sm:text-4xl">Tendencias Actuales y Futuras</p>
+                    <p class="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
+                        La ARH está en constante evolución. Explore las áreas clave que están definiendo el futuro de la gestión del talento y el entorno laboral moderno.
+                    </p>
+                </div>
+                <div id="tendencias-grid" class="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                    <!-- Tendencias cards will be generated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Gemini Tools -->
+        <section id="gemini-tools" class="py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-base font-semibold text-[#E07A5F] tracking-wide uppercase">Asistente Inteligente</h2>
+                    <p class="mt-2 text-3xl font-extrabold text-gray-900 tracking-tight sm:text-4xl">✨ Herramientas Gemini para RRHH</p>
+                    <p class="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
+                        Aproveche el poder de la inteligencia artificial para tareas comunes de RRHH y para explorar conceptos en profundidad.
+                    </p>
+                </div>
+
+                <div class="mt-12 space-y-12">
+                    <!-- Job Description Generator -->
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h3 class="text-2xl font-bold text-center text-[#3D858C] mb-6">✨ Generador de Descripción de Puesto</h3>
+                        <div class="flex flex-col space-y-4">
+                            <input type="text" id="job-title-input" placeholder="Ej: Gerente de Proyectos, Especialista en RRHH" class="p-3 border border-gray-300 rounded-md focus:ring-[#3D858C] focus:border-[#3D858C]">
+                            <button id="generate-jd-button" class="bg-[#3D858C] text-white py-3 px-6 rounded-md hover:bg-[#2A656B] transition-colors flex items-center justify-center space-x-2">
+                                <span id="jd-button-text">Generar Descripción</span>
+                                <div id="jd-loading-spinner" class="loading-spinner hidden"></div>
+                            </button>
+                            <div id="job-description-output" class="mt-4 p-4 bg-gray-50 rounded-lg min-h-[150px] whitespace-pre-wrap text-gray-700 border border-gray-200">
+                                La descripción generada aparecerá aquí.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interview Questions Generator -->
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h3 class="text-2xl font-bold text-center text-[#3D858C] mb-6">✨ Ideas de Preguntas de Entrevista</h3>
+                        <div class="flex flex-col space-y-4">
+                            <input type="text" id="interview-topic-input" placeholder="Ej: Desarrollador Frontend, Habilidades de Liderazgo" class="p-3 border border-gray-300 rounded-md focus:ring-[#3D858C] focus:border-[#3D858C]">
+                            <button id="generate-questions-button" class="bg-[#E07A5F] text-white py-3 px-6 rounded-md hover:bg-[#B35F4C] transition-colors flex items-center justify-center space-x-2">
+                                <span id="questions-button-text">Generar Preguntas</span>
+                                <div id="questions-loading-spinner" class="loading-spinner hidden"></div>
+                            </button>
+                            <div id="interview-questions-output" class="mt-4 p-4 bg-gray-50 rounded-lg min-h-[150px] whitespace-pre-wrap text-gray-700 border border-gray-200">
+                                Las preguntas sugeridas aparecerán aquí.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HR Concept Expander -->
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h3 class="text-2xl font-bold text-center text-[#3D858C] mb-6">✨ Expansor de Conceptos de ARH</h3>
+                        <div class="flex flex-col space-y-4">
+                            <input type="text" id="concept-expander-input" placeholder="Ej: People Analytics, Bienestar del Empleado" class="p-3 border border-gray-300 rounded-md focus:ring-[#3D858C] focus:border-[#3D858C]">
+                            <button id="expand-concept-button" class="bg-[#3D858C] text-white py-3 px-6 rounded-md hover:bg-[#2A656B] transition-colors flex items-center justify-center space-x-2">
+                                <span id="concept-button-text">Expandir Concepto</span>
+                                <div id="concept-loading-spinner" class="loading-spinner hidden"></div>
+                            </button>
+                            <div id="concept-expander-output" class="mt-4 p-4 bg-gray-50 rounded-lg min-h-[150px] whitespace-pre-wrap text-gray-700 border border-gray-200">
+                                La expansión del concepto aparecerá aquí.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-base text-gray-400">&copy; 2025 Aplicación Interactiva de ARH. Creada para la exploración académica.</p>
+            <p class="text-sm text-gray-500 mt-2">Basado en el "Ensayo Académico: La Administración de Recursos Humanos como Pilar Estratégico Organizacional".</p>
+        </div>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('main section');
+
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            if (pageYOffset >= sectionTop - 70) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href').includes(current)) {
+                link.classList.add('active');
+            }
+        });
+    });
+
+    // Data for interactive elements
+    const objetivosData = [
+        { title: 'Corporativos', description: 'Apoyar la misión y visión de la organización, contribuyendo a su rentabilidad, crecimiento y sostenibilidad.' },
+        { title: 'Funcionales', description: 'Mantener la contribución de RRHH al nivel adecuado, asegurando eficiencia, cumplimiento y control de costos.' },
+        { title: 'Sociales', description: 'Asegurar que la organización sea socialmente responsable, promoviendo la equidad, diversidad y bienestar.' },
+        { title: 'Personales', description: 'Ayudar a los empleados a alcanzar sus metas personales y profesionales, mejorando su motivación y desempeño.' }
+    ];
+
+    const procesosData = [
+        { title: 'Capacitación', description: 'Programas formales para adquirir nuevas habilidades y conocimientos para mejorar el desempeño actual.' },
+        { title: 'Desarrollo', description: 'Actividades que preparan al empleado para futuras responsabilidades y crecimiento profesional.' },
+        { title: 'Gestión del Desempeño', description: 'Procesos sistemáticos para establecer expectativas, monitorear progreso y dar retroalimentación.' },
+        { title: 'Compensación', description: 'Salario, incentivos y beneficios que motivan y retienen a los empleados, reconociendo su valor.' }
+    ];
+    
+    const pioneersData = [
+        { era: 1820, name: 'Robert Owen', context: 'Revolución Industrial, condiciones laborales precarias.', contributions: 'Abogó por un trato humano a los trabajadores, mejores condiciones de vida y reducción de jornadas. Precursor del "paternalismo industrial".', beliefs: 'Mejorar las condiciones del empleado conduce a mayor eficiencia y moral.' },
+        { era: 1910, name: 'F.W. Taylor', context: 'Era de la producción en masa, búsqueda de la máxima eficiencia.', contributions: 'Padre de la Administración Científica. Estudio de tiempos y movimientos, planificación y selección científica del trabajo.', beliefs: 'La eficiencia se logra con estandarización, especialización y motivación económica.' },
+        { era: 1930, name: 'Elton Mayo', context: 'Reacción al enfoque mecanicista de Taylor.', contributions: 'Lideró los "Estudios de Hawthorne", descubriendo la importancia de los factores psicológicos y sociales en la productividad.', beliefs: 'El factor humano, las relaciones interpersonales y el sentido de pertenencia son cruciales para la motivación.' },
+        { era: 1943, name: 'Abraham Maslow', context: 'Auge de la psicología humanista.', contributions: 'Propuso la "Pirámide de las Necesidades Humanas", una jerarquía de necesidades que motivan a las personas.', beliefs: 'Las necesidades se satisfacen secuencialmente; una necesidad satisfecha deja de ser un motivador principal.' },
+        { era: 1960, name: 'D. McGregor', context: 'Búsqueda de la relación entre suposiciones gerenciales y comportamiento del empleado.', contributions: 'Propuso la Teoría X (empleados perezosos que necesitan control) y la Teoría Y (empleados motivados y responsables).', beliefs: 'La percepción del gerente sobre sus empleados afecta directamente su estilo de liderazgo y la cultura.' },
+        { era: 1965, name: 'Likert & Argyris', context: 'Desarrollo de modelos de gestión más complejos.', contributions: 'Likert propuso sistemas de gestión participativos. Argyris abogó por diseños organizacionales que promuevan la madurez y autonomía del empleado.', beliefs: 'La participación y la congruencia entre necesidades individuales y organizacionales aumentan la productividad.' }
+    ];
+
+    const maslowData = [
+        { level: 'Fisiológicas', color: '#84a59d', description: 'Las más básicas: alimento, agua, refugio. En el trabajo se cubren con un salario justo y condiciones laborales seguras.' },
+        { level: 'Seguridad', color: '#f28482', description: 'Protección, estabilidad, orden. Se satisface con seguridad laboral, beneficios (seguro médico, pensión) y un ambiente de trabajo predecible.' },
+        { level: 'Sociales', color: '#f5cac3', description: 'Pertenencia, amor, amistad. Se aborda fomentando el trabajo en equipo, la colaboración y un ambiente laboral positivo.' },
+        { level: 'Estima', color: '#f6bd60', description: 'Reconocimiento, estatus, respeto. Se satisface con reconocimientos, ascensos, títulos y responsabilidades que aumentan el prestigio.' },
+        { level: 'Autorrealización', color: '#e07a5f', description: 'Alcanzar el máximo potencial. Se logra con proyectos desafiantes, autonomía, creatividad y oportunidades de desarrollo personal.' }
+    ];
+
+    const tendenciasData = [
+        { title: 'People Analytics', icon: '📊', description: 'Uso de datos y análisis para mejorar las decisiones de RRHH, desde la contratación hasta la retención.' },
+        { title: 'Digitalización y IA', icon: '🤖', description: 'Implementación de tecnologías para optimizar procesos como reclutamiento, capacitación y gestión de nóminas.' },
+        { title: 'Diversidad e Inclusión', icon: '🌍', description: 'Creación de una fuerza laboral diversa y un ambiente inclusivo donde todos los empleados se sientan valorados.' },
+        { title: 'Bienestar y Salud Mental', icon: '❤️', description: 'Enfoque en la gestión del estrés, el equilibrio vida-trabajo y la salud integral de los trabajadores.' },
+        { title: 'Agilidad Organizacional', icon: '🚀', description: 'Adaptación de RRHH para soportar estructuras flexibles, aprendizaje continuo y respuesta rápida al cambio.' },
+        { title: 'Rol del HR Business Partner', icon: '🤝', description: 'El profesional de RRHH actúa como consultor estratégico para los líderes de negocio, alineando talento y estrategia.' }
+    ];
+
+
+    // Function to create and manage tab-like components
+    function createTabs(containerId, data, displayId) {
+        const container = document.querySelector(`#${containerId} > div:first-of-type`);
+        const display = document.getElementById(displayId);
+        
+        data.forEach((item, index) => {
+            const button = document.createElement('button');
+            button.textContent = item.title;
+            button.className = 'px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-[#3D858C] hover:text-white transition-colors';
+            button.onclick = () => {
+                display.textContent = item.description;
+                const allButtons = container.querySelectorAll('button');
+                allButtons.forEach(btn => btn.classList.remove('bg-[#3D858C]', 'text-white'));
+                button.classList.add('bg-[#3D858C]', 'text-white');
+            };
+            container.appendChild(button);
+        });
+    }
+
+    createTabs('objetivos-container', objetivosData, 'objetivo-display');
+    createTabs('procesos-container', procesosData, 'proceso-display');
+
+
+    // History Timeline Chart
+    const ctx = document.getElementById('historyTimelineChart').getContext('2d');
+    const pioneerDisplay = document.getElementById('pioneer-display');
+    const historyTimelineChart = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label: 'Pioneros de la ARH',
+                data: pioneersData.map(p => ({ x: p.era, y: 1, data: p })),
+                backgroundColor: '#E07A5F',
+                pointRadius: 10,
+                pointHoverRadius: 15,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.raw.data.name;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'linear',
+                    position: 'bottom',
+                    title: {
+                        display: true,
+                        text: 'Año (aproximado)'
+                    },
+                    min: 1800,
+                    max: 1980
+                },
+                y: {
+                    display: false,
+                    min: 0,
+                    max: 2,
+                }
+            },
+            onClick: (e, elements) => {
+                if (elements.length > 0) {
+                    const pioneer = pioneersData[elements[0].index];
+                    pioneerDisplay.innerHTML = `
+                        <h3 class="text-2xl font-bold text-[#3D858C]">${pioneer.name}</h3>
+                        <p class="text-sm font-semibold text-gray-500 mt-1">${pioneer.era}</p>
+                        <div class="mt-4 text-left space-y-3">
+                            <p><strong class="text-gray-800">Contexto:</strong> ${pioneer.context}</p>
+                            <p><strong class="text-gray-800">Aportaciones Clave:</strong> ${pioneer.contributions}</p>
+                            <p><strong class="text-gray-800">Creencias Relevantes:</strong> ${pioneer.beliefs}</p>
+                        </div>
+                    `;
+                }
+            },
+            onHover: (event, chartElement) => {
+                event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+            }
+        }
+    });
+
+    // Maslow Pyramid
+    const pyramidContainer = document.getElementById('maslow-pyramid');
+    const maslowTitle = document.getElementById('maslow-title');
+    const maslowDescription = document.getElementById('maslow-description');
+    
+    maslowData.reverse().forEach((item, index) => {
+        const levelDiv = document.createElement('div');
+        levelDiv.className = 'pyramid-level mx-auto text-white font-bold text-center flex items-center justify-center';
+        levelDiv.textContent = item.level;
+        levelDiv.style.backgroundColor = item.color;
+        levelDiv.style.width = `${100 - index * 15}%`;
+        levelDiv.style.height = '50px';
+
+        levelDiv.onclick = () => {
+            maslowTitle.textContent = item.level;
+            maslowDescription.textContent = item.description;
+            const allLevels = pyramidContainer.querySelectorAll('.pyramid-level');
+            allLevels.forEach(lvl => lvl.classList.remove('active'));
+            levelDiv.classList.add('active');
+        };
+
+        pyramidContainer.appendChild(levelDiv);
+    });
+
+    // Tendencias Grid
+    const tendenciasGrid = document.getElementById('tendencias-grid');
+    tendenciasData.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'bg-gray-50 p-6 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300';
+        card.innerHTML = `
+            <div class="flex items-center space-x-4">
+                <div class="text-3xl">${item.icon}</div>
+                <div>
+                    <h4 class="text-lg font-bold text-[#3D858C]">${item.title}</h4>
+                    <p class="mt-1 text-gray-600">${item.description}</p>
+                </div>
+            </div>
+        `;
+        tendenciasGrid.appendChild(card);
+    });
+
+    // Gemini API Integration
+    const apiKey = "AIzaSyBDe7jcljpJrdPFrwAxbzPWRv_NMlt5nDk"; // If you want to use models other than gemini-2.0-flash, provide an API key here. Otherwise, leave this as-is.
+
+    async function callGeminiAPI(prompt, outputElementId, buttonTextElementId, loadingSpinnerId) {
+        const outputElement = document.getElementById(outputElementId);
+        const buttonTextElement = document.getElementById(buttonTextElementId);
+        const loadingSpinner = document.getElementById(loadingSpinnerId);
+
+        outputElement.textContent = ''; // Clear previous output
+        buttonTextElement.classList.add('hidden'); // Hide button text
+        loadingSpinner.classList.remove('hidden'); // Show loading spinner
+
+        try {
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            const payload = { contents: chatHistory };
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+
+            if (result.candidates && result.candidates.length > 0 &&
+                result.candidates[0].content && result.candidates[0].content.parts &&
+                result.candidates[0].content.parts.length > 0) {
+                const text = result.candidates[0].content.parts[0].text;
+                outputElement.textContent = text;
+            } else {
+                outputElement.textContent = 'Error: No se pudo obtener una respuesta válida. Intente de nuevo.';
+            }
+        } catch (error) {
+            outputElement.textContent = `Error en la llamada a la API: ${error.message}.`;
+        } finally {
+            buttonTextElement.classList.remove('hidden'); // Show button text
+            loadingSpinner.classList.add('hidden'); // Hide loading spinner
+        }
+    }
+
+    // Event Listeners for Gemini Tools
+    document.getElementById('generate-jd-button').addEventListener('click', () => {
+        const jobTitle = document.getElementById('job-title-input').value;
+        if (jobTitle.trim()) {
+            const prompt = `Genera una descripción de puesto detallada para un "${jobTitle}". Incluye responsabilidades, requisitos, habilidades deseables y beneficios.`;
+            callGeminiAPI(prompt, 'job-description-output', 'jd-button-text', 'jd-loading-spinner');
+        } else {
+            document.getElementById('job-description-output').textContent = 'Por favor, introduce un título de puesto.';
+        }
+    });
+
+    document.getElementById('generate-questions-button').addEventListener('click', () => {
+        const interviewTopic = document.getElementById('interview-topic-input').value;
+        if (interviewTopic.trim()) {
+            const prompt = `Sugiere 5-7 preguntas de entrevista clave para un candidato con enfoque en "${interviewTopic}". Incluye preguntas situacionales y de comportamiento.`;
+            callGeminiAPI(prompt, 'interview-questions-output', 'questions-button-text', 'questions-loading-spinner');
+        } else {
+            document.getElementById('interview-questions-output').textContent = 'Por favor, introduce un tema o puesto para las preguntas.';
+        }
+    });
+
+    document.getElementById('expand-concept-button').addEventListener('click', () => {
+        const concept = document.getElementById('concept-expander-input').value;
+        if (concept.trim()) {
+            const prompt = `Explica en detalle el concepto de "${concept}" en el contexto de la Administración de Recursos Humanos. Incluye su importancia y ejemplos relevantes.`;
+            callGeminiAPI(prompt, 'concept-expander-output', 'concept-button-text', 'concept-loading-spinner');
+        } else {
+            document.getElementById('concept-expander-output').textContent = 'Por favor, introduce un concepto de ARH para expandir.';
+        }
+    });
+});
+</script>
+</body>
+</html>

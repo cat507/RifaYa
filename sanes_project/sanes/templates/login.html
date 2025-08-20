@@ -1,0 +1,83 @@
+{% load static %}
+{% load socialaccount %}
+{% load widget_tweaks %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>RaffleApp | Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@400;500;700;800"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  </head>
+  <body class="bg-[#fcf8f8] min-h-screen flex flex-col font-sans" style="font-family: 'Plus Jakarta Sans', 'Noto Sans', sans-serif;">
+
+    <!-- Header (Navbar) -->
+    <header class="flex items-center justify-between border-b border-[#f1e9ea] px-10 py-3">
+      <div class="flex items-center gap-4 text-[#191011]">
+        <div class="size-4">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 4H17.3334V17.3334H30.6666V30.6666H44V44H4V4Z" fill="currentColor"></path>
+          </svg>
+        </div>
+        <h2 class="text-lg font-bold tracking-tight">RaffleApp</h2>
+      </div>
+    </header>
+
+    <!-- Main Login Form -->
+    <main class="flex justify-center py-10 px-4 grow">
+      <div class="w-full max-w-md px-8 py-10 bg-white rounded-xl shadow-lg space-y-6">
+        <div class="text-center">
+          <h2 class="text-2xl font-bold text-[#1b0e0f]">Welcome back</h2>
+          <p class="text-[#8b5b5d] text-sm">Please enter your credentials to log in</p>
+        </div>
+
+        <form method="POST" action="{% url 'account_login' %}" class="space-y-4">
+          {% csrf_token %}
+          {{ form.non_field_errors }}
+
+          <div>
+            <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-[#1b0e0f]">Username or Email</label>
+            {{ form.username|add_class:"form-input w-full h-12 mt-1 rounded-xl bg-[#fcf8f8] border-[#e7d0d1] text-[#191011] placeholder-[#974e52] px-4" }}
+            {{ form.username.errors }}
+          </div>
+
+          <div>
+            <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-[#1b0e0f]">Password</label>
+            {{ form.password|add_class:"form-input w-full h-12 mt-1 rounded-xl bg-[#fcf8f8] border-[#e7d0d1] text-[#191011] placeholder-[#974e52] px-4" }}
+            {{ form.password.errors }}
+          </div>
+
+          {% if form.remember %}
+          <div class="flex items-center">
+            {{ form.remember }}
+            <label for="{{ form.remember.id_for_label }}" class="ml-2 text-sm text-[#8b5b5d]">Remember me</label>
+          </div>
+          {% endif %}
+
+          <a href="{% url 'account_reset_password' %}" class="text-sm text-[#974e52] underline block mt-2">Forgot password?</a>
+
+          <button type="submit" class="w-full h-12 bg-[#e82630] rounded-full font-bold text-white mt-4">
+            Log In
+          </button>
+        </form>
+
+        <div class="text-center">
+          <p class="text-sm text-[#8b5b5d] mb-2">Or</p>
+          <a href="{% provider_login_url 'google' %}" class="flex items-center justify-center gap-2 border border-gray-300 rounded-full px-4 py-2 bg-white hover:bg-gray-100 text-sm font-medium text-[#191011]">
+            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" class="h-5 w-5" />
+            Sign in with Google
+          </a>
+        </div>
+
+        <p class="text-center text-sm text-[#8b5b5d] underline mt-4">
+          Don’t have an account? <a href="{% url 'account_signup' %}" class="text-[#e82630]">Sign Up</a>
+        </p>
+      </div>
+    </main>
+  </body>
+</html>

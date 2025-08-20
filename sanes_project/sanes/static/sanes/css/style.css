@@ -1,0 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet');
+
+.custom-font {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.custom-container {
+  padding-left: 50px;
+  padding-right: 50px;
+}
+
+.custom-image {
+  width: 200%; /* Ajusta el ancho según tus necesidades */
+  height: 200%; /* Mantiene la proporción de la imagen */
+}

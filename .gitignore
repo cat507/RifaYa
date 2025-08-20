@@ -1,0 +1,22 @@
+# Ignorar el entorno virtual
+venv/
+env/
+
+# Archivos de configuración sensibles
+*.env
+config.json
+
+# Archivos de caché y compilación
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Base de datos SQLite (si estás usando SQLite en desarrollo)
+db.sqlite3
+
+app_project_sanes/node_modules/
+# Ignorar node_modules
+node_modules/
+
+sanes_project/node_modules/

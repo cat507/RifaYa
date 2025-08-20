@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link rel="stylesheet" as="style" onload="this.rel='stylesheet'"
+        href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Plus+Jakarta+Sans%3Awght%40400%3B500%3B700%3B800" />
+    <title>Sanes y Rifas</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+    </script>
+</head>
+<body>
+    <div class="relative flex size-full min-h-screen flex-col bg-[#fcf8f8] group/design-root overflow-x-hidden"
+        style='font-family: "Plus Jakarta Sans", "Noto Sans", sans-serif;'>
+        <div class="layout-container flex h-full grow flex-col">
+            <header
+                class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f3e7e8] px-10 py-3">
+                <div class="flex items-center gap-8">
+                    <div class="flex items-center gap-4 text-[#1b0e0e]">
+                        <div class="size-4">
+                            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <g clip-path="url(#clip0_6_535)">
+                                    <path fill-rule="evenodd" clip-rule="evenodd"
+                                        d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"
+                                        fill="currentColor"></path>
+                                </g>
+                                <defs>
+                                    <clipPath id="clip0_6_535">
+                                        <rect width="48" height="48" fill="white"></rect>
+                                    </clipPath>
+                                </defs>
+                            </svg>
+                        </div>
+                        <h2 class="text-[#1b0e0e] text-lg font-bold leading-tight tracking-[-0.015em]">
+                            RaffleHub
+                        </h2>
+                    </div>
+                    <div class="hidden sm:flex flex-1 justify-end gap-8" id="main-nav-desktop">
+                        <div class="flex items-center gap-9">
+                            <a class="text-[#1b0e0e] text-sm font-medium leading-normal" href="{% url 'home' %}">How it works</a>
+                            <a class="text-[#1b0e0e] text-sm font-medium leading-normal" href="{% url 'san_list' %}">Browse</a>
+                            <a class="text-[#1b0e0e] text-sm font-medium leading-normal" href="{% url 'create_san' %}">Create</a>
+                        </div>
+                        <div class="flex gap-2">
+                            {% if not user.is_authenticated %}
+                            <a href="{% url 'register' %}"
+                                class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#e92932] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em]">
+                                <span class="truncate">Sign Up</span>
+                            </a>
+                            <a href="{% url 'login' %}"
+                                class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#f3e7e8] text-[#1b0e0e] text-sm font-bold leading-normal tracking-[0.015em]">
+                                <span class="truncate">Log In</span>
+                            </a>
+                            {% else %}
+                            <a href="{% url 'user_profile' %}"
+                                class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#f3e7e8] text-[#1b0e0e] text-sm font-bold leading-normal tracking-[0.015em]">
+                                <span class="truncate">My Profile</span>
+                            </a>
+                            <a href="{% url 'logout' %}"
+                                class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#e92932] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em]">
+                                <span class="truncate">Log Out</span>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <button class="sm:hidden text-[#1b0e0e] focus:outline-none" onclick="toggleMobileMenu()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </header>
+            <div id="mobile-menu"
+                class="hidden sm:hidden flex flex-col items-center border-b border-solid border-b-[#f3e7e8] bg-[#fcf8f8] py-4">
+                <a class="text-[#1b0e0e] text-base font-medium leading-normal py-2" href="{% url 'home' %}">How it works</a>
+                <a class="text-[#1b0e0e] text-base font-medium leading-normal py-2" href="{% url 'san_list' %}">Browse</a>
+                <a class="text-[#1b0e0e] text-base font-medium leading-normal py-2" href="{% url 'create_san' %}">Create</a>
+                <div class="flex flex-col gap-2 w-full px-4 mt-4">
+                    {% if not user.is_authenticated %}
+                    <a href="{% url 'register' %}"
+                        class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#e92932] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em]">
+                        <span class="truncate">Sign Up</span>
+                    </a>
+                    <a href="{% url 'login' %}"
+                        class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#f3e7e8] text-[#1b0e0e] text-sm font-bold leading-normal tracking-[0.015em]">
+                        <span class="truncate">Log In</span>
+                    </a>
+                    {% else %}
+                    <a href="{% url 'user_profile' %}"
+                        class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#f3e7e8] text-[#1b0e0e] text-sm font-bold leading-normal tracking-[0.015em]">
+                        <span class="truncate">My Profile</span>
+                    </a>
+                    <a href="{% url 'logout' %}"
+                        class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#e92932] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em]">
+                        <span class="truncate">Log Out</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="px-4 flex flex-1 justify-center py-5 sm:px-10 lg:px-40">
+                <div class="layout-content-container flex flex-col max-w-[960px] flex-1">
+                    <div class="flex flex-col gap-4">
+                        <h2 class="text-[#1b0e0e] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pt-5">
+                            All Items
+                        </h2>
+                        
+                        <form action="{% url 'san_list' %}" method="get" class="flex flex-col gap-4">
+                            <div class="p-4">
+                                <label class="flex flex-col min-w-40 h-12 w-full">
+                                    <div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+                                        <div class="text-[#994d51] flex border-none bg-[#f3e7e8] items-center justify-center pl-4 rounded-l-lg border-r-0">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor"
+                                                viewBox="0 0 256 256">
+                                                <path
+                                                    d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z">
+                                                </path>
+                                            </svg>
+                                        </div>
+                                        <input name="q" placeholder="Search for raffles" value="{{ request.GET.q|default:'' }}"
+                                            class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#1b0e0e] focus:outline-0 focus:ring-0 border-none bg-[#f3e7e8] focus:border-none h-full placeholder:text-[#994d51] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal" />
+                                    </div>
+                                </label>
+                            </div>
+                            
+                            <div class="flex gap-3 p-3 flex-wrap pr-4">
+                                <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.sort_by %}sort_by={{ request.GET.sort_by }}&{% endif %}status=all"
+                                    class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-lg pl-4 pr-2
+                                            {% if not request.GET.status or request.GET.status == 'all' %}bg-[#e92932] text-[#fcf8f8]{% else %}bg-[#f3e7e8] text-[#1b0e0e]{% endif %}">
+                                    <p class="text-sm font-medium leading-normal">Status: All</p>
+                                </a>
+                                <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.sort_by %}sort_by={{ request.GET.sort_by }}&{% endif %}status=active"
+                                    class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-lg pl-4 pr-2
+                                            {% if request.GET.status == 'active' %}bg-[#e92932] text-[#fcf8f8]{% else %}bg-[#f3e7e8] text-[#1b0e0e]{% endif %}">
+                                    <p class="text-sm font-medium leading-normal">Status: Active</p>
+                                </a>
+                                <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.sort_by %}sort_by={{ request.GET.sort_by }}&{% endif %}status=finished"
+                                    class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-lg pl-4 pr-2
+                                            {% if request.GET.status == 'finished' %}bg-[#e92932] text-[#fcf8f8]{% else %}bg-[#f3e7e8] text-[#1b0e0e]{% endif %}">
+                                    <p class="text-sm font-medium leading-normal">Status: Finished</p>
+                                </a>
+                                
+                                <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}sort_by=price_asc"
+                                    class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-lg pl-4 pr-2
+                                            {% if 'price' in request.GET.sort_by %}bg-[#e92932] text-[#fcf8f8]{% else %}bg-[#f3e7e8] text-[#1b0e0e]{% endif %}">
+                                    <p class="text-sm font-medium leading-normal">Price</p>
+                                    <div class="text-current" data-icon="CaretDown" data-size="20px" data-weight="regular">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor"
+                                            viewBox="0 0 256 256" class="{% if request.GET.sort_by == 'price_asc' %}rotate-180{% endif %}">
+                                            <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
+                                        </svg>
+                                    </div>
+                                </a>
+                                
+                                <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}sort_by=closing_date_asc"
+                                    class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-lg pl-4 pr-2
+                                            {% if 'closing_date' in request.GET.sort_by %}bg-[#e92932] text-[#fcf8f8]{% else %}bg-[#f3e7e8] text-[#1b0e0e]{% endif %}">
+                                    <p class="text-sm font-medium leading-normal">Closing Date</p>
+                                    <div class="text-current" data-icon="CaretDown" data-size="20px" data-weight="regular">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor"
+                                            viewBox="0 0 256 256" class="{% if request.GET.sort_by == 'closing_date_asc' %}rotate-180{% endif %}">
+                                            <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
+                                        </svg>
+                                    </div>
+                                </a>
+                            </div>
+                        </form>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+                            {% for item in page_obj %}
+                            <div class="flex h-full flex-col gap-4 rounded-lg bg-[#fcf8f8] shadow-[0_0_4px_rgba(0,0,0,0.1)]">
+                                {% if item.image %}
+                                <div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-lg flex flex-col"
+                                    style='background-image: url("{{ item.image.url }}");'></div>
+                                {% else %}
+                                <div class="w-full aspect-square bg-cover rounded-lg flex flex-col bg-gray-300 flex items-center justify-center text-gray-500">
+                                    No Image
+                                </div>
+                                {% endif %}
+                                <div class="flex flex-col flex-1 justify-between p-4 pt-0 gap-4">
+                                    <div>
+                                        <p class="text-[#1b0e0e] text-base font-medium leading-normal">
+                                            {% if item.item_type == 'raffle' %}
+                                            {{ item.prize_name }}
+                                            {% else %}
+                                            {{ item.name }}
+                                            {% endif %}
+                                        </p>
+                                        <p class="text-[#994d51] text-sm font-normal leading-normal">
+                                            {% if item.item_type == 'raffle' %}
+                                            Precio del Ticket: ${{ item.ticket_price }}
+                                            {% else %}
+                                            Cuota: ${{ item.cuota }}
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    {% if item.item_type == 'raffle' %}
+                                    <a href="{% url 'raffle_detail' raffle_id=item.id %}"
+                                        class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#f3e7e8] text-[#1b0e0e] text-sm font-bold leading-normal tracking-[0.015em]">
+                                        <span class="truncate">Enter Raffle</span>
+                                    </a>
+                                    {% else %}
+                                    <a href="{% url 'san_detail' san_id=item.id %}"
+                                        class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#f3e7e8] text-[#1b0e0e] text-sm font-bold leading-normal tracking-[0.015em]">
+                                        <span class="truncate">Participate in San</span>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p>No items available at the moment.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-center pt-4 pb-5">
+                        <nav aria-label="Pagination">
+                            <ul class="flex items-center gap-2">
+                                {% if page_obj.has_previous %}
+                                <li>
+                                    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}"
+                                        class="flex size-10 items-center justify-center text-[#1b0e0e] rounded-full hover:bg-[#f3e7e8]">
+                                        <div class="text-[#1b0e0e]" data-icon="CaretLeft" data-size="18px" data-weight="regular">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18px" height="18px" fill="currentColor"
+                                                viewBox="0 0 256 256">
+                                                <path
+                                                    d="M168,40.92a8,8,0,0,0-8,0L64.92,115.08a8,8,0,0,0,0,13.84L160,215.08a8,8,0,0,0,8-13.84L80.92,128,168,54.76A8,8,0,0,0,168,40.92Z">
+                                                </path>
+                                            </svg>
+                                        </div>
+                                    </a>
+                                </li>
+                                {% endif %}
+                                {% for i in page_obj.paginator.page_range %}
+                                <li>
+                                    <a href="?page={{ i }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}"
+                                        class="text-sm font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-[#1b0e0e] rounded-full {% if page_obj.number == i %}bg-[#f3e7e8]{% endif %} hover:bg-[#f3e7e8]">
+                                        {{ i }}
+                                    </a>
+                                </li>
+                                {% endfor %}
+                                {% if page_obj.has_next %}
+                                <li>
+                                    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort_by %}&sort_by={{ request.GET.sort_by }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}"
+                                        class="flex size-10 items-center justify-center text-[#1b0e0e] rounded-full hover:bg-[#f3e7e8]">
+                                        <div class="text-[#1b0e0e]" data-icon="CaretRight" data-size="18px" data-weight="regular">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18px" height="18px" fill="currentColor"
+                                                viewBox="0 0 256 256">
+                                                <path
+                                                    d="M88,215.08a8,8,0,0,0,8,0L191.08,132a8,8,0,0,0,0-13.84L96,40.92a8,8,0,0,0-8,13.84L175.08,128,88,201.24A8,8,0,0,0,88,215.08Z">
+                                                </path>
+                                            </svg>
+                                        </div>
+                                    </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
