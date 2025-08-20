@@ -136,32 +136,32 @@
           <h2 class="text-[#1b0e0e] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">
             Active Raffles
           </h2>
-         <div
-  class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 overflow-y-hidden overflow-x-hidden">
-  {% for san in sanes %}
-  <div class="flex h-full flex-col gap-4 rounded-lg bg-[#fcf8f8] shadow-[0_0_4px_rgba(0,0,0,0.1)]">
-    <div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-lg flex flex-col"
-      style='background-image: url("{% if san.image %}{{ san.image.url }}{% else %}{% static "img/default.jpg" %}{% endif %}");'>
-    </div>
-    <div class="flex flex-col flex-1 justify-between p-4 pt-0 gap-4">
-      <div>
-        <p class="text-[#1b0e0e] text-base font-medium leading-normal">
-          {{ san.name }}
-        </p>
-        <p class="text-[#994d51] text-sm font-normal leading-normal">
-          Precio Total: ${{ san.total_price|floatformat:2 }}
-        </p>
-      </div>
-      <a href="{% url 'san_detail' san.id %}"
-        class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#f3e7e8] text-[#1b0e0e] text-sm font-bold leading-normal tracking-[0.015em]">
-        <span class="truncate">Ver Rifa</span>
-      </a>
-    </div>
-  </div>
-  {% empty %}
-  <p class="px-4 text-[#8b5b5c]">No hay rifas activas por ahora.</p>
-  {% endfor %}
-</div>
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 overflow-y-hidden overflow-x-hidden">
+            {% for san in sanes %}
+            <div class="flex h-full flex-col gap-4 rounded-lg bg-[#fcf8f8] shadow-[0_0_4px_rgba(0,0,0,0.1)]">
+              <div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-lg flex flex-col"
+                style='background-image: url("{% if san.image %}{{ san.image.url }}{% else %}{% static "img/default.jpg" %}{% endif %}");'>
+              </div>
+              <div class="flex flex-col flex-1 justify-between p-4 pt-0 gap-4">
+                <div>
+                  <p class="text-[#1b0e0e] text-base font-medium leading-normal">
+                    {{ san.name }}
+                  </p>
+                  <p class="text-[#994d51] text-sm font-normal leading-normal">
+                    Precio Total: ${{ san.total_price|floatformat:2 }}
+                  </p>
+                </div>
+                <a href="{% url 'san_detail' san.id %}"
+                  class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#f3e7e8] text-[#1b0e0e] text-sm font-bold leading-normal tracking-[0.015em]">
+                  <span class="truncate">Ver Rifa</span>
+                </a>
+              </div>
+            </div>
+            {% empty %}
+            <p class="px-4 text-[#8b5b5c]">No hay rifas activas por ahora.</p>
+            {% endfor %}
+          </div>
         </div>
       </div>
     </div>
