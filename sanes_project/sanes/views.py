@@ -1,535 +1,747 @@
+# views.py
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import DetailView
-from django.contrib import messages
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Count
 from django.core.paginator import Paginator
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
-from datetime import datetime, timedelta
+from django.urls import reverse, reverse_lazy
+from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
+from django.conf import settings
+from datetime import datetime, timedelta, date
 from decimal import Decimal
+import uuid
 import random
-
-from django.shortcuts import render
-from django.http import JsonResponse
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework import status
 
-from .forms import CustomUserCreationForm, CustomLoginForm, RaffleForm, SanForm, ConfirmPurchaseForm
-from .models import (
-    San, Raffle, Order, Ticket, Cupo,
-    Participacion, Pago,
-    CustomUser, # Asumiendo que CustomUser es tu modelo de usuario
+from .forms import (
+    CustomUserCreationForm, CustomLoginForm, RifaForm, SanForm, 
+    ParticipacionSanForm, CupoForm, FacturaForm, PagoForm
 )
-from .serializers import SanSerializer, CupoSerializer
+from .models import (
+    CustomUser, Factura, Rifa, Ticket, San, ParticipacionSan, 
+    Cupo, Orden, Pago, Comentario, Imagen
+)
+from .serializers import (
+    RifaSerializer, SanSerializer, TicketSerializer, FacturaSerializer,
+    ParticipacionSanSerializer, CupoSerializer, OrdenSerializer, PagoSerializer
+)
 from .backends import EmailOrUsernameModelBackend
 
-from django.shortcuts import render, redirect
-from django.contrib.auth import login as auth_login, logout as auth_logout, authenticate
-from .forms import CustomLoginForm
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404
-from .models import San, Participacion
-from django.contrib.auth.decorators import login_required
-from datetime import date
-from django.shortcuts import render, get_object_or_404
-from .models import San, Participacion, Pago
-from django.contrib.auth.decorators import login_required
-from datetime import timedelta
-from django.shortcuts import render
-from .models import Participacion, Pago
-from .forms import RaffleForm
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Q
-from django.core.paginator import Paginator
-from django.utils import timezone
-from datetime import datetime, timedelta
-from .forms import RaffleForm
-from .models import Raffle, San, Ticket, Participacion, CustomUser
-import uuid
-import random
-from django.contrib.contenttypes.models import ContentType
-from .models import TicketRifa, Factura
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from .models import San, TicketSan
-# views.py
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from .forms import CambiarFotoPerfilForm
-
-@login_required
-def cambiar_foto_perfil(request):
+# ---------------------
+# VISTAS DE AUTENTICACIÓN
+# ---------------------
+def register_view(request):
+    """Vista para registro de usuarios"""
     if request.method == 'POST':
-        form = CambiarFotoPerfilForm(request.POST, request.FILES, instance=request.user)
+        form = CustomUserCreationForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
-            return redirect('user_profile')  # O a donde quieras redirigir
-    else:
-        form = CambiarFotoPerfilForm(instance=request.user)
-
-    return render(request, 'cambiar_foto_perfil.html', {'form': form})
-
-def buy_raffle_tickets(request, raffle_id):
-    ...
-    factura = Factura.objects.create(
-        usuario=request.user,
-        concepto=f"Compra de {cantidad} tickets para {raffle.title}",
-        monto=raffle.ticket_price * cantidad
-    )
-    for _ in range(cantidad):
-        TicketRifa.objects.create(
-            usuario=request.user,
-            rifa=raffle,
-            factura=factura
-        )
-    messages.success(request, f"Compra realizada con éxito. ID Factura: {factura.identificador_unico}")
-    ...
-
-def comprar_ticket(request, rifa_id):
-    rifa = get_object_or_404(Rifa, id=rifa_id)
-    ticket = TicketRifa.objects.create(rifa=rifa, usuario=request.user)
-    Factura.objects.create(
-        usuario=request.user,
-        content_type=ContentType.objects.get_for_model(rifa),
-        object_id=rifa.id,
-        monto_total=rifa.precio_ticket,
-        estado_pago='paid'
-    )
-    return redirect('factura_detail', codigo=ticket.codigo_ticket)
-
-def asignar_beneficiario(san):
-    # Encuentra al próximo que no haya cobrado
-    beneficiario = ParticipanteSan.objects.filter(san=san, estado_cobro='pending').order_by('orden').first()
-    if beneficiario:
-        beneficiario.estado_cobro = 'received'
-        beneficiario.save()
-        return beneficiario
-    return None
-
-
-
-def elegir_ganador(rifa_id):
-    tickets = list(TicketRifa.objects.filter(rifa_id=rifa_id))
-    if not tickets:
-        return None
-    ganador = random.choice(tickets)
-    return ganador.usuario
-
-def generar_codigo_factura(prefijo):
-    return f"{prefijo}-{uuid.uuid4().hex[:8].upper()}"
-
-@login_required
-def create_san(request):
-    if request.method == 'POST':
-        form = SanForm(request.POST, request.FILES)
-        if form.is_valid():
-            san = form.save(commit=False)
-            san.organizer = request.user
-            san.save()
-            messages.success(request, 'SAN creado exitosamente.')
-            return redirect('san_detail', san_id=san.id)
-    else:
-        form = SanForm()
-
-    return render(request, 'create_san.html', {'form': form})
-
-@login_required
-def user_profile_view(request):
-    return render(request, 'user_profile_view.html')
-
-# --- Funciones Auxiliares ---
-def user_is_not_authenticated(user):
-    return not user.is_authenticated
-
-def get_sort_date(item):
-    """
-    Función auxiliar para obtener la fecha de un objeto San o Raffle.
-    Asegura que todo se convierta a un objeto datetime con zona horaria (aware).
-    """
-    if isinstance(item, San):
-        naive_dt = datetime.combine(item.fecha_fin, datetime.min.time())
-        # Convierte el datetime 'naive' a 'aware'
-        return timezone.make_aware(naive_dt)
-    elif isinstance(item, Raffle):
-        return item.draw_date
-    return timezone.now()
-
-@login_required
-def cambiar_foto_perfil(request):
-    if request.method == 'POST' and request.FILES.get('foto_perfil'):
-        nueva_foto = request.FILES['foto_perfil']
-        request.user.foto_perfil = nueva_foto
-        request.user.save()
-        messages.success(request, "Tu foto de perfil se actualizó correctamente.")
-    return redirect('user_profile')  # Ajusta si tu vista de perfil se llama diferente
-
-# --- Vistas principales ---
-def home(request):
-    # Obtener solo algunas rifas (por ejemplo, las últimas 4)
-    sanes = San.objects.all().order_by('-fecha_inicio')[:4]
-    return render(request, 'home.html', {'sanes': sanes})
-
-def san_list(request):
-    query = request.GET.get('q')
-    sort_by = request.GET.get('sort_by', 'closing_date_desc')
-    status_filter = request.GET.get('status', 'all')
-
-    sanes = list(San.objects.all())
-    raffles = list(Raffle.objects.all())
-    all_items = sanes + raffles
-
-    # Asigna un tipo de item a cada objeto
-    for item in all_items:
-        if isinstance(item, Raffle):
-            item.item_type = 'raffle'
-        else:
-            item.item_type = 'san'
-
-    if query:
-        all_items = [
-            item for item in all_items
-            if (hasattr(item, 'name') and query.lower() in item.name.lower()) or
-               (hasattr(item, 'title') and query.lower() in item.title.lower()) or
-               (hasattr(item, 'prize_name') and query.lower() in item.prize_name.lower())
-        ]
-
-    now = timezone.now().date()
-    
-    if status_filter == 'active':
-        all_items = [
-            item for item in all_items
-            if (hasattr(item, 'fecha_fin') and (item.fecha_fin.date() if isinstance(item.fecha_fin, datetime) else item.fecha_fin) >= now)
-        ]
-    elif status_filter == 'finished':
-        all_items = [
-            item for item in all_items
-            if (hasattr(item, 'fecha_fin') and (item.fecha_fin.date() if isinstance(item.fecha_fin, datetime) else item.fecha_fin) < now)
-        ]
-
-    if sort_by == 'price_asc':
-        all_items = sorted(all_items, key=lambda item: item.total_price if hasattr(item, 'total_price') else 0, reverse=False)
-    elif sort_by == 'price_desc':
-        all_items = sorted(all_items, key=lambda item: item.total_price if hasattr(item, 'total_price') else 0, reverse=True)
-    elif sort_by == 'closing_date_asc':
-        all_items = sorted(all_items, key=lambda item: item.fecha_fin.date() if isinstance(item.fecha_fin, datetime) else item.fecha_fin, reverse=False)
-    elif sort_by == 'closing_date_desc':
-        all_items = sorted(all_items, key=lambda item: item.fecha_fin.date() if isinstance(item.fecha_fin, datetime) else item.fecha_fin, reverse=True)
-    
-    paginator = Paginator(all_items, 12)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    context = {
-        'page_obj': page_obj,
-        'query': query,
-        'sort_by': sort_by,
-        'status_filter': status_filter,
-    }
-    return render(request, 'san_list.html', context)
-
-def raffle_detail(request, raffle_id):
-    raffle = get_object_or_404(Raffle, pk=raffle_id)
-
-    tickets_sold = Ticket.objects.filter(order__raffle=raffle).count()
-    tickets_available = raffle.num_cuotas - tickets_sold
-
-    # Alias para la plantilla (coincidir con lo que espera el HTML)
-    raffle.title = raffle.prize_name
-    raffle.ticket_price = raffle.total_price / raffle.num_cuotas if raffle.num_cuotas else 0
-    raffle.total_tickets = raffle.num_cuotas
-    raffle.draw_date = raffle.fecha_fin  # <-- clave para el contador
-
-    now = timezone.now()
-    if raffle.draw_date > now:
-        countdown_timedelta = raffle.draw_date - now
-    else:
-        countdown_timedelta = timedelta(0)
-
-    context = {
-        'raffle': raffle,
-        'tickets_available': tickets_available,
-        'countdown_days': countdown_timedelta.days,
-        'countdown_hours': countdown_timedelta.seconds // 3600,
-        'countdown_minutes': (countdown_timedelta.seconds % 3600) // 60,
-        'countdown_seconds': countdown_timedelta.seconds % 60,
-    }
-    return render(request, 'raffle_detail.html', context)
-
-def buy_raffle_tickets(request, raffle_id):
-    raffle = get_object_or_404(Raffle, pk=raffle_id)
-    if request.method == 'POST':
-        try:
-            quantity = int(request.POST.get('quantity', 0))
-            if quantity > 0:
-                total_price = quantity * raffle.ticket_price
-                messages.success(request, f"Has comprado {quantity} ticket(s) por un total de ${total_price}. ¡Buena suerte!")
-                return redirect('raffle_detail', raffle_id=raffle.id)
-            else:
-                messages.error(request, "La cantidad de tickets debe ser al menos 1.")
-                return redirect('raffle_detail', raffle_id=raffle.id)
-        except (ValueError, TypeError):
-            messages.error(request, "Cantidad de tickets inválida.")
-            return redirect('raffle_detail', raffle_id=raffle.id)
-    
-    return redirect('raffle_detail', raffle_id=raffle.id)
-
-@login_required
-def create_raffle(request):
-    if request.method == 'POST':
-        form = RaffleForm(request.POST, request.FILES)
-        if form.is_valid():
-            raffle = form.save(commit=False)
-            raffle.organizer = request.user
-            raffle.save()
-            messages.success(request, 'Rifa creada con éxito.')
-            # Redirección correcta después de guardar
-            return redirect('san_list') 
-        else:
-            # IMPRIME LOS ERRORES DEL FORMULARIO PARA DEPURAR
-            print(form.errors)
-            # Continúa a renderizar el formulario con los errores
-    else:
-        form = RaffleForm()
-
-    context = {
-        'form': form,
-    }
-    return render(request, 'create_raffle.html', context)
-
-def mis_sanes(request):
-    if request.user.is_authenticated:
-        participaciones = Participacion.objects.filter(user=request.user)
-    else:
-        participaciones = None
-
-    return render(request, 'mis_sanes.html', {
-        'participaciones': participaciones,
-    })
-
-@login_required
-def san_detail(request, san_id):
-    san = get_object_or_404(San, pk=san_id)
-    participantes = TicketSan.objects.filter(san=san).select_related('usuario')
-    participaciones = list(Participacion.objects.filter(san=san).order_by('id'))
-    num_participantes_activos = len(participaciones)
-    cuota_a_pagar = san.cuota or (san.total_price / san.num_cuotas if san.num_cuotas else 0)
-
-    participantes_con_datos = []
-    frecuencia_semanal = timedelta(weeks=1)
-
-    for index, participacion in enumerate(participaciones):
-        cupos = Cupo.objects.filter(participante=participacion.user, san=san)
-        pagos_realizados = Pago.objects.filter(cupo__in=cupos, estado='confirmado').exists()
-
-        estado_pago = 'Paid' if pagos_realizados else 'Pending'
-
-        fecha_desembolso = (san.fecha_inicio + (index * frecuencia_semanal)) if san.fecha_inicio else None
-        fecha_desembolso_formateada = fecha_desembolso.strftime("%B %d, %Y") if fecha_desembolso else 'N/A'
-
-        participantes_con_datos.append({
-            'nombre': participacion.user.get_full_name() or participacion.user.username,
-            'estado_pago': estado_pago,
-            'fecha_desembolso': fecha_desembolso_formateada,
-        })
-
-    context = {
-        'san': san,
-        'participantes': participantes_con_datos,
-        'cuota_a_pagar': cuota_a_pagar,
-        'num_participantes_activos': num_participantes_activos,
-    }
-    return render(request, 'san_detail.html', {
-        'san': san,
-        'participantes': participantes
-    })
-
-@login_required
-def my_contributions_view(request):
-    user_participaciones = Participacion.objects.filter(user=request.user).order_by('-id')
-    user_pagos = Pago.objects.filter(participante=request.user).order_by('-id')
-
-    context = {
-        'participaciones': user_participaciones,
-        'pagos': user_pagos,
-    }
-    return render(request, 'my_contributions.html', context)
-
-@login_required
-def generar_ticket_san(request, san_id):
-    san = get_object_or_404(San, id=san_id)
-
-    # Cupos disponibles
-    numeros_ocupados = TicketSan.objects.filter(san=san).values_list('numero', flat=True)
-    posibles_numeros = [n for n in range(1, san.total_participantes + 1) if n not in numeros_ocupados]
-
-    if not posibles_numeros:
-        messages.error(request, "No hay cupos disponibles para este SAN.")
-        return redirect('san_detail', san_id=san.id)
-
-    numero_ticket = random.choice(posibles_numeros)
-    codigo_ticket = str(uuid.uuid4())[:8]
-
-    TicketSan.objects.create(
-        san=san,
-        usuario=request.user,
-        numero=numero_ticket,
-        codigo_unico=codigo_ticket
-    )
-
-    messages.success(request, f"¡Ticket generado! Número: {numero_ticket} | Código: {codigo_ticket}")
-    return redirect('san_detail', san_id=san.id)
-
-@property
-def cupos_disponibles(self):
-    return self.total_participantes - self.tickets.count()
-
-def buy_san(request, san_id):
-    san = get_object_or_404(San, id=san_id)
-    cupos_asignados = san.cupos.filter(asignado=True).count()
-    total_participantes = san.total_participantes
-    if cupos_asignados < total_participantes:
-        cupos_disponibles = san.cupos.filter(asignado=False).exclude(numero_semana=1)
-        if cupos_disponibles.exists():
-            cupo_asignado = random.choice(cupos_disponibles)
-            cupo_asignado.participante = request.user
-            cupo_asignado.asignado = True
-            cupo_asignado.save()
-            success_message = "Cupo asignado exitosamente."
-            messages.success(request, success_message)
-            return redirect('confirm_purchase', san_id=san_id)
-        else:
-            error_message = "No hay cupos disponibles en este momento."
-            messages.error(request, error_message)
-    else:
-        error_message = "No hay cupos disponibles para este SAN."
-        messages.error(request, error_message)
-    return redirect('san_detail', san_id=san_id)
-
-def asignar_cupo_aleatorio(san_id, usuario):
-    san = get_object_or_404(San, pk=san_id)
-    cupos_disponibles = san.cupos.filter(asignado=False).exclude(numero_semana=1)
-    if cupos_disponibles.exists():
-        cupo_asignado = random.choice(cupos_disponibles)
-        cupo_asignado.participante = usuario
-        cupo_asignado.asignado = True
-        cupo_asignado.save()
-    else:
-        pass # Lógica en caso de que no haya cupos disponibles
-
-def confirmar_compra(request, san_id):
-    san = get_object_or_404(San, pk=san_id)
-    tasa_bs = Decimal('90')
-    monto_bs = san.cuota
-    monto_pesos = monto_bs * tasa_bs
-    context = {
-        'san': san,
-        'monto_pesos': monto_pesos
-    }
-    return render(request, 'confirm_purchase.html', context)
-
-def order_confirmation(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
-    san = order.san
-    ticket = Ticket.objects.filter(order=order).first()
-    return render(request, 'order_confirmation.html', {
-        'order': order,
-        'san': san,
-        'ticket': ticket
-    })
-
-@user_passes_test(user_is_not_authenticated)
-def register(request):
-    if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('login')
+            user = form.save()
+            login(request, user)
+            messages.success(request, '¡Registro exitoso! Bienvenido al sistema.')
+            return redirect('home')
     else:
         form = CustomUserCreationForm()
-    return render(request, 'register.html', {'form': form})
+    
+    return render(request, 'registration/register.html', {'form': form})
+
 
 def login_view(request):
+    """Vista para login de usuarios"""
     if request.method == 'POST':
-        form = CustomLoginForm(request, data=request.POST)
+        form = CustomLoginForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(request, username=username, password=password)
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+            user = authenticate(request, username=email, password=password)
             if user is not None:
-                auth_login(request, user)
+                login(request, user)
+                messages.success(request, f'¡Bienvenido, {user.get_full_name_or_username()}!')
                 return redirect('home')
+            else:
+                messages.error(request, 'Credenciales inválidas.')
     else:
         form = CustomLoginForm()
-    return render(request, 'account/login.html', {'form': form})
+    
+    return render(request, 'registration/login.html', {'form': form})
+
 
 def logout_view(request):
-    auth_logout(request)
+    """Vista para logout de usuarios"""
+    logout(request)
+    messages.info(request, 'Has cerrado sesión exitosamente.')
     return redirect('home')
 
+
+# ---------------------
+# VISTAS PRINCIPALES
+# ---------------------
+def home(request):
+    """Vista principal del sistema"""
+    # Obtener rifas y sanes activos
+    rifas_activas = Rifa.objects.filter(estado='activa').order_by('-created_at')[:6]
+    sanes_activos = San.objects.filter(estado='activo').order_by('-created_at')[:6]
+    
+    # Estadísticas generales
+    total_rifas = Rifa.objects.count()
+    total_sanes = San.objects.count()
+    total_usuarios = CustomUser.objects.count()
+    
+    context = {
+        'rifas_activas': rifas_activas,
+        'sanes_activos': sanes_activos,
+        'total_rifas': total_rifas,
+        'total_sanes': total_sanes,
+        'total_usuarios': total_usuarios,
+    }
+    
+    return render(request, 'home.html', context)
+
+
+# ---------------------
+# VISTAS DE RIFAS
+# ---------------------
+class RifaListView(ListView):
+    """Lista de rifas disponibles"""
+    model = Rifa
+    template_name = 'rifa_list.html'
+    context_object_name = 'rifas'
+    paginate_by = 12
+    ordering = ['-created_at']
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Filtrar por estado si se especifica
+        estado = self.request.GET.get('estado')
+        if estado:
+            queryset = queryset.filter(estado=estado)
+        
+        # Búsqueda por título
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(titulo__icontains=search) | 
+                Q(descripcion__icontains=search) |
+                Q(premio__icontains=search)
+            )
+        
+        return queryset
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['estados'] = Rifa.ESTADOS_RIFA
+        return context
+
+
+class RifaDetailView(DetailView):
+    """Detalle de una rifa específica"""
+    model = Rifa
+    template_name = 'rifa_detail.html'
+    context_object_name = 'rifa'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        rifa = self.get_object()
+        
+        # Obtener tickets de la rifa
+        context['tickets'] = rifa.tickets.all().order_by('numero')
+        context['tickets_vendidos'] = rifa.tickets_vendidos()
+        context['porcentaje_vendido'] = rifa.porcentaje_vendido()
+        
+        # Verificar si el usuario actual tiene tickets
+        if self.request.user.is_authenticated:
+            context['tickets_usuario'] = rifa.tickets.filter(usuario=self.request.user)
+        
+        return context
+
+
+class RifaCreateView(LoginRequiredMixin, CreateView):
+    """Crear una nueva rifa"""
+    model = Rifa
+    form_class = RifaForm
+    template_name = 'rifa_create.html'
+    success_url = reverse_lazy('rifa_list')
+    
+    def form_valid(self, form):
+        form.instance.organizador = self.request.user
+        messages.success(self.request, 'Rifa creada exitosamente.')
+        return super().form_valid(form)
+
+
+class RifaUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Editar una rifa existente"""
+    model = Rifa
+    form_class = RifaForm
+    template_name = 'rifa_update.html'
+    
+    def test_func(self):
+        rifa = self.get_object()
+        return self.request.user == rifa.organizador or self.request.user.is_admin()
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Rifa actualizada exitosamente.')
+        return super().form_valid(form)
+
+
+@login_required
+def comprar_ticket_rifa(request, rifa_id):
+    """Comprar un ticket de rifa"""
+    rifa = get_object_or_404(Rifa, id=rifa_id)
+    
+    if not rifa.puede_vender_tickets():
+        messages.error(request, 'No se pueden comprar tickets para esta rifa.')
+        return redirect('rifa_detail', pk=rifa_id)
+    
+    if request.method == 'POST':
+        cantidad = int(request.POST.get('cantidad', 1))
+        
+        if cantidad > rifa.tickets_disponibles:
+            messages.error(request, 'No hay suficientes tickets disponibles.')
+            return redirect('rifa_detail', pk=rifa_id)
+        
+        # Crear orden y factura
+        with transaction.atomic():
+            orden = Orden.objects.create(
+                usuario=request.user,
+                content_type=ContentType.objects.get_for_model(Rifa),
+                object_id=rifa.id,
+                subtotal=rifa.precio_ticket * cantidad,
+                total=rifa.precio_ticket * cantidad,
+                estado='pendiente'
+            )
+            
+            factura = Factura.objects.create(
+                usuario=request.user,
+                content_type=ContentType.objects.get_for_model(Rifa),
+                object_id=rifa.id,
+                monto_total=rifa.precio_ticket * cantidad,
+                estado_pago='pendiente'
+            )
+            
+            # Crear tickets
+            for i in range(cantidad):
+                ticket = Ticket.objects.create(
+                    rifa=rifa,
+                    usuario=request.user,
+                    precio_pagado=rifa.precio_ticket,
+                    factura=factura
+                )
+            
+            # Actualizar tickets disponibles
+            rifa.tickets_disponibles -= cantidad
+            rifa.save()
+        
+        messages.success(request, f'Se compraron {cantidad} ticket(s) exitosamente.')
+        return redirect('checkout_raffle', rifa_id=rifa_id)
+    
+    return redirect('rifa_detail', pk=rifa_id)
+
+
+@login_required
+def checkout_raffle(request, rifa_id):
+    """Checkout para compra de tickets de rifa"""
+    rifa = get_object_or_404(Rifa, id=rifa_id)
+    tickets_usuario = rifa.tickets.filter(usuario=request.user).order_by('-fecha_compra')
+    
+    if not tickets_usuario.exists():
+        messages.error(request, 'No tienes tickets para esta rifa.')
+        return redirect('rifa_detail', pk=rifa_id)
+    
+    # Obtener la factura más reciente
+    factura = tickets_usuario.first().factura
+    
+    context = {
+        'rifa': rifa,
+        'tickets': tickets_usuario,
+        'factura': factura,
+        'total_pagado': tickets_usuario.aggregate(total=Sum('precio_pagado'))['total'] or 0
+    }
+    
+    return render(request, 'rifa_checkout.html', context)
+
+
+# ---------------------
+# VISTAS DE SANES
+# ---------------------
+class SanListView(ListView):
+    """Lista de sanes disponibles"""
+    model = San
+    template_name = 'san_list.html'
+    context_object_name = 'sanes'
+    paginate_by = 12
+    ordering = ['-created_at']
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Filtrar por estado si se especifica
+        estado = self.request.GET.get('estado')
+        if estado:
+            queryset = queryset.filter(estado=estado)
+        
+        # Filtrar por tipo si se especifica
+        tipo = self.request.GET.get('tipo')
+        if tipo:
+            queryset = queryset.filter(tipo=tipo)
+        
+        # Búsqueda por nombre
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(nombre__icontains=search) | 
+                Q(descripcion__icontains=search)
+            )
+        
+        return queryset
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['estados'] = San.ESTADOS_SAN
+        context['tipos'] = San.TIPOS_SAN
+        return context
+
+
 class SanDetailView(DetailView):
+    """Detalle de un san específico"""
     model = San
     template_name = 'san_detail.html'
     context_object_name = 'san'
-
-    def get_object(self):
-        return get_object_or_404(San, id=self.kwargs['id'])
-
-# --- APIs ---
-class SanListAPIView(APIView):
-    def get(self, request):
-        sanes = San.objects.all()
-        serializer = SanSerializer(sanes, many=True)
-        return Response(serializer.data)
-
-def generar_ticket_san(request, san_id):
-    san = get_object_or_404(San, id=san_id)
-
-    # Verificar cupos disponibles
-    if san.cupos_disponibles() <= 0:
-        messages.error(request, "No hay cupos disponibles para este SAN.")
-        return redirect('san_detail', san_id=san.id)
-
-    # Obtener el siguiente número de ticket
-    siguiente_numero = (TicketSan.objects.filter(san=san).count() + 1)
-
-    # Crear ticket
-    TicketSan.objects.create(
-        san=san,
-        usuario=request.user,
-        numero=siguiente_numero
-    )
-
-    messages.success(request, "¡Ticket generado con éxito!")
-    return redirect('san_detail', san_id=san.id)
-
-class CupoListAPIView(APIView):
-    def get(self, request):
-        cupos = Cupo.objects.all()
-        serializer = CupoSerializer(cupos, many=True)
-        return Response(serializer.data)
     
-@api_view(['GET'])
-def api_home(request):
-    """
-    Página de inicio de la API.
-    Devuelve una respuesta JSON simple.
-    """
-    data = {
-        'message': 'Bienvenido a la API de Sane y Rifas.',
-        'endpoints': {
-            'sanes_list': '/api/sanes/',
-            'cupos_list': '/api/cupos/',
-        }
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        san = self.get_object()
+        
+        # Obtener participaciones del san
+        context['participaciones'] = san.participaciones.all().order_by('orden_cobro')
+        context['cupos_disponibles'] = san.cupos_disponibles()
+        context['porcentaje_ocupado'] = san.porcentaje_ocupado()
+        
+        # Verificar si el usuario actual participa
+        if self.request.user.is_authenticated:
+            context['participacion_usuario'] = san.participaciones.filter(usuario=self.request.user).first()
+        
+        return context
+
+
+class SanCreateView(LoginRequiredMixin, CreateView):
+    """Crear un nuevo san"""
+    model = San
+    form_class = SanForm
+    template_name = 'san_create.html'
+    success_url = reverse_lazy('san_list')
+    
+    def form_valid(self, form):
+        form.instance.organizador = self.request.user
+        messages.success(self.request, 'San creado exitosamente.')
+        return super().form_valid(form)
+
+
+class SanUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Editar un san existente"""
+    model = San
+    form_class = SanForm
+    template_name = 'san_update.html'
+    
+    def test_func(self):
+        san = self.get_object()
+        return self.request.user == san.organizador or self.request.user.is_admin()
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'San actualizado exitosamente.')
+        return super().form_valid(form)
+
+
+@login_required
+def inscribirse_san(request, san_id):
+    """Inscribirse en un san"""
+    san = get_object_or_404(San, id=san_id)
+    
+    if not san.puede_agregar_participante():
+        messages.error(request, 'No se puede inscribir en este san.')
+        return redirect('san_detail', pk=san_id)
+    
+    # Verificar si ya está inscrito
+    if san.participaciones.filter(usuario=request.user).exists():
+        messages.warning(request, 'Ya estás inscrito en este san.')
+        return redirect('san_detail', pk=san_id)
+    
+    if request.method == 'POST':
+        # Crear participación
+        participacion = ParticipacionSan.objects.create(
+            san=san,
+            usuario=request.user,
+            orden_cobro=san.participaciones.count() + 1
+        )
+        
+        # Actualizar contador de participantes
+        san.participantes_actuales += 1
+        san.save()
+        
+        messages.success(request, 'Te has inscrito exitosamente en el san.')
+        return redirect('checkout_san', san_id=san_id)
+    
+    return redirect('san_detail', pk=san_id)
+
+
+@login_required
+def checkout_san(request, san_id):
+    """Checkout para inscripción en san"""
+    san = get_object_or_404(San, id=san_id)
+    participacion = san.participaciones.filter(usuario=request.user).first()
+    
+    if not participacion:
+        messages.error(request, 'No estás inscrito en este san.')
+        return redirect('san_detail', pk=san_id)
+    
+    # Obtener cuotas del usuario
+    cuotas = san.cupos.filter(participacion=participacion).order_by('numero_semana')
+    
+    context = {
+        'san': san,
+        'participacion': participacion,
+        'cuotas': cuotas,
+        'cuotas_pendientes': participacion.cuotas_pendientes(),
+        'monto_pendiente': participacion.monto_pendiente()
     }
-    return Response(data)
+    
+    return render(request, 'san_checkout.html', context)
+
+
+# ---------------------
+# VISTAS DE FACTURAS
+# ---------------------
+class FacturaListView(LoginRequiredMixin, ListView):
+    """Lista de facturas del usuario"""
+    model = Factura
+    template_name = 'factura_list.html'
+    context_object_name = 'facturas'
+    paginate_by = 10
+    ordering = ['-fecha_emision']
+    
+    def get_queryset(self):
+        if self.request.user.is_admin():
+            return super().get_queryset()
+        return super().get_queryset().filter(usuario=self.request.user)
+
+
+class FacturaDetailView(LoginRequiredMixin, DetailView):
+    """Detalle de una factura"""
+    model = Factura
+    template_name = 'factura_detail.html'
+    context_object_name = 'factura'
+    
+    def get_queryset(self):
+        if self.request.user.is_admin():
+            return super().get_queryset()
+        return super().get_queryset().filter(usuario=self.request.user)
+
+
+@login_required
+def subir_comprobante_factura(request, factura_id):
+    """Subir comprobante de pago para una factura"""
+    factura = get_object_or_404(Factura, id=factura_id, usuario=request.user)
+    
+    if request.method == 'POST':
+        comprobante = request.FILES.get('comprobante')
+        if comprobante:
+            factura.comprobante_pago = comprobante
+            factura.estado_pago = 'pendiente'
+            factura.save()
+            messages.success(request, 'Comprobante subido exitosamente.')
+        else:
+            messages.error(request, 'Debe seleccionar un archivo.')
+    
+    return redirect('factura_detail', pk=factura_id)
+
+
+# ---------------------
+# VISTAS DE PAGOS
+# ---------------------
+@login_required
+def pagar_cuota_san(request, cupo_id):
+    """Pagar una cuota de san"""
+    cupo = get_object_or_404(Cupo, id=cupo_id)
+    
+    # Verificar que el cupo pertenece al usuario
+    if cupo.participacion.usuario != request.user:
+        messages.error(request, 'No tienes permisos para pagar este cupo.')
+        return redirect('san_detail', pk=cupo.san.id)
+    
+    if request.method == 'POST':
+        metodo_pago = request.POST.get('metodo_pago', 'efectivo')
+        
+        # Crear factura y pago
+        with transaction.atomic():
+            factura = Factura.objects.create(
+                usuario=request.user,
+                content_type=ContentType.objects.get_for_model(Cupo),
+                object_id=cupo.id,
+                monto_total=cupo.monto_cuota,
+                estado_pago='pendiente',
+                metodo_pago=metodo_pago
+            )
+            
+            pago = Pago.objects.create(
+                usuario=request.user,
+                content_type=ContentType.objects.get_for_model(Cupo),
+                object_id=cupo.id,
+                monto=cupo.monto_cuota,
+                estado='pendiente',
+                metodo_pago=metodo_pago,
+                factura=factura
+            )
+            
+            # Actualizar cupo
+            cupo.factura = factura
+            cupo.save()
+        
+        messages.success(request, 'Pago registrado exitosamente. Pendiente de confirmación.')
+        return redirect('factura_detail', pk=factura.id)
+    
+    return redirect('san_detail', pk=cupo.san.id)
+
+
+# ---------------------
+# VISTAS DE PERFIL DE USUARIO
+# ---------------------
+@login_required
+def user_profile(request):
+    """Perfil del usuario"""
+    user = request.user
+    
+    # Obtener rifas y sanes del usuario
+    rifas_usuario = Rifa.objects.filter(organizador=user)
+    sanes_usuario = San.objects.filter(organizador=user)
+    
+    # Obtener tickets comprados
+    tickets_comprados = Ticket.objects.filter(usuario=user).select_related('rifa')
+    
+    # Obtener participaciones en sanes
+    participaciones = ParticipacionSan.objects.filter(usuario=user).select_related('san')
+    
+    context = {
+        'user': user,
+        'rifas_usuario': rifas_usuario,
+        'sanes_usuario': sanes_usuario,
+        'tickets_comprados': tickets_comprados,
+        'participaciones': participaciones,
+    }
+    
+    return render(request, 'user_profile.html', context)
+
+
+@login_required
+def cambiar_foto_perfil(request):
+    """Cambiar foto de perfil"""
+    if request.method == 'POST':
+        foto = request.FILES.get('foto_perfil')
+        if foto:
+            request.user.foto_perfil = foto
+            request.user.save()
+            messages.success(request, 'Foto de perfil actualizada exitosamente.')
+        else:
+            messages.error(request, 'Debe seleccionar una imagen.')
+    
+    return redirect('user_profile')
+
+
+# ---------------------
+# VISTAS DE ADMINISTRACIÓN
+# ---------------------
+@login_required
+@user_passes_test(lambda u: u.is_admin())
+def admin_dashboard(request):
+    """Dashboard de administración"""
+    # Estadísticas generales
+    total_usuarios = CustomUser.objects.count()
+    total_rifas = Rifa.objects.count()
+    total_sanes = San.objects.count()
+    total_facturas = Factura.objects.count()
+    
+    # Facturas pendientes
+    facturas_pendientes = Factura.objects.filter(estado_pago='pendiente').order_by('-fecha_emision')
+    
+    # Últimas actividades
+    ultimas_rifas = Rifa.objects.order_by('-created_at')[:5]
+    ultimos_sanes = San.objects.order_by('-created_at')[:5]
+    
+    context = {
+        'total_usuarios': total_usuarios,
+        'total_rifas': total_rifas,
+        'total_sanes': total_sanes,
+        'total_facturas': total_facturas,
+        'facturas_pendientes': facturas_pendientes,
+        'ultimas_rifas': ultimas_rifas,
+        'ultimos_sanes': ultimos_sanes,
+    }
+    
+    return render(request, 'admin_dashboard.html', context)
+
+
+@login_required
+@user_passes_test(lambda u: u.is_admin())
+def confirmar_pago(request, factura_id):
+    """Confirmar pago de una factura"""
+    factura = get_object_or_404(Factura, id=factura_id)
+    
+    if request.method == 'POST':
+        factura.estado_pago = 'confirmado'
+        factura.monto_pagado = factura.monto_total
+        factura.save()
+        
+        # Actualizar pagos relacionados
+        pagos = factura.pagos.all()
+        for pago in pagos:
+            pago.estado = 'confirmado'
+            pago.save()
+        
+        # Si es un cupo, marcarlo como pagado
+        if factura.content_type.model == 'cupo':
+            cupo = Cupo.objects.get(id=factura.object_id)
+            cupo.estado = 'pagado'
+            cupo.fecha_pago = date.today()
+            cupo.save()
+            
+            # Actualizar participación
+            participacion = cupo.participacion
+            participacion.cuotas_pagadas += 1
+            participacion.fecha_ultima_cuota = date.today()
+            participacion.save()
+        
+        messages.success(request, 'Pago confirmado exitosamente.')
+    
+    return redirect('admin_dashboard')
+
+
+@login_required
+@user_passes_test(lambda u: u.is_admin())
+def rechazar_pago(request, factura_id):
+    """Rechazar pago de una factura"""
+    factura = get_object_or_404(Factura, id=factura_id)
+    
+    if request.method == 'POST':
+        factura.estado_pago = 'rechazado'
+        factura.save()
+        
+        # Actualizar pagos relacionados
+        pagos = factura.pagos.all()
+        for pago in pagos:
+            pago.estado = 'rechazado'
+            pago.save()
+        
+        messages.success(request, 'Pago rechazado exitosamente.')
+    
+    return redirect('admin_dashboard')
+
+
+# ---------------------
+# VISTAS DE REPORTES
+# ---------------------
+@login_required
+@user_passes_test(lambda u: u.is_admin())
+def reporte_rifas(request):
+    """Reporte de rifas"""
+    rifas = Rifa.objects.all().order_by('-created_at')
+    
+    # Estadísticas
+    total_rifas = rifas.count()
+    rifas_activas = rifas.filter(estado='activa').count()
+    rifas_finalizadas = rifas.filter(estado='finalizada').count()
+    total_tickets_vendidos = Ticket.objects.count()
+    
+    context = {
+        'rifas': rifas,
+        'total_rifas': total_rifas,
+        'rifas_activas': rifas_activas,
+        'rifas_finalizadas': rifas_finalizadas,
+        'total_tickets_vendidos': total_tickets_vendidos,
+    }
+    
+    return render(request, 'reporte_rifas.html', context)
+
+
+@login_required
+@user_passes_test(lambda u: u.is_admin())
+def reporte_sanes(request):
+    """Reporte de sanes"""
+    sanes = San.objects.all().order_by('-created_at')
+    
+    # Estadísticas
+    total_sanes = sanes.count()
+    sanes_activos = sanes.filter(estado='activo').count()
+    sanes_finalizados = sanes.filter(estado='finalizado').count()
+    total_participantes = ParticipacionSan.objects.count()
+    
+    context = {
+        'sanes': sanes,
+        'total_sanes': total_sanes,
+        'sanes_activos': sanes_activos,
+        'sanes_finalizados': sanes_finalizados,
+        'total_participantes': total_participantes,
+    }
+    
+    return render(request, 'reporte_sanes.html', context)
+
+
+# ---------------------
+# VISTAS API (REST Framework)
+# ---------------------
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def api_rifa_list(request):
+    """API: Lista de rifas"""
+    rifas = Rifa.objects.all()
+    serializer = RifaSerializer(rifas, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def api_rifa_detail(request, pk):
+    """API: Detalle de rifa"""
+    rifa = get_object_or_404(Rifa, pk=pk)
+    serializer = RifaSerializer(rifa)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def api_san_list(request):
+    """API: Lista de sanes"""
+    sanes = San.objects.all()
+    serializer = SanSerializer(sanes, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def api_san_detail(request, pk):
+    """API: Detalle de san"""
+    san = get_object_or_404(San, pk=pk)
+    serializer = SanSerializer(san)
+    return Response(serializer.data)
+
+
+# ---------------------
+# VISTAS DE ERROR
+# ---------------------
+def handler404(request, exception):
+    """Manejo de error 404"""
+    return render(request, 'errors/404.html', status=404)
+
+
+def handler500(request):
+    """Manejo de error 500"""
+    return render(request, 'errors/500.html', status=500)
 

@@ -2,37 +2,67 @@
 from django.urls import path, include
 from . import views
 
-# Vistas API
-from .views import SanListAPIView, CupoListAPIView
-
 urlpatterns = [
-    # --- Vistas Principales ---
+    # ---------------------
+    # VISTAS PRINCIPALES
+    # ---------------------
     path('', views.home, name='home'),
-    path('sanes-y-rifas/', views.san_list, name='san_list'),
-    path('raffle/<int:raffle_id>/', views.raffle_detail, name='raffle_detail'),
-    path('create-raffle/', views.create_raffle, name='create_raffle'),
-    path('buy-raffle-tickets/<int:raffle_id>/', views.buy_raffle_tickets, name='buy_raffle_tickets'),
-
-    # --- Autenticación y Perfil ---
+    
+    # ---------------------
+    # AUTENTICACIÓN
+    # ---------------------
     path('login/', views.login_view, name='login'),
-    path('register/', views.register, name='register'),
+    path('register/', views.register_view, name='register'),
     path('logout/', views.logout_view, name='logout'),
-    path('perfil/', views.user_profile_view, name='user_profile'),
+    
+    # ---------------------
+    # RIFAS
+    # ---------------------
+    path('rifas/', views.RifaListView.as_view(), name='rifa_list'),
+    path('rifas/<int:pk>/', views.RifaDetailView.as_view(), name='rifa_detail'),
+    path('rifas/crear/', views.RifaCreateView.as_view(), name='rifa_create'),
+    path('rifas/<int:pk>/editar/', views.RifaUpdateView.as_view(), name='rifa_update'),
+    path('rifas/<int:rifa_id>/comprar/', views.comprar_ticket_rifa, name='comprar_ticket_rifa'),
+    path('rifas/<int:rifa_id>/checkout/', views.checkout_raffle, name='checkout_raffle'),
+    
+    # ---------------------
+    # SANES
+    # ---------------------
+    path('sanes/', views.SanListView.as_view(), name='san_list'),
+    path('sanes/<int:pk>/', views.SanDetailView.as_view(), name='san_detail'),
+    path('sanes/crear/', views.SanCreateView.as_view(), name='san_create'),
+    path('sanes/<int:pk>/editar/', views.SanUpdateView.as_view(), name='san_update'),
+    path('sanes/<int:san_id>/inscribirse/', views.inscribirse_san, name='inscribirse_san'),
+    path('sanes/<int:san_id>/checkout/', views.checkout_san, name='checkout_san'),
+    
+    # ---------------------
+    # FACTURAS
+    # ---------------------
+    path('facturas/', views.FacturaListView.as_view(), name='factura_list'),
+    path('facturas/<int:pk>/', views.FacturaDetailView.as_view(), name='factura_detail'),
+    path('facturas/<int:factura_id>/subir-comprobante/', views.subir_comprobante_factura, name='subir_comprobante_factura'),
+    
+    # ---------------------
+    # PAGOS
+    # ---------------------
+    path('pagos/cuota/<int:cupo_id>/', views.pagar_cuota_san, name='pagar_cuota_san'),
+    
+    # ---------------------
+    # PERFIL DE USUARIO
+    # ---------------------
+    path('perfil/', views.user_profile, name='user_profile'),
     path('perfil/cambiar-foto/', views.cambiar_foto_perfil, name='cambiar_foto_perfil'),
-
-
-    # --- SANes ---
-    path('mis-sanes/', views.mis_sanes, name='mis_sanes'),
-    path('san/<int:san_id>/', views.san_detail, name='san_detail'), # Corregido
-    path('buy-san/<int:san_id>/', views.buy_san, name='buy_san'),
-    path('confirmar-compra/<int:san_id>/', views.confirmar_compra, name='confirm_purchase'),
-    path('order-confirmation/<int:order_id>/', views.order_confirmation, name='order_confirmation'),
-    path('create-san/', views.create_san, name='create_san'),
-    path('mis-contribuciones/', views.my_contributions_view, name='my_contributions'),
-    path('san/<int:san_id>/generar-ticket/', views.generar_ticket_san, name='generar_ticket_san'),
-
-    # --- APIs ---
-    path('api/sanes/', SanListAPIView.as_view(), name='san_list_api'),
-    path('api/cupos/', CupoListAPIView.as_view(), name='cupo_list_api'),
-    path("", views.api_home, name="api_home"),
+    
+    # ---------------------
+    # ADMINISTRACIÓN
+    # ---------------------
+    path('admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin/facturas/<int:factura_id>/confirmar/', views.confirmar_pago, name='confirmar_pago'),
+    path('admin/facturas/<int:factura_id>/rechazar/', views.rechazar_pago, name='rechazar_pago'),
+    
+    # ---------------------
+    # REPORTES
+    # ---------------------
+    path('reportes/rifas/', views.reporte_rifas, name='reporte_rifas'),
+    path('reportes/sanes/', views.reporte_sanes, name='reporte_sanes'),
 ]

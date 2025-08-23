@@ -1,147 +1,468 @@
+# forms.py
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from django.conf import settings
-from .models import CustomUser
-from django.contrib.auth.forms import AuthenticationForm
-# sanes/forms.py
-from django import forms
-from .models import Raffle  # Asegúrate de importar el modelo Raffle
-from django import forms
-from .models import San, Raffle, Comment
-from allauth.account.forms import SignupForm
-from django import forms
-from .models import San, Raffle, Comment
-from allauth.account.forms import SignupForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth import authenticate
+from .models import (
+    CustomUser, Rifa, San, ParticipacionSan, Cupo, 
+    Factura, Pago, Orden, Comentario, Imagen
+)
 
-from django import forms
-from .models import Raffle
-
-# sanes/forms.py
-from django import forms
-from .models import Raffle
-
-class CambiarFotoPerfilForm(forms.ModelForm):
-    class Meta:
-        model = CustomUser
-        fields = ['foto_perfil']
-
-class RaffleForm(forms.ModelForm):
-    class Meta:
-        model = Raffle
-        fields = [
-            'description',
-            'prize_name',
-            'total_price',
-            'num_cuotas',
-            'fecha_fin',
-            'image',
-        ]
-        widgets = {
-            'description': forms.Textarea(attrs={
-                'class': 'form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#191010] focus:outline-0 focus:ring-0 border-none bg-[#f1e9ea] focus:border-none min-h-36 placeholder:text-[#8b5b5c] p-4 text-base font-normal leading-normal',
-                'placeholder': 'Describe the prize in detail',
-            }),
-            'prize_name': forms.TextInput(attrs={
-                'class': 'form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#191010] focus:outline-0 focus:ring-0 border-none bg-[#f1e9ea] focus:border-none h-14 placeholder:text-[#8b5b5c] p-4 text-base font-normal leading-normal',
-                'placeholder': 'Enter the name of the prize',
-            }),
-            'total_price': forms.NumberInput(attrs={
-                'class': 'form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#191010] focus:outline-0 focus:ring-0 border-none bg-[#f1e9ea] focus:border-none h-14 placeholder:text-[#8b5b5c] p-4 text-base font-normal leading-normal',
-                'placeholder': 'Enter the total price of the prize',
-            }),
-            'num_cuotas': forms.NumberInput(attrs={
-                'class': 'form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#191010] focus:outline-0 focus:ring-0 border-none bg-[#f1e9ea] focus:border-none h-14 placeholder:text-[#8b5b5c] p-4 text-base font-normal leading-normal',
-                'placeholder': 'Enter the total number of tickets',
-            }),
-            'fecha_fin': forms.DateInput(attrs={
-                'class': 'form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#191010] focus:outline-0 focus:ring-0 border-none bg-[#f1e9ea] focus:border-none h-14 placeholder:text-[#8b5b5c] p-4 text-base font-normal leading-normal',
-                'type': 'datetime-local',
-            }),
-            'image': forms.FileInput(attrs={
-                'class': 'form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#191010] focus:outline-0 focus:ring-0 border-none bg-[#f1e9ea] focus:border-none h-14 placeholder:text-[#8b5b5c] p-4 text-base font-normal leading-normal',
-            }),
-        }
-
+# ---------------------
+# FORMULARIOS DE AUTENTICACIÓN
+# ---------------------
 class CustomLoginForm(AuthenticationForm):
-    username = forms.CharField(label="Correo Electrónico o Usuario", max_length=254)
-    password = forms.CharField(label="Contraseña", widget=forms.PasswordInput)
+    """Formulario personalizado de login"""
+    username = forms.CharField(
+        label="Correo Electrónico o Usuario", 
+        max_length=254,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': 'Ingresa tu correo o usuario'
+        })
+    )
+    password = forms.CharField(
+        label="Contraseña", 
+        widget=forms.PasswordInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': 'Ingresa tu contraseña'
+        })
+    )
 
     def clean_username(self):
         username_or_email = self.cleaned_data['username']
-        return username_or_email  # No es necesario hacer validaciones adicionales aquí
+        return username_or_email
+
 
 class CustomUserCreationForm(UserCreationForm):
-    cedula = forms.CharField(max_length=20, required=True, label="Cédula")
-    oficio = forms.CharField(max_length=100, required=True, label="Oficio")
-    telefono = forms.CharField(max_length=15, required=True, label="Teléfono")
-    email = forms.EmailField(required=True, label="Correo Electrónico")
+    """Formulario personalizado de registro de usuarios"""
+    first_name = forms.CharField(
+        max_length=30, 
+        required=True, 
+        label="Nombre",
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': 'Ingresa tu nombre'
+        })
+    )
+    last_name = forms.CharField(
+        max_length=30, 
+        required=True, 
+        label="Apellido",
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': 'Ingresa tu apellido'
+        })
+    )
+    email = forms.EmailField(
+        required=True, 
+        label="Correo Electrónico",
+        widget=forms.EmailInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': 'Ingresa tu correo electrónico'
+        })
+    )
+    cedula = forms.CharField(
+        max_length=20, 
+        required=True, 
+        label="Cédula",
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': 'Ingresa tu número de cédula'
+        })
+    )
+    oficio = forms.CharField(
+        max_length=100, 
+        required=True, 
+        label="Oficio",
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': 'Ingresa tu oficio o profesión'
+        })
+    )
+    phone_number = forms.CharField(
+        max_length=15, 
+        required=True, 
+        label="Teléfono",
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': 'Ingresa tu número de teléfono'
+        })
+    )
+    address = forms.CharField(
+        max_length=255, 
+        required=False, 
+        label="Dirección",
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': 'Ingresa tu dirección (opcional)'
+        })
+    )
+    date_of_birth = forms.DateField(
+        required=False, 
+        label="Fecha de Nacimiento",
+        widget=forms.DateInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'type': 'date'
+        })
+    )
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'password1', 'password2', 'cedula', 'oficio', 'telefono']
+        fields = [
+            'username', 'first_name', 'last_name', 'email', 
+            'password1', 'password2', 'cedula', 'oficio', 
+            'phone_number', 'address', 'date_of_birth'
+        ]
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if CustomUser.objects.filter(email=email).exists():
+            raise forms.ValidationError('Este correo electrónico ya está registrado.')
+        return email
+
+    def clean_cedula(self):
+        cedula = self.cleaned_data.get('cedula')
+        if CustomUser.objects.filter(cedula=cedula).exists():
+            raise forms.ValidationError('Esta cédula ya está registrada.')
+        return cedula
 
     def save(self, commit=True):
-        user = super().save(commit)
+        user = super().save(commit=False)
         user.email = self.cleaned_data['email']
         user.cedula = self.cleaned_data['cedula']
         user.oficio = self.cleaned_data['oficio']
-        user.phone_number = self.cleaned_data['telefono']
+        user.phone_number = self.cleaned_data['phone_number']
+        user.address = self.cleaned_data['address']
+        user.date_of_birth = self.cleaned_data['date_of_birth']
+        
         if commit:
             user.save()
         return user
 
-from django import forms
 
-class ConfirmPurchaseForm(forms.Form):
-    PAYMENT_METHOD_CHOICES = [
-        ('bank_transfer', 'Transferencia Bancaria'),
-        ('cash', 'Efectivo'),
-    ]
-    payment_method = forms.ChoiceField(choices=PAYMENT_METHOD_CHOICES, widget=forms.RadioSelect)
-    payment_receipt = forms.ImageField(required=False, help_text="Sube una captura del pago si seleccionas transferencia bancaria.")
+class CambiarFotoPerfilForm(forms.ModelForm):
+    """Formulario para cambiar foto de perfil"""
+    class Meta:
+        model = CustomUser
+        fields = ['foto_perfil']
+        widgets = {
+            'foto_perfil': forms.FileInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'accept': 'image/*'
+            })
+        }
 
-    def clean(self):
-        cleaned_data = super().clean()
-        payment_method = cleaned_data.get("payment_method")
-        payment_receipt = cleaned_data.get("payment_receipt")
 
-        # Verificar que la captura de pantalla esté presente si se selecciona transferencia bancaria
-        if payment_method == 'bank_transfer' and not payment_receipt:
-            raise forms.ValidationError("Debes subir una captura del pago para transferencia bancaria.")
+# ---------------------
+# FORMULARIOS DE RIFAS
+# ---------------------
+class RifaForm(forms.ModelForm):
+    """Formulario para crear/editar rifas"""
+    class Meta:
+        model = Rifa
+        fields = [
+            'titulo', 'descripcion', 'premio', 'precio_ticket', 
+            'total_tickets', 'fecha_fin', 'imagen'
+        ]
+        widgets = {
+            'titulo': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'placeholder': 'Ingresa el título de la rifa'
+            }),
+            'descripcion': forms.Textarea(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'placeholder': 'Describe el premio en detalle',
+                'rows': 4
+            }),
+            'premio': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'placeholder': 'Ingresa el nombre del premio'
+            }),
+            'precio_ticket': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'placeholder': 'Precio por ticket',
+                'min': '0.01',
+                'step': '0.01'
+            }),
+            'total_tickets': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'placeholder': 'Total de tickets disponibles',
+                'min': '1'
+            }),
+            'fecha_fin': forms.DateTimeInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'type': 'datetime-local'
+            }),
+            'imagen': forms.FileInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'accept': 'image/*'
+            })
+        }
 
-from django import forms
-from .models import San
 
+# ---------------------
+# FORMULARIOS DE SANES
+# ---------------------
 class SanForm(forms.ModelForm):
+    """Formulario para crear/editar sanes"""
     class Meta:
         model = San
         fields = [
-            'name', 
-            'organizador', 
-            'fecha_inicio', 
-            'total_price', 
-            'num_cuotas', 
-            'payment_frequency', 
-            'type_of_san', 
-            'image', 
-            'total_participantes'
+            'nombre', 'descripcion', 'precio_total', 'numero_cuotas',
+            'total_participantes', 'frecuencia_pago', 'tipo', 'fecha_fin', 'imagen'
         ]
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre del SAN o Producto'}),
-            'organizador': forms.Select(attrs={'class': 'form-control'}),
-            'fecha_inicio': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'total_price': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Precio Total'}),
-            'num_cuotas': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Número de Cuotas'}),
-            'payment_frequency': forms.Select(attrs={'class': 'form-control'}),
-            'type_of_san': forms.Select(attrs={'class': 'form-control'}),
-            'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
-            'total_participantes': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Total de Participantes'}),
+            'nombre': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'placeholder': 'Ingresa el nombre del san'
+            }),
+            'descripcion': forms.Textarea(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'placeholder': 'Describe el san en detalle',
+                'rows': 4
+            }),
+            'precio_total': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'placeholder': 'Precio total del san',
+                'min': '0.01',
+                'step': '0.01'
+            }),
+            'numero_cuotas': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'placeholder': 'Número de cuotas',
+                'min': '1'
+            }),
+            'total_participantes': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'placeholder': 'Total de participantes',
+                'min': '1'
+            }),
+            'frecuencia_pago': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+            }),
+            'tipo': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+            }),
+            'fecha_fin': forms.DateInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'type': 'date'
+            }),
+            'imagen': forms.FileInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'accept': 'image/*'
+            })
         }
 
-class CommentForm(forms.ModelForm):
+
+# ---------------------
+# FORMULARIOS DE PARTICIPACIÓN
+# ---------------------
+class ParticipacionSanForm(forms.ModelForm):
+    """Formulario para participación en sanes"""
     class Meta:
-        model = Comment
-        fields = ['comment']
+        model = ParticipacionSan
+        fields = ['orden_cobro']
         widgets = {
-            'comment': forms.Textarea(attrs={'rows': 4}),
+            'orden_cobro': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'min': '1'
+            })
         }
+
+
+# ---------------------
+# FORMULARIOS DE CUPOS
+# ---------------------
+class CupoForm(forms.ModelForm):
+    """Formulario para cupos de sanes"""
+    class Meta:
+        model = Cupo
+        fields = ['numero_semana', 'monto_cuota', 'fecha_vencimiento']
+        widgets = {
+            'numero_semana': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'min': '1'
+            }),
+            'monto_cuota': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'min': '0.01',
+                'step': '0.01'
+            }),
+            'fecha_vencimiento': forms.DateInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'type': 'date'
+            })
+        }
+
+
+# ---------------------
+# FORMULARIOS DE FACTURAS
+# ---------------------
+class FacturaForm(forms.ModelForm):
+    """Formulario para facturas"""
+    class Meta:
+        model = Factura
+        fields = ['monto_total', 'metodo_pago', 'comprobante_pago', 'notas']
+        widgets = {
+            'monto_total': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'min': '0.01',
+                'step': '0.01'
+            }),
+            'metodo_pago': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+            }),
+            'comprobante_pago': forms.FileInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'accept': 'image/*'
+            }),
+            'notas': forms.Textarea(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'rows': 3
+            })
+        }
+
+
+# ---------------------
+# FORMULARIOS DE PAGOS
+# ---------------------
+class PagoForm(forms.ModelForm):
+    """Formulario para pagos"""
+    class Meta:
+        model = Pago
+        fields = ['monto', 'metodo_pago', 'comprobante_pago', 'notas']
+        widgets = {
+            'monto': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'min': '0.01',
+                'step': '0.01'
+            }),
+            'metodo_pago': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+            }),
+            'comprobante_pago': forms.FileInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'accept': 'image/*'
+            }),
+            'notas': forms.Textarea(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'rows': 3
+            })
+        }
+
+
+# ---------------------
+# FORMULARIOS DE COMPRA
+# ---------------------
+class CompraTicketForm(forms.Form):
+    """Formulario para comprar tickets"""
+    cantidad = forms.IntegerField(
+        min_value=1,
+        max_value=10,
+        initial=1,
+        label="Cantidad de Tickets",
+        widget=forms.NumberInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'min': '1',
+            'max': '10'
+        })
+    )
+    metodo_pago = forms.ChoiceField(
+        choices=[
+            ('efectivo', 'Efectivo'),
+            ('transferencia', 'Transferencia'),
+            ('tarjeta', 'Tarjeta de Crédito/Débito'),
+        ],
+        label="Método de Pago",
+        widget=forms.Select(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+        })
+    )
+
+
+class InscripcionSanForm(forms.Form):
+    """Formulario para inscribirse en un san"""
+    metodo_pago = forms.ChoiceField(
+        choices=[
+            ('efectivo', 'Efectivo'),
+            ('transferencia', 'Transferencia'),
+            ('tarjeta', 'Tarjeta de Crédito/Débito'),
+        ],
+        label="Método de Pago",
+        widget=forms.Select(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+        })
+    )
+    acepto_terminos = forms.BooleanField(
+        required=True,
+        label="Acepto los términos y condiciones",
+        widget=forms.CheckboxInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+        })
+    )
+
+
+# ---------------------
+# FORMULARIOS DE BÚSQUEDA
+# ---------------------
+class BusquedaRifasForm(forms.Form):
+    """Formulario de búsqueda para rifas"""
+    q = forms.CharField(
+        required=False,
+        label="Buscar",
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': 'Buscar rifas...'
+        })
+    )
+    sort_by = forms.ChoiceField(
+        required=False,
+        choices=[
+            ('recent', 'Más recientes'),
+            ('price_low', 'Precio menor'),
+            ('price_high', 'Precio mayor'),
+            ('ending_soon', 'Terminando pronto'),
+        ],
+        label="Ordenar por",
+        widget=forms.Select(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+        })
+    )
+
+
+class BusquedaSanesForm(forms.Form):
+    """Formulario de búsqueda para sanes"""
+    q = forms.CharField(
+        required=False,
+        label="Buscar",
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': 'Buscar sanes...'
+        })
+    )
+    tipo = forms.ChoiceField(
+        required=False,
+        choices=[
+            ('', 'Todos los tipos'),
+            ('ahorro', 'Ahorro'),
+            ('producto', 'Producto'),
+            ('servicio', 'Servicio'),
+        ],
+        label="Tipo",
+        widget=forms.Select(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+        })
+    )
+    sort_by = forms.ChoiceField(
+        required=False,
+        choices=[
+            ('recent', 'Más recientes'),
+            ('price_low', 'Precio menor'),
+            ('price_high', 'Precio mayor'),
+            ('participants', 'Más participantes'),
+        ],
+        label="Ordenar por",
+        widget=forms.Select(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+        })
+    )
