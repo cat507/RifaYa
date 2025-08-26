@@ -49,7 +49,12 @@ AUTH_USER_MODEL = "sanes.CustomUser"
 
 ACCOUNT_EMAIL_VERIFICATION = "optional"
 ACCOUNT_LOGIN_METHODS = {"username", "email"}
-ACCOUNT_SIGNUP_FIELDS = ["email", "username", "password"]
+ACCOUNT_SIGNUP_FIELDS = {
+    "email": {"required": True},
+    "username": {"required": True},
+    "password1": {"required": True},  # importante
+    "password2": {"required": True},  # importante
+}
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 
 # URLs de redireccionamiento
@@ -57,8 +62,9 @@ LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_LOGOUT_ON_GET = False
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
-ACCOUNT_FORMS = {"login": "allauth.account.forms.LoginForm"}
-
+ACCOUNT_FORMS = {
+    "login": "sanes.forms.CustomLoginForm",
+}
 LOGOUT_REDIRECT_URL = "login/"
 
 # ================================

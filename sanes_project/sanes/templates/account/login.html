@@ -28,6 +28,11 @@
       </div>
     </header>
 
+    {% for field in form %}
+    <p>{{ field.name }}</p>
+{% endfor %}
+
+
     <!-- Main Login Form -->
     <main class="flex justify-center py-10 px-4 grow">
       <div class="w-full max-w-md px-8 py-10 bg-white rounded-xl shadow-lg space-y-6">
@@ -39,6 +44,7 @@
         <form method="POST" action="{% url 'account_login' %}" class="space-y-4">
           {% csrf_token %}
           {{ form.non_field_errors }}
+
           <div>
             <label for="{{ form.login.id_for_label }}" class="block text-sm font-medium text-[#1b0e0f]">Username or Email</label>
             {{ form.login|add_class:"form-input w-full h-12 mt-1 rounded-xl bg-[#fcf8f8] border-[#e7d0d1] text-[#191011] placeholder-[#974e52] px-4" }}

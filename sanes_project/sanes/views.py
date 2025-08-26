@@ -27,7 +27,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import status
 
 from .forms import (
-    CustomUserCreationForm, CustomLoginForm, RifaForm, SanForm, 
+    CustomUserCreationForm, RifaForm, SanForm, 
     ParticipacionSanForm, CupoForm, FacturaForm, PagoForm
 )
 from .models import (
@@ -55,7 +55,7 @@ def register_view(request):
     else:
         form = CustomUserCreationForm()
     
-    return render(request, 'registration/register.html', {'form': form})
+    return render(request, 'account/register.html', {'form': form})
 
 
 def login_view(request):
@@ -75,7 +75,7 @@ def login_view(request):
     else:
         form = CustomLoginForm()
     
-    return render(request, 'registration/login.html', {'form': form})
+    return render(request, 'account/login.html', {'form': form})
 
 
 def logout_view(request):
@@ -107,7 +107,7 @@ def home(request):
         'total_usuarios': total_usuarios,
     }
     
-    return render(request, 'home.html', context)
+    return render(request, 'misc/home.html', context)
 
 
 # ---------------------
@@ -116,7 +116,7 @@ def home(request):
 class RifaListView(ListView):
     """Lista de rifas disponibles"""
     model = Rifa
-    template_name = 'rifa_list.html'
+    template_name = 'raffle/rifa_list.html'
     context_object_name = 'rifas'
     paginate_by = 12
     ordering = ['-created_at']
@@ -148,7 +148,7 @@ class RifaListView(ListView):
 class RifaDetailView(DetailView):
     """Detalle de una rifa específica"""
     model = Rifa
-    template_name = 'rifa_detail.html'
+    template_name = 'raffle/raffle_detail.html'
     context_object_name = 'rifa'
     
     def get_context_data(self, **kwargs):
@@ -171,7 +171,7 @@ class RifaCreateView(LoginRequiredMixin, CreateView):
     """Crear una nueva rifa"""
     model = Rifa
     form_class = RifaForm
-    template_name = 'rifa_create.html'
+    template_name = 'raffle/rifa_create.html'
     success_url = reverse_lazy('rifa_list')
     
     def form_valid(self, form):
@@ -184,7 +184,7 @@ class RifaUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """Editar una rifa existente"""
     model = Rifa
     form_class = RifaForm
-    template_name = 'rifa_update.html'
+    template_name = 'raffle/create_raffle.html'
     
     def test_func(self):
         rifa = self.get_object()
@@ -269,7 +269,7 @@ def checkout_raffle(request, rifa_id):
         'total_pagado': tickets_usuario.aggregate(total=Sum('precio_pagado'))['total'] or 0
     }
     
-    return render(request, 'rifa_checkout.html', context)
+    return render(request, 'raffle/raffle_checkout.html', context)
 
 
 # ---------------------
@@ -278,7 +278,7 @@ def checkout_raffle(request, rifa_id):
 class SanListView(ListView):
     """Lista de sanes disponibles"""
     model = San
-    template_name = 'san_list.html'
+    template_name = 'san/san_list.html'
     context_object_name = 'sanes'
     paginate_by = 12
     ordering = ['-created_at']
@@ -315,7 +315,7 @@ class SanListView(ListView):
 class SanDetailView(DetailView):
     """Detalle de un san específico"""
     model = San
-    template_name = 'san_detail.html'
+    template_name = 'san/san_detail.html'
     context_object_name = 'san'
     
     def get_context_data(self, **kwargs):
@@ -338,7 +338,7 @@ class SanCreateView(LoginRequiredMixin, CreateView):
     """Crear un nuevo san"""
     model = San
     form_class = SanForm
-    template_name = 'san_create.html'
+    template_name = 'san/create_san.html'
     success_url = reverse_lazy('san_list')
     
     def form_valid(self, form):
@@ -351,7 +351,7 @@ class SanUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """Editar un san existente"""
     model = San
     form_class = SanForm
-    template_name = 'san_update.html'
+    template_name = 'san/mis_sanes.html'
     
     def test_func(self):
         san = self.get_object()
@@ -415,7 +415,7 @@ def checkout_san(request, san_id):
         'monto_pendiente': participacion.monto_pendiente()
     }
     
-    return render(request, 'san_checkout.html', context)
+    return render(request, 'san/cuotas_san.html', context)
 
 
 # ---------------------
@@ -424,7 +424,7 @@ def checkout_san(request, san_id):
 class FacturaListView(LoginRequiredMixin, ListView):
     """Lista de facturas del usuario"""
     model = Factura
-    template_name = 'factura_list.html'
+    template_name = 'orders/factura_list.html'
     context_object_name = 'facturas'
     paginate_by = 10
     ordering = ['-fecha_emision']
@@ -438,7 +438,7 @@ class FacturaListView(LoginRequiredMixin, ListView):
 class FacturaDetailView(LoginRequiredMixin, DetailView):
     """Detalle de una factura"""
     model = Factura
-    template_name = 'factura_detail.html'
+    template_name = 'orders/factura_detail.html'
     context_object_name = 'factura'
     
     def get_queryset(self):
@@ -538,7 +538,7 @@ def user_profile(request):
         'participaciones': participaciones,
     }
     
-    return render(request, 'user_profile.html', context)
+    return render(request, 'user/profile.html', context)
 
 
 @login_required
@@ -586,7 +586,7 @@ def admin_dashboard(request):
         'ultimos_sanes': ultimos_sanes,
     }
     
-    return render(request, 'admin_dashboard.html', context)
+    return render(request, 'admin/dashboard.html', context)
 
 
 @login_required
@@ -668,7 +668,7 @@ def reporte_rifas(request):
         'total_tickets_vendidos': total_tickets_vendidos,
     }
     
-    return render(request, 'reporte_rifas.html', context)
+    return render(request, 'reports/reporte_rifas.html', context)
 
 
 @login_required
@@ -691,7 +691,7 @@ def reporte_sanes(request):
         'total_participantes': total_participantes,
     }
     
-    return render(request, 'reporte_sanes.html', context)
+    return render(request, 'reports/reporte_sanes.html', context)
 
 
 # ---------------------
@@ -738,10 +738,10 @@ def api_san_detail(request, pk):
 # ---------------------
 def handler404(request, exception):
     """Manejo de error 404"""
-    return render(request, 'errors/404.html', status=404)
+    return render(request, 'misc/errors/404.html', status=404)
 
 
 def handler500(request):
     """Manejo de error 500"""
-    return render(request, 'errors/500.html', status=500)
+    return render(request, 'misc/errors/500.html', status=500)
 

@@ -59,7 +59,7 @@
           <div class="flex items-center gap-9">
             <a class="text-[#1b0e0e] text-sm font-medium leading-normal" href="{% url 'home' %}">How it works</a>
             <a class="text-[#1b0e0e] text-sm font-medium leading-normal" href="{% url 'san_list' %}">Browse</a>
-            <a class="text-[#1b0e0e] text-sm font-medium leading-normal" href="{% url 'create_san' %}">Create</a>
+            <a class="text-[#1b0e0e] text-sm font-medium leading-normal" href="{% url 'san_create' %}">Create</a>
           </div>
           <div class="flex gap-2">
             {% if not user.is_authenticated %}
@@ -89,7 +89,7 @@
         class="hidden sm:hidden flex flex-col items-center border-b border-solid border-b-[#f3e7e8] bg-[#fcf8f8] py-4">
         <a class="text-[#1b0e0e] text-base font-medium leading-normal py-2" href="{% url 'home' %}">How it works</a>
         <a class="text-[#1b0e0e] text-base font-medium leading-normal py-2" href="{% url 'san_list' %}">Browse</a>
-        <a class="text-[#1b0e0e] text-base font-medium leading-normal py-2" href="{% url 'create_san' %}">Create</a>
+        <a class="text-[#1b0e0e] text-base font-medium leading-normal py-2" href="{% url 'san_create' %}">Create</a>
         <div class="flex flex-col gap-2 w-full px-4 mt-4">
           <a href="{% url 'register' %}"
             class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#e92932] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em]">

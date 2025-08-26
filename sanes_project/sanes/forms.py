@@ -1,6 +1,6 @@
 # forms.py
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate
 from .models import (
     CustomUser, Rifa, San, ParticipacionSan, Cupo, 
@@ -10,29 +10,41 @@ from .models import (
 # ---------------------
 # FORMULARIOS DE AUTENTICACIÓN
 # ---------------------
-class CustomLoginForm(AuthenticationForm):
-    """Formulario personalizado de login"""
-    username = forms.CharField(
-        label="Correo Electrónico o Usuario", 
-        max_length=254,
-        widget=forms.TextInput(attrs={
-            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
-            'placeholder': 'Ingresa tu correo o usuario'
-        })
-    )
-    password = forms.CharField(
-        label="Contraseña", 
-        widget=forms.PasswordInput(attrs={
-            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
-            'placeholder': 'Ingresa tu contraseña'
-        })
-    )
 
-    def clean_username(self):
-        username_or_email = self.cleaned_data['username']
-        return username_or_email
+from allauth.account.forms import LoginForm
 
+class CustomLoginForm(LoginForm):
+    """Formulario de login con estilos personalizados"""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)  # <-- MUY IMPORTANTE
+
+        # Campo login
+        self.fields["login"].label = "Correo electrónico o usuario"
+        self.fields["login"].widget = forms.TextInput(
+            attrs={
+                "class": "w-full px-3 py-2 border border-gray-300 rounded-md "
+                         "focus:outline-none focus:ring-2 focus:ring-blue-500 "
+                         "focus:border-transparent",
+                "placeholder": "Ingresa tu correo o usuario",
+            }
+        )
+
+        # Campo password
+        if "password" in self.fields:  # a veces no aparece hasta después del init
+            self.fields["password"].label = "Contraseña"
+            self.fields["password"].widget = forms.PasswordInput(
+                attrs={
+                    "class": "w-full px-3 py-2 border border-gray-300 rounded-md "
+                             "focus:outline-none focus:ring-2 focus:ring-blue-500 "
+                             "focus:border-transparent",
+                    "placeholder": "Ingresa tu contraseña",
+                }
+            )
+
+        # Campo remember
+        if "remember" in self.fields:
+            self.fields["remember"].label = "Recordarme"
 class CustomUserCreationForm(UserCreationForm):
     """Formulario personalizado de registro de usuarios"""
     first_name = forms.CharField(
