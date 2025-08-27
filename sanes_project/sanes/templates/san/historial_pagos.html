@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Historial de Pagos - {{ san.nombre }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">Historial de Pagos</h1>
+                    <p class="text-gray-600 mt-2">San: {{ san.nombre }}</p>
+                </div>
+                <a href="{% url 'san_detail' pk=san.id %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                    Volver al San
+                </a>
+            </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div class="bg-blue-50 p-6 rounded-lg">
+                <h3 class="text-lg font-semibold text-blue-800">Total Cupos</h3>
+                <p class="text-3xl font-bold text-blue-600">{{ total_cupos }}</p>
+            </div>
+            <div class="bg-green-50 p-6 rounded-lg">
+                <h3 class="text-lg font-semibold text-green-800">Cupos Pagados</h3>
+                <p class="text-3xl font-bold text-green-600">{{ cupos_pagados }}</p>
+            </div>
+            <div class="bg-yellow-50 p-6 rounded-lg">
+                <h3 class="text-lg font-semibold text-yellow-800">Cupos Pendientes</h3>
+                <p class="text-3xl font-bold text-yellow-600">{{ cupos_pendientes }}</p>
+            </div>
+            <div class="bg-purple-50 p-6 rounded-lg">
+                <h3 class="text-lg font-semibold text-purple-800">Progreso</h3>
+                <p class="text-3xl font-bold text-purple-600">{{ porcentaje_completado|floatformat:1 }}%</p>
+            </div>
+        </div>
+
+        <!-- Resumen financiero -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Resumen Financiero</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Total Recaudado:</span>
+                        <span class="font-bold text-green-600">${{ total_recaudado|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Total Pendiente:</span>
+                        <span class="font-bold text-red-600">${{ total_pendiente|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex justify-between border-t pt-3">
+                        <span class="text-gray-800 font-semibold">Total Esperado:</span>
+                        <span class="font-bold text-blue-600">${{ san.precio_total|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Barra de Progreso</h3>
+                <div class="w-full bg-gray-200 rounded-full h-4 mb-4">
+                    <div class="bg-green-600 h-4 rounded-full transition-all duration-300" 
+                         style="width: {{ porcentaje_completado }}%"></div>
+                </div>
+                <p class="text-sm text-gray-600">
+                    {{ cupos_pagados }} de {{ total_cupos }} cupos pagados
+                </p>
+            </div>
+        </div>
+
+        <!-- Lista de cupos -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800">Detalle de Cupos</h2>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Número
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Participante
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Monto
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Estado
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Fecha Límite
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Fecha Pago
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for cupo in cupos %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {{ cupo.numero_semana }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-8 w-8">
+                                        {% if cupo.participacion.usuario.foto_perfil %}
+                                            <img class="h-8 w-8 rounded-full object-cover" src="{{ cupo.participacion.usuario.foto_perfil.url }}" alt="{{ cupo.participacion.usuario.username }}">
+                                        {% else %}
+                                            <div class="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
+                                                <span class="text-gray-600 font-medium text-sm">{{ cupo.participacion.usuario.username|first|upper }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ml-3">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ cupo.participacion.usuario.get_full_name_or_username }}
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            Posición {{ cupo.participacion.orden_cobro }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                ${{ cupo.monto_cuota|floatformat:2 }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if cupo.estado == 'pagado' %}
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        Pagado
+                                    </span>
+                                {% elif cupo.estado == 'asignado' %}
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        Pendiente
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                        Vencido
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {% if cupo.fecha_limite %}
+                                    {{ cupo.fecha_limite|date:"d/m/Y" }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {% if cupo.fecha_pago %}
+                                    {{ cupo.fecha_pago|date:"d/m/Y" }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                                No hay cupos registrados para este san
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

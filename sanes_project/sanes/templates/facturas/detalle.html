@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Factura #{{ factura.id }} - Rifas Anica{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-light py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-dark">Factura #{{ factura.id }}</h1>
+                    <p class="text-gray-600">Detalle de la factura</p>
+                </div>
+                <a href="{% url 'factura_list' %}" class="text-primary hover:text-red-700">
+                    ← Volver a Facturas
+                </a>
+            </div>
+        </div>
+
+        <!-- Información de la factura -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-dark">Información de la Factura</h2>
+            </div>
+            
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-medium text-dark mb-4">Detalles</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Número de Factura:</span>
+                                <span class="font-medium">#{{ factura.id }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Fecha de Emisión:</span>
+                                <span class="font-medium">{{ factura.fecha_emision|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Estado:</span>
+                                <span class="font-medium">
+                                    {% if factura.estado_pago == 'pagada' %}
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Pagada</span>
+                                    {% elif factura.estado_pago == 'pendiente' %}
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Pendiente</span>
+                                    {% else %}
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Vencida</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Método de Pago:</span>
+                                <span class="font-medium">{{ factura.get_metodo_pago_display }}</span>
+                            </div>
+                            {% if factura.fecha_vencimiento %}
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Fecha de Vencimiento:</span>
+                                <span class="font-medium">{{ factura.fecha_vencimiento|date:"d/m/Y" }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-medium text-dark mb-4">Monto</h3>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="text-3xl font-bold text-primary">${{ factura.monto_total }}</div>
+                            <p class="text-sm text-gray-600 mt-1">Monto total a pagar</p>
+                        </div>
+                        
+                        {% if factura.notas %}
+                        <div class="mt-4">
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Notas:</h4>
+                            <p class="text-sm text-gray-600">{{ factura.notas }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comprobante de pago -->
+        {% if factura.comprobante_pago %}
+        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-dark">Comprobante de Pago</h2>
+            </div>
+            
+            <div class="p-6">
+                <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                        <svg class="h-12 w-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-medium text-dark">Comprobante Subido</h3>
+                        <p class="text-gray-600">Se ha subido un comprobante de pago para esta factura.</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <a href="{{ factura.comprobante_pago.url }}" target="_blank" class="bg-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors">
+                            Ver Comprobante
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Acciones -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-dark">Acciones</h2>
+            </div>
+            
+            <div class="p-6">
+                <div class="flex flex-wrap gap-4">
+                    {% if factura.estado_pago == 'pendiente' %}
+                        <button onclick="mostrarModalPago()" class="bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-red-700 transition-colors">
+                            Subir Comprobante
+                        </button>
+                    {% endif %}
+                    
+                    <a href="#" onclick="window.print()" class="bg-gray-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-600 transition-colors">
+                        Imprimir Factura
+                    </a>
+                    
+                    <a href="{% url 'factura_list' %}" class="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                        Volver a Lista
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para subir comprobante -->
+{% if factura.estado_pago == 'pendiente' %}
+<div id="modalPago" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-dark mb-4">Subir Comprobante de Pago</h3>
+            <form method="post" enctype="multipart/form-data" action="{% url 'subir_comprobante_factura' factura.id %}">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Seleccionar archivo</label>
+                    <input type="file" name="comprobante" accept="image/*,.pdf" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <p class="text-xs text-gray-500 mt-1">Formatos aceptados: JPG, PNG, PDF</p>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="ocultarModalPago()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">
+                        Subir
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+function mostrarModalPago() {
+    document.getElementById('modalPago').classList.remove('hidden');
+}
+
+function ocultarModalPago() {
+    document.getElementById('modalPago').classList.add('hidden');
+}
+
+// Cerrar modal al hacer clic fuera de él
+document.getElementById('modalPago').addEventListener('click', function(e) {
+    if (e.target === this) {
+        ocultarModalPago();
+    }
+});
+</script>
+{% endblock %}
+

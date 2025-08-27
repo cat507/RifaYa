@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ san.nombre }} - Rifas Anica{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-light py-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Breadcrumb -->
+        <nav class="mb-8">
+            <ol class="flex items-center space-x-2 text-sm text-gray-600">
+                <li><a href="{% url 'home' %}" class="hover:text-primary">Inicio</a></li>
+                <li><span class="mx-2">/</span></li>
+                <li><a href="{% url 'san_list' %}" class="hover:text-primary">Sanes</a></li>
+                <li><span class="mx-2">/</span></li>
+                <li class="text-dark">{{ san.nombre }}</li>
+            </ol>
+        </nav>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Imagen y información principal -->
+            <div class="space-y-6">
+                <!-- Imagen del san -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    {% if san.imagen %}
+                        <img src="{{ san.imagen.url }}" alt="{{ san.nombre }}" class="w-full h-96 object-cover">
+                    {% else %}
+                        <div class="w-full h-96 bg-gray-200 flex items-center justify-center">
+                            <svg class="w-24 h-24 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                            </svg>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Información detallada -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold text-dark mb-4">Información del San</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <span class="text-sm font-medium text-gray-600">Descripción:</span>
+                            <p class="text-dark mt-1">{{ san.descripcion }}</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <span class="text-sm font-medium text-gray-600">Precio total:</span>
+                                <p class="text-lg font-bold text-primary mt-1">${{ san.precio_total }}</p>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-600">Cuota por persona:</span>
+                                <p class="text-dark font-semibold mt-1">${{ san.cuota_por_persona|default:0 }}</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <span class="text-sm font-medium text-gray-600">Total de participantes:</span>
+                                <p class="text-dark font-semibold mt-1">{{ san.total_participantes }}</p>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-600">Participantes actuales:</span>
+                                <p class="text-dark font-semibold mt-1">{{ san.participantes_count|default:0 }}</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <span class="text-sm font-medium text-gray-600">Número de cuotas:</span>
+                                <p class="text-dark font-semibold mt-1">{{ san.numero_cuotas }}</p>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-600">Frecuencia de pago:</span>
+                                <p class="text-dark font-semibold mt-1">{{ san.get_frecuencia_pago_display }}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="text-sm font-medium text-gray-600">Tipo:</span>
+                            <p class="text-dark font-semibold mt-1">{{ san.get_tipo_display }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de participación -->
+            <div class="space-y-6">
+                <!-- Estado y progreso -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-semibold text-dark">{{ san.nombre }}</h2>
+                        {% if san.estado == 'activo' %}
+                            <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">Activo</span>
+                        {% elif san.estado == 'completado' %}
+                            <span class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">Completado</span>
+                        {% else %}
+                            <span class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">Cancelado</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Progreso de participación -->
+                    <div class="mb-6">
+                        <div class="flex justify-between text-sm text-gray-600 mb-2">
+                            <span>Progreso de participación</span>
+                            <span>{{ san.porcentaje_participacion|default:0 }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="bg-primary h-3 rounded-full" style="width: {{ san.porcentaje_participacion|default:0 }}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Fechas -->
+                    <div class="space-y-3 mb-6">
+                        <div>
+                            <span class="text-sm font-medium text-gray-600">Fecha de inicio:</span>
+                            <p class="text-dark">{{ san.fecha_inicio|date:"d/m/Y" }}</p>
+                        </div>
+                        <div>
+                            <span class="text-sm font-medium text-gray-600">Fecha de finalización:</span>
+                            <p class="text-dark">{{ san.fecha_fin|date:"d/m/Y" }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Botón de participación -->
+                    {% if san.estado == 'activo' and san.participantes_count < san.total_participantes %}
+                        {% if participacion %}
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                                <p class="text-blue-800 font-medium">Ya estás participando en este san</p>
+                                <p class="text-blue-600 text-sm mt-1">Orden de cobro: {{ participacion.orden_cobro }}</p>
+                            </div>
+                        {% else %}
+                            <a href="{% url 'checkout_san' san.id %}" 
+                               class="w-full bg-primary text-white py-3 px-6 rounded-lg font-medium hover:bg-red-700 transition-colors text-center block">
+                                Unirse al San - ${{ san.cuota_por_persona|default:san.precio_total }}
+                            </a>
+                        {% endif %}
+                    {% elif san.estado == 'completado' %}
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                            <p class="text-blue-800 font-medium">Este san ha sido completado</p>
+                            <p class="text-blue-600 text-sm mt-1">Todos los participantes han sido asignados</p>
+                        </div>
+                    {% else %}
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                            <p class="text-red-800 font-medium">Este san no está disponible</p>
+                            <p class="text-red-600 text-sm mt-1">No se pueden agregar participantes</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Mi participación -->
+                {% if user.is_authenticated and participacion %}
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold text-dark mb-4">Mi Participación</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Orden de cobro:</span>
+                            <span class="font-medium text-dark">{{ participacion.orden_cobro }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Fecha de inscripción:</span>
+                            <span class="font-medium text-dark">{{ participacion.fecha_inscripcion|date:"d/m/Y" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Estado:</span>
+                            <span class="font-medium text-dark">{{ participacion.get_estado_display }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Información adicional -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold text-dark mb-4">Información Importante</h3>
+                    <div class="space-y-3 text-sm text-gray-600">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span>Los pagos se realizan según la frecuencia establecida</span>
+                        </div>
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span>El orden de cobro se asigna automáticamente</span>
+                        </div>
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span>Recibirás notificaciones sobre los pagos</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

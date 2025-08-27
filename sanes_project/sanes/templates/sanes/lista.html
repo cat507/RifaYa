@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sanes Disponibles - Rifas Anica{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-light py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-dark">Sanes Disponibles</h1>
+            <p class="text-gray-600">Únete a nuestros sanes y ahorra de manera colaborativa</p>
+        </div>
+
+        <!-- Filtros y búsqueda -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+                    <input type="text" name="q" value="{{ request.GET.q }}" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="Buscar sanes...">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                    <select name="tipo" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Todos los tipos</option>
+                        <option value="ahorro" {% if request.GET.tipo == 'ahorro' %}selected{% endif %}>Ahorro</option>
+                        <option value="producto" {% if request.GET.tipo == 'producto' %}selected{% endif %}>Producto</option>
+                        <option value="servicio" {% if request.GET.tipo == 'servicio' %}selected{% endif %}>Servicio</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Ordenar por</label>
+                    <select name="sort" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="recent" {% if request.GET.sort == 'recent' %}selected{% endif %}>Más recientes</option>
+                        <option value="price_low" {% if request.GET.sort == 'price_low' %}selected{% endif %}>Precio menor</option>
+                        <option value="price_high" {% if request.GET.sort == 'price_high' %}selected{% endif %}>Precio mayor</option>
+                        <option value="participants" {% if request.GET.sort == 'participants' %}selected{% endif %}>Más participantes</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="w-full bg-primary text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">
+                        Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Lista de sanes -->
+        {% if sanes %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for san in sanes %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                <!-- Imagen del san -->
+                <div class="h-48 bg-gray-200 relative">
+                    {% if san.imagen %}
+                        <img src="{{ san.imagen.url }}" alt="{{ san.nombre }}" class="w-full h-full object-cover">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center">
+                            <svg class="w-16 h-16 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                            </svg>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Badge de estado -->
+                    <div class="absolute top-2 right-2">
+                        {% if san.estado == 'activo' %}
+                            <span class="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">Activo</span>
+                        {% elif san.estado == 'completado' %}
+                            <span class="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-medium">Completado</span>
+                        {% else %}
+                            <span class="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">Cancelado</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Badge de tipo -->
+                    <div class="absolute top-2 left-2">
+                        {% if san.tipo == 'ahorro' %}
+                            <span class="bg-purple-500 text-white px-2 py-1 rounded-full text-xs font-medium">Ahorro</span>
+                        {% elif san.tipo == 'producto' %}
+                            <span class="bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-medium">Producto</span>
+                        {% else %}
+                            <span class="bg-teal-500 text-white px-2 py-1 rounded-full text-xs font-medium">Servicio</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Contenido del san -->
+                <div class="p-6">
+                    <h3 class="text-xl font-semibold text-dark mb-2">{{ san.nombre }}</h3>
+                    <p class="text-gray-600 mb-4 line-clamp-2">{{ san.descripcion|truncatewords:20 }}</p>
+                    
+                    <!-- Información del san -->
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <span class="text-sm text-gray-600">Precio total</span>
+                            <p class="font-semibold text-dark">${{ san.precio_total }}</p>
+                        </div>
+                        <div>
+                            <span class="text-sm text-gray-600">Participantes</span>
+                            <p class="font-semibold text-dark">{{ san.participantes_count|default:0 }}/{{ san.total_participantes }}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <span class="text-sm text-gray-600">Cuota por persona</span>
+                            <p class="font-semibold text-dark">${{ san.cuota_por_persona|default:0 }}</p>
+                        </div>
+                        <div>
+                            <span class="text-sm text-gray-600">Frecuencia</span>
+                            <p class="font-semibold text-dark">{{ san.get_frecuencia_pago_display }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Progreso de participación -->
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm text-gray-600 mb-1">
+                            <span>Progreso</span>
+                            <span>{{ san.porcentaje_participacion|default:0 }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-primary h-2 rounded-full" style="width: {{ san.porcentaje_participacion|default:0 }}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Fechas -->
+                    <div class="mb-4 space-y-2">
+                        <div>
+                            <span class="text-sm text-gray-600">Inicia:</span>
+                            <p class="font-medium text-dark">{{ san.fecha_inicio|date:"d/m/Y" }}</p>
+                        </div>
+                        <div>
+                            <span class="text-sm text-gray-600">Termina:</span>
+                            <p class="font-medium text-dark">{{ san.fecha_fin|date:"d/m/Y" }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="flex space-x-2">
+                        <a href="{% url 'san_detail' san.id %}" 
+                           class="flex-1 bg-primary text-white px-4 py-2 rounded-md text-center hover:bg-red-700 transition-colors">
+                            Ver Detalles
+                        </a>
+                        {% if san.estado == 'activo' and san.participantes_count < san.total_participantes %}
+                        <a href="{% url 'checkout_san' san.id %}" 
+                           class="flex-1 bg-green-600 text-white px-4 py-2 rounded-md text-center hover:bg-green-700 transition-colors">
+                            Unirse
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Paginación -->
+        {% if sanes.has_other_pages %}
+        <div class="mt-8 flex justify-center">
+            <nav class="flex items-center space-x-2">
+                {% if sanes.has_previous %}
+                    <a href="?page={{ sanes.previous_page_number }}" class="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">Anterior</a>
+                {% endif %}
+                
+                {% for num in sanes.paginator.page_range %}
+                    {% if sanes.number == num %}
+                        <span class="px-3 py-2 bg-primary text-white rounded-md">{{ num }}</span>
+                    {% elif num > sanes.number|add:'-3' and num < sanes.number|add:'3' %}
+                        <a href="?page={{ num }}" class="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if sanes.has_next %}
+                    <a href="?page={{ sanes.next_page_number }}" class="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">Siguiente</a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <!-- Estado vacío -->
+        <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No hay sanes disponibles</h3>
+            <p class="mt-1 text-sm text-gray-500">No se encontraron sanes que coincidan con los criterios de búsqueda.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

@@ -1,183 +1,539 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Crear Rifa - Rifas Anica{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-    <!-- Header -->
-    <div class="mb-8">
-        <div class="flex items-center mb-4">
-            <a href="{% url 'rifa_list' %}" class="text-primary hover:text-secondary mr-4">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                </svg>
-            </a>
-            <h1 class="text-3xl font-bold text-gray-900">Crear Nueva Rifa</h1>
+<div class="min-h-screen bg-light py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-2xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-dark">Crear Nueva Rifa</h1>
+            <p class="text-gray-600 mt-2">Crea una rifa emocionante y compártela con la comunidad</p>
         </div>
-        <p class="text-gray-600">Completa el formulario para crear una nueva rifa</p>
-    </div>
 
-    <!-- Form -->
-    <div class="bg-white rounded-lg shadow-sm p-8">
-        <form method="post" enctype="multipart/form-data" class="space-y-6">
-            {% csrf_token %}
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Título -->
-                <div class="md:col-span-2">
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="{% if message.tags == 'success' %}bg-green-100 text-green-700 border border-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-blue-100 text-blue-700 border border-blue-200{% endif %} p-4 rounded-lg">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <div>
                     <label for="{{ form.titulo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                         {{ form.titulo.label }}
                     </label>
                     {{ form.titulo }}
                     {% if form.titulo.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.titulo.errors.0 }}</p>
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.titulo.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
                     {% endif %}
                 </div>
 
-                <!-- Descripción -->
-                <div class="md:col-span-2">
+                <div>
                     <label for="{{ form.descripcion.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                         {{ form.descripcion.label }}
                     </label>
                     {{ form.descripcion }}
                     {% if form.descripcion.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.descripcion.errors.0 }}</p>
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.descripcion.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
                     {% endif %}
                 </div>
 
-                <!-- Premio -->
-                <div class="md:col-span-2">
+                <div>
                     <label for="{{ form.premio.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                         {{ form.premio.label }}
                     </label>
                     {{ form.premio }}
                     {% if form.premio.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.premio.errors.0 }}</p>
-                    {% endif %}
-                </div>
-
-                <!-- Precio por Ticket -->
-                <div>
-                    <label for="{{ form.precio_ticket.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        {{ form.precio_ticket.label }}
-                    </label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span class="text-gray-500 sm:text-sm">$</span>
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.premio.errors %}
+                                {{ error }}
+                            {% endfor %}
                         </div>
+                    {% endif %}
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.precio_ticket.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.precio_ticket.label }}
+                        </label>
                         {{ form.precio_ticket }}
+                        {% if form.precio_ticket.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.precio_ticket.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
-                    {% if form.precio_ticket.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.precio_ticket.errors.0 }}</p>
-                    {% endif %}
+
+                    <div>
+                        <label for="{{ form.total_tickets.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.total_tickets.label }}
+                        </label>
+                        {{ form.total_tickets }}
+                        {% if form.total_tickets.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.total_tickets.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
 
-                <!-- Total de Tickets -->
                 <div>
-                    <label for="{{ form.total_tickets.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        {{ form.total_tickets.label }}
+                    <label for="{{ form.valor_premio_monetario.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.valor_premio_monetario.label }}
                     </label>
-                    {{ form.total_tickets }}
-                    {% if form.total_tickets.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.total_tickets.errors.0 }}</p>
+                    {{ form.valor_premio_monetario }}
+                    {% if form.valor_premio_monetario.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.valor_premio_monetario.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
                     {% endif %}
                 </div>
 
-                <!-- Fecha de Cierre -->
-                <div class="md:col-span-2">
+                <div>
                     <label for="{{ form.fecha_fin.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                         {{ form.fecha_fin.label }}
                     </label>
                     {{ form.fecha_fin }}
                     {% if form.fecha_fin.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.fecha_fin.errors.0 }}</p>
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.fecha_fin.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
                     {% endif %}
                 </div>
 
-                <!-- Imagen -->
-                <div class="md:col-span-2">
+                <div>
                     <label for="{{ form.imagen.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                         {{ form.imagen.label }}
                     </label>
-                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-primary transition-colors">
                         <div class="space-y-1 text-center">
                             <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                                 <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
                             <div class="flex text-sm text-gray-600">
-                                <label for="{{ form.imagen.id_for_label }}" class="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-secondary focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary">
+                                <label for="{{ form.imagen.id_for_label }}" class="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-red-700 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary">
                                     <span>Subir imagen</span>
                                     {{ form.imagen }}
                                 </label>
                                 <p class="pl-1">o arrastrar y soltar</p>
                             </div>
-                            <p class="text-xs text-gray-500">PNG, JPG, GIF hasta 10MB</p>
+                            <p class="text-xs text-gray-500">
+                                PNG, JPG, GIF hasta 10MB
+                            </p>
                         </div>
                     </div>
                     {% if form.imagen.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.imagen.errors.0 }}</p>
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.imagen.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
                     {% endif %}
                 </div>
-            </div>
 
-            <!-- Form Errors -->
-            {% if form.non_field_errors %}
-                <div class="bg-red-50 border border-red-200 rounded-md p-4">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
+                <!-- Cálculos Automáticos -->
+                <div id="calculos-container" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6" style="display: none;">
+                    <h4 class="text-lg font-semibold text-blue-800 mb-3">📊 Cálculos Automáticos</h4>
+                    
+                    <!-- Estado de viabilidad -->
+                    <div class="mb-4">
+                        <div id="estado-viabilidad" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium">
+                            <!-- Se llena dinámicamente -->
                         </div>
-                        <div class="ml-3">
-                            <h3 class="text-sm font-medium text-red-800">Error en el formulario</h3>
-                            <div class="mt-2 text-sm text-red-700">
-                                <ul class="list-disc pl-5 space-y-1">
-                                    {% for error in form.non_field_errors %}
-                                        <li>{{ error }}</li>
-                                    {% endfor %}
-                                </ul>
+                    </div>
+                    
+                    <!-- Métricas principales -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                        <div class="bg-white p-3 rounded-lg border">
+                            <div class="text-sm text-gray-600">Recaudación Mínima</div>
+                            <div id="recaudacion-minima" class="text-lg font-semibold text-blue-600">$0.00</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border">
+                            <div class="text-sm text-gray-600">Mínimo Participantes</div>
+                            <div id="minimo-participantes" class="text-lg font-semibold text-blue-600">0</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border">
+                            <div class="text-sm text-gray-600">Ganancia Esperada</div>
+                            <div id="ganancia-esperada" class="text-lg font-semibold text-blue-600">$0.00</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border">
+                            <div class="text-sm text-gray-600">Porcentaje Ganancia</div>
+                            <div id="porcentaje-ganancia" class="text-lg font-semibold text-blue-600">0%</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Alertas -->
+                    <div id="alertas-container" class="space-y-2">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+
+                    <!-- Parámetros sugeridos -->
+                    <div id="parametros-sugeridos" class="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg" style="display: none;">
+                        <h5 class="text-sm font-semibold text-purple-800 mb-2">💡 Parámetros Sugeridos</h5>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                            <div>
+                                <span class="text-purple-600 font-medium">Precio de ticket sugerido:</span>
+                                <span id="precio-ticket-sugerido" class="text-purple-800">-</span>
                             </div>
+                            <div>
+                                <span class="text-purple-600 font-medium">Total de tickets sugerido:</span>
+                                <span id="total-tickets-sugerido" class="text-purple-800">-</span>
+                            </div>
+                            <div>
+                                <span class="text-purple-600 font-medium">Ganancia esperada:</span>
+                                <span id="ganancia-esperada-sugerida" class="text-purple-800">-</span>
+                            </div>
+                            <div>
+                                <span class="text-purple-600 font-medium">Porcentaje de ganancia:</span>
+                                <span id="porcentaje-ganancia-sugerido" class="text-purple-800">-</span>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs text-purple-600">
+                            💡 Estos parámetros aseguran una ganancia del 20% sobre el valor del premio.
                         </div>
                     </div>
                 </div>
-            {% endif %}
 
-            <!-- Submit Buttons -->
-            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-                <a href="{% url 'rifa_list' %}" 
-                   class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md font-medium transition-colors duration-200">
-                    Cancelar
-                </a>
-                <button type="submit" 
-                        class="bg-primary hover:bg-secondary text-white px-6 py-2 rounded-md font-medium transition-colors duration-200">
-                    Crear Rifa
-                </button>
+                <!-- Estado -->
+                <div>
+                    <label for="{{ form.estado.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.estado.label }}
+                    </label>
+                    {{ form.estado }}
+                    {% if form.estado.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.estado.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if form.non_field_errors %}
+                    <div class="bg-red-100 text-red-700 p-4 rounded-lg">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="flex gap-4 pt-6">
+                    <button type="submit" class="flex-1 flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-primary hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+                        Crear Rifa
+                    </button>
+                    <a href="{% url 'rifa_list' %}" class="flex-1 flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+
+            <!-- Tips -->
+            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                <h3 class="text-sm font-medium text-blue-800 mb-2">Consejos para crear una rifa exitosa:</h3>
+                <ul class="text-sm text-blue-700 space-y-1">
+                    <li>• Escribe un título atractivo y descriptivo</li>
+                    <li>• Describe detalladamente el premio</li>
+                    <li>• Establece un precio de ticket razonable</li>
+                    <li>• Usa una imagen de alta calidad del premio</li>
+                    <li>• Establece una fecha de cierre realista</li>
+                </ul>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 
 <script>
-    // Preview image upload
-    document.getElementById('{{ form.imagen.id_for_label }}').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const preview = document.createElement('img');
-                preview.src = e.target.result;
-                preview.className = 'mx-auto h-32 w-32 object-cover rounded-md';
-                
-                const container = document.querySelector('.space-y-1.text-center');
-                const existingPreview = container.querySelector('img');
-                if (existingPreview) {
-                    existingPreview.remove();
-                }
-                container.insertBefore(preview, container.firstChild);
-            };
-            reader.readAsDataURL(file);
+    // Drag and drop functionality for image upload
+    const dropZone = document.querySelector('.border-dashed');
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        dropZone.classList.add('border-primary');
+    }
+
+    function unhighlight(e) {
+        dropZone.classList.remove('border-primary');
+    }
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        const fileInput = document.getElementById('{{ form.imagen.id_for_label }}');
+        
+        fileInput.files = files;
+        
+        // Trigger change event
+        const event = new Event('change', { bubbles: true });
+        fileInput.dispatchEvent(event);
+    }
+
+    // Set minimum date for fecha_fin to today
+    const fechaFinInput = document.getElementById('{{ form.fecha_fin.id_for_label }}');
+    if (fechaFinInput) {
+        const today = new Date().toISOString().split('T')[0];
+        fechaFinInput.setAttribute('min', today);
+    }
+
+    // Cálculos automáticos en tiempo real
+    const form = document.querySelector('form');
+    const inputs = form.querySelectorAll('input, select');
+    let updateTimeout;
+    let isUpdating = false;
+    
+    // Función para formatear moneda
+    function formatearMoneda(valor) {
+        return new Intl.NumberFormat('es-ES', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2
+        }).format(valor);
+    }
+    
+    // Función para calcular parámetros sugeridos
+    function calcularParametrosSugeridos(valorPremio) {
+        if (!valorPremio || valorPremio <= 0) return null;
+        
+        let precioSugerido;
+        if (valorPremio <= 100) {
+            precioSugerido = 5.00;
+        } else if (valorPremio <= 500) {
+            precioSugerido = 10.00;
+        } else if (valorPremio <= 1000) {
+            precioSugerido = 20.00;
+        } else {
+            precioSugerido = 50.00;
         }
+        
+        const ticketsMinimos = Math.ceil(valorPremio / precioSugerido);
+        const ticketsSugeridos = Math.max(50, Math.ceil(ticketsMinimos * 1.2)); // 20% de ganancia
+        
+        const recaudacion = precioSugerido * ticketsSugeridos;
+        const ganancia = recaudacion - valorPremio;
+        const porcentajeGanancia = recaudacion > 0 ? (ganancia / recaudacion) * 100 : 0;
+        
+        return {
+            precioTicketSugerido: precioSugerido,
+            totalTicketsSugerido: ticketsSugeridos,
+            gananciaEsperada: ganancia,
+            porcentajeGanancia: porcentajeGanancia
+        };
+    }
+    
+    // Función principal de cálculos
+    function calcularRifa() {
+        if (isUpdating) return;
+        
+        const precioTicket = parseFloat(document.getElementById('{{ form.precio_ticket.id_for_label }}').value) || 0;
+        const totalTickets = parseInt(document.getElementById('{{ form.total_tickets.id_for_label }}').value) || 0;
+        const valorPremio = parseFloat(document.getElementById('{{ form.valor_premio_monetario.id_for_label }}').value) || 0;
+        
+        // Mostrar el contenedor de cálculos siempre que haya algún dato
+        if (precioTicket > 0 || totalTickets > 0 || valorPremio > 0) {
+            document.getElementById('calculos-container').style.display = 'block';
+        } else {
+            document.getElementById('calculos-container').style.display = 'none';
+            return;
+        }
+        
+        isUpdating = true;
+        
+        // Calcular recaudación mínima esperada
+        const recaudacionMinima = precioTicket * totalTickets;
+        
+        // Calcular ganancia esperada si hay valor de premio
+        let gananciaEsperada = 0;
+        let porcentajeGanancia = 0;
+        let minimoParticipantes = null;
+        
+        let viable = true;
+        const alertas = [];
+        
+        if (valorPremio > 0) {
+            gananciaEsperada = recaudacionMinima - valorPremio;
+            if (recaudacionMinima > 0) {
+                porcentajeGanancia = (gananciaEsperada / recaudacionMinima) * 100;
+            }
+            
+            // Calcular mínimo de participantes para cubrir el premio
+            if (precioTicket > 0) {
+                minimoParticipantes = Math.ceil(valorPremio / precioTicket);
+            }
+            
+            // Verificar viabilidad
+            if (recaudacionMinima < valorPremio) {
+                viable = false;
+                alertas.push(`⚠️ Con los parámetros actuales, no se cubre el valor del premio. Faltan ${formatearMoneda(valorPremio - recaudacionMinima)}`);
+            } else if (gananciaEsperada < 0) {
+                viable = false;
+                alertas.push(`⚠️ La rifa generaría pérdidas de ${formatearMoneda(Math.abs(gananciaEsperada))}`);
+            } else {
+                alertas.push(`✅ Rifa viable: Ganancia esperada ${formatearMoneda(gananciaEsperada)} (${porcentajeGanancia.toFixed(1)}%)`);
+                alertas.push(`✅ Mínimo de participantes para cubrir premio: ${minimoParticipantes}`);
+            }
+        } else {
+            alertas.push(`✅ Rifa sin premio monetario: Recaudación esperada ${formatearMoneda(recaudacionMinima)}`);
+        }
+        
+        // Verificar parámetros básicos
+        if (precioTicket <= 0) {
+            viable = false;
+            alertas.push('⚠️ El precio del ticket debe ser mayor a 0.');
+        }
+        
+        if (totalTickets <= 0) {
+            viable = false;
+            alertas.push('⚠️ El número de tickets debe ser mayor a 0.');
+        }
+        
+        if (totalTickets > 10000) {
+            alertas.push('⚠️ Considera si realmente necesitas más de 10,000 tickets.');
+        }
+        
+        // Actualizar la interfaz
+        document.getElementById('calculos-container').style.display = 'block';
+        
+        // Estado de viabilidad
+        const estadoElement = document.getElementById('estado-viabilidad');
+        if (viable) {
+            estadoElement.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800';
+            estadoElement.innerHTML = '✅ Rifa Viable';
+        } else {
+            estadoElement.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800';
+            estadoElement.innerHTML = '❌ Rifa No Viable';
+        }
+        
+        // Métricas
+        document.getElementById('recaudacion-minima').textContent = formatearMoneda(recaudacionMinima);
+        document.getElementById('minimo-participantes').textContent = minimoParticipantes || 'N/A';
+        document.getElementById('ganancia-esperada').textContent = formatearMoneda(gananciaEsperada);
+        document.getElementById('porcentaje-ganancia').textContent = `${porcentajeGanancia.toFixed(1)}%`;
+        
+        // Alertas
+        const alertasContainer = document.getElementById('alertas-container');
+        alertasContainer.innerHTML = '';
+        alertas.forEach(alerta => {
+            const alertaElement = document.createElement('div');
+            alertaElement.className = 'text-sm p-2 rounded';
+            if (alerta.includes('⚠️')) {
+                alertaElement.className += ' bg-yellow-100 text-yellow-800 border border-yellow-300';
+            } else if (alerta.includes('✅')) {
+                alertaElement.className += ' bg-green-100 text-green-800 border border-green-300';
+            } else {
+                alertaElement.className += ' bg-blue-100 text-blue-800 border border-blue-300';
+            }
+            alertaElement.textContent = alerta;
+            alertasContainer.appendChild(alertaElement);
+        });
+        
+        // Parámetros sugeridos
+        const parametrosSugeridos = calcularParametrosSugeridos(valorPremio);
+        const parametrosContainer = document.getElementById('parametros-sugeridos');
+        
+        if (parametrosSugeridos && valorPremio > 0) {
+            parametrosContainer.style.display = 'block';
+            document.getElementById('precio-ticket-sugerido').textContent = formatearMoneda(parametrosSugeridos.precioTicketSugerido);
+            document.getElementById('total-tickets-sugerido').textContent = parametrosSugeridos.totalTicketsSugerido;
+            document.getElementById('ganancia-esperada-sugerida').textContent = formatearMoneda(parametrosSugeridos.gananciaEsperada);
+            document.getElementById('porcentaje-ganancia-sugerido').textContent = `${parametrosSugeridos.porcentajeGanancia.toFixed(1)}%`;
+        } else {
+            parametrosContainer.style.display = 'none';
+        }
+        
+        isUpdating = false;
+    }
+    
+    // Debounce function
+    function debounce(func, wait) {
+        return function executedFunction(...args) {
+            clearTimeout(updateTimeout);
+            updateTimeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+    
+    // Apply debouncing
+    const debouncedCalculo = debounce(calcularRifa, 300);
+    
+    // Add event listeners
+    inputs.forEach(input => {
+        if (input.type !== 'file' && input.type !== 'submit') {
+            input.addEventListener('input', debouncedCalculo);
+            input.addEventListener('change', debouncedCalculo);
+            input.addEventListener('blur', debouncedCalculo);
+        }
+    });
+    
+    // Ejecutar cálculos al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(calcularRifa, 100);
+    });
+    
+    // Validación del formulario antes de enviar
+    form.addEventListener('submit', function(e) {
+        const precioTicket = document.getElementById('{{ form.precio_ticket.id_for_label }}').value;
+        const totalTickets = document.getElementById('{{ form.total_tickets.id_for_label }}').value;
+        const premio = document.getElementById('{{ form.premio.id_for_label }}').value;
+        const descripcion = document.getElementById('{{ form.descripcion.id_for_label }}').value;
+        
+        // Verificar campos requeridos básicos
+        if (!precioTicket || !totalTickets || !premio || !descripcion) {
+            e.preventDefault();
+            alert('Por favor completa todos los campos requeridos.');
+            return false;
+        }
+        
+        // Verificar que los números sean positivos
+        if (parseFloat(precioTicket) <= 0 || parseInt(totalTickets) <= 0) {
+            e.preventDefault();
+            alert('El precio del ticket y el número de tickets deben ser mayores a 0.');
+            return false;
+        }
+        
+        // Permitir el envío sin validación financiera estricta
+        console.log('Formulario válido, permitiendo envío...');
+        return true;
     });
 </script>
 {% endblock %}

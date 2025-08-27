@@ -1,251 +1,371 @@
+{% extends 'base.html' %}
 {% load static %}
-{% load widget_tweaks %}
-{% load socialaccount %}
 
-<!DOCTYPE html>
-<html>
+{% block title %}{{ rifa.titulo }} - Rifas Anica{% endblock %}
 
-<head>
-    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
-    <link rel="stylesheet" as="style" onload="this.rel='stylesheet'"
-        href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans%3Awght@400%3B500%3B700%3B900&family=Plus+Jakarta+Sans%3Awght@400%3B500%3B700%3B800" />
-    <title>{{ raffle.title }}</title>
-    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script>
-        function toggleMobileMenu() {
-            const menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('hidden');
-        }
-    </script>
-</head>
+{% block content %}
+<div class="min-h-screen bg-light py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Breadcrumb -->
+        <div class="mb-6">
+            <nav class="flex" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                    <li class="inline-flex items-center">
+                        <a href="{% url 'home' %}" class="inline-flex items-center text-sm font-medium text-secondary hover:text-primary transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                            </svg>
+                            Inicio
+                        </a>
+                    </li>
+                    <li>
+                        <div class="flex items-center">
+                            <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            <a href="{% url 'rifa_list' %}" class="ml-1 text-sm font-medium text-secondary hover:text-primary transition-colors md:ml-2">Rifas</a>
+                        </div>
+                    </li>
+                    <li aria-current="page">
+                        <div class="flex items-center">
+                            <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">{{ rifa.titulo }}</span>
+                        </div>
+                    </li>
+                </ol>
+            </nav>
+        </div>
 
-<body>
-    <div class="relative flex size-full min-h-screen flex-col bg-[#fcf8f8] group/design-root overflow-x-hidden"
-        style='--select-button-svg: url('data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724px%27 height=%2724px%27 fill=%27rgb(153,77,81)%27 viewBox=%270 0 256 256%27%3e%3cpath d=%27M181.66,170.34a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-48-48a8,8,0,0,1,11.32-11.32L128,212.69l42.34-42.35A8,8,0,0,1,181.66,170.34Zm-96-84.68L128,43.31l42.34,42.35a8,8,0,0,0,11.32-11.32l-48-48a8,8,0,0,0-11.32,0l-48,48A8,8,0,0,0,85.66,85.66Z%27%3e%3c/path%3e%3c/svg%3e'); font-family: "Plus Jakarta Sans" , "Noto Sans" , sans-serif;'>
-        <div class="layout-container flex h-full grow flex-col">
-            <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f3e7e8] px-10 py-3">
-                <div class="flex items-center gap-8">
-                    <div class="flex items-center gap-4 text-[#1b0e0e]">
-                        <div class="size-4">
-                            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <g clip-path="url(#clip0_6_535)">
-                                    <path fill-rule="evenodd" clip-rule="evenodd"
-                                        d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"
-                                        fill="currentColor"></path>
-                                </g>
-                                <defs>
-                                    <clipPath id="clip0_6_535">
-                                        <rect width="48" height="48" fill="white"></rect>
-                                    </clipPath>
-                                </defs>
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column - Image and Details -->
+            <div class="lg:col-span-2">
+                <!-- Image -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+                    {% if rifa.imagen %}
+                        <img src="{{ rifa.imagen.url }}" alt="{{ rifa.titulo }}" class="w-full h-96 object-cover">
+                    {% else %}
+                        <div class="w-full h-96 bg-gray-200 flex items-center justify-center">
+                            <svg class="w-24 h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
                         </div>
-                        <h2 class="text-[#1b0e0e] text-lg font-bold leading-tight tracking-[-0.015em]">RaffleHub</h2>
-                    </div>
-                    <div class="hidden sm:flex flex-1 justify-end gap-8" id="main-nav-desktop">
-                        <div class="flex items-center gap-9">
-                            <a class="text-[#1b0e0e] text-sm font-medium leading-normal" href="{% url 'home' %}">How it works</a>
-                            <a class="text-[#1b0e0e] text-sm font-medium leading-normal" href="{% url 'san_list' %}">Browse</a>
-                            <a class="text-[#1b0e0e] text-sm font-medium leading-normal" href="{% url 'create_san' %}">Create</a>
-                        </div>
-                        <div class="flex gap-2">
-                            {% if not user.is_authenticated %}
-                            <a href="{% url 'register' %}" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#e92932] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em]">
-                                <span class="truncate">Sign Up</span>
-                            </a>
-                            <a href="{% url 'login' %}" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#f3e7e8] text-[#1b0e0e] text-sm font-bold leading-normal tracking-[0.015em]">
-                                <span class="truncate">Log In</span>
-                            </a>
-                            {% else %}
-                            <a href="{% url 'user_profile' %}" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#f3e7e8] text-[#1b0e0e] text-sm font-bold leading-normal tracking-[0.015em]">
-                                <span class="truncate">My Profile</span>
-                            </a>
-                            <a href="{% url 'logout' %}" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#e92932] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em]">
-                                <span class="truncate">Log Out</span>
-                            </a>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                <button class="sm:hidden text-[#1b0e0e] focus:outline-none" onclick="toggleMobileMenu()">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                </button>
-            </header>
-            <div id="mobile-menu" class="hidden sm:hidden flex flex-col items-center border-b border-solid border-b-[#f3e7e8] bg-[#fcf8f8] py-4">
-                <a class="text-[#1b0e0e] text-base font-medium leading-normal py-2" href="{% url 'home' %}">How it works</a>
-                <a class="text-[#1b0e0e] text-base font-medium leading-normal py-2" href="{% url 'san_list' %}">Browse</a>
-                <a class="text-[#1b0e0e] text-base font-medium leading-normal py-2" href="{% url 'create_san' %}">Create</a>
-                <div class="flex flex-col gap-2 w-full px-4 mt-4">
-                    {% if not user.is_authenticated %}
-                    <a href="{% url 'register' %}" class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#e92932] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em]">
-                        <span class="truncate">Sign Up</span>
-                    </a>
-                    <a href="{% url 'login' %}" class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#f3e7e8] text-[#1b0e0e] text-sm font-bold leading-normal tracking-[0.015em]">
-                        <span class="truncate">Log In</span>
-                    </a>
-                    {% else %}
-                    <a href="{% url 'user_profile' %}" class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#f3e7e8] text-[#1b0e0e] text-sm font-bold leading-normal tracking-[0.015em]">
-                        <span class="truncate">My Profile</span>
-                    </a>
-                    <a href="{% url 'logout' %}" class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#e92932] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em]">
-                        <span class="truncate">Log Out</span>
-                    </a>
                     {% endif %}
+                </div>
+
+                <!-- Description -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-2xl font-bold text-dark mb-4">Sobre el Premio</h2>
+                    <p class="text-gray-700 leading-relaxed">{{ rifa.descripcion|linebreaks }}</p>
+                </div>
+
+                <!-- Details -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-2xl font-bold text-dark mb-4">Detalles de la Rifa</h2>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center py-3 border-b border-gray-200">
+                            <span class="text-gray-600">Precio por ticket</span>
+                            <span class="text-xl font-bold text-primary">${{ rifa.precio_ticket }}</span>
+                        </div>
+                        <div class="flex justify-between items-center py-3 border-b border-gray-200">
+                            <span class="text-gray-600">Tickets disponibles</span>
+                            <span class="text-xl font-bold text-dark">{{ rifa.tickets_disponibles }} / {{ rifa.total_tickets }}</span>
+                        </div>
+                        <div class="flex justify-between items-center py-3 border-b border-gray-200">
+                            <span class="text-gray-600">Fecha de cierre</span>
+                            <span class="text-lg font-medium text-dark">{{ rifa.fecha_fin|date:"d/m/Y, h:i A" }}</span>
+                        </div>
+                        <div class="flex justify-between items-center py-3">
+                            <span class="text-gray-600">Organizador</span>
+                            <span class="text-lg font-medium text-dark">{{ rifa.organizador.get_full_name_or_username }}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-            
-            <div class="px-40 flex flex-1 justify-center py-5">
-                <div class="layout-content-container flex flex-col max-w-[960px] flex-1">
-                    <div class="flex flex-wrap gap-2 p-4">
-                        <a class="text-[#994d51] text-base font-medium leading-normal" href="#">Home</a>
-                        <span class="text-[#994d51] text-base font-medium leading-normal">/</span>
-                        <span class="text-[#1b0e0e] text-base font-medium leading-normal">Raffle Details</span>
-                    </div>
-                    <h2 class="text-[#1b0e0e] tracking-light text-[28px] font-bold leading-tight px-4 text-left pb-3 pt-5">
-                        {{ raffle.title }}
-                    </h2>
-                    <div class="flex w-full grow bg-[#fcf8f8] @container p-4">
-                        <div class="w-full gap-1 overflow-hidden bg-[#fcf8f8] @[480px]:gap-2 aspect-[3/2] rounded-lg grid">
-                            {% if raffle.image %}
-                            <div class="w-full bg-center bg-no-repeat bg-cover aspect-auto rounded-lg"
-                                style='background-image: url("{{ raffle.image.url }}");'>
-                            </div>
+
+            <!-- Right Column - Purchase and Countdown -->
+            <div class="lg:col-span-1">
+                <!-- Status and Countdown -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <!-- Status Badge -->
+                    <div class="mb-4">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                            {% if rifa.estado == 'activa' %}bg-green-100 text-green-800
+                            {% elif rifa.estado == 'pausada' %}bg-yellow-100 text-yellow-800
+                            {% elif rifa.estado == 'finalizada' %}bg-gray-100 text-gray-800
+                            {% else %}bg-blue-100 text-blue-800{% endif %}">
+                            {% if rifa.estado == 'activa' %}
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                Activa
+                            {% elif rifa.estado == 'pausada' %}
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                Pausada
+                            {% elif rifa.estado == 'finalizada' %}
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                Finalizada
                             {% else %}
-                            <div class="w-full aspect-square bg-cover rounded-lg flex flex-col bg-gray-300 flex items-center justify-center text-gray-500">
-                                No Image Available
-                            </div>
+                                {{ rifa.estado|title }}
                             {% endif %}
-                        </div>
+                        </span>
                     </div>
-                    <h2 class="text-[#1b0e0e] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">
-                        About the Prize
-                    </h2>
-                    <p class="text-[#1b0e0e] text-base font-normal leading-normal pb-3 pt-1 px-4">
-                        {{ raffle.description }}
-                    </p>
-                    <h2 class="text-[#1b0e0e] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">
-                        Raffle Details
-                    </h2>
-                    <div class="p-4 grid grid-cols-[20%_1fr] gap-x-6">
-                        <div class="col-span-2 grid grid-cols-subgrid border-t border-t-[#e7d0d1] py-5">
-                            <p class="text-[#994d51] text-sm font-normal leading-normal">Ticket Price</p>
-                            <p class="text-[#1b0e0e] text-sm font-normal leading-normal">${{ raffle.ticket_price }}</p>
-                        </div>
-                        <div class="col-span-2 grid grid-cols-subgrid border-t border-t-[#e7d0d1] py-5">
-                            <p class="text-[#994d51] text-sm font-normal leading-normal">Tickets Available</p>
-                            <p class="text-[#1b0e0e] text-sm font-normal leading-normal">{{ tickets_available }} / {{raffle.total_tickets }}</p>
-                        </div>
-                        <div class="col-span-2 grid grid-cols-subgrid border-t border-t-[#e7d0d1] py-5">
-                            <p class="text-[#994d51] text-sm font-normal leading-normal">Closing Date</p>
-                            <p class="text-[#1b0e0e] text-sm font-normal leading-normal">{{ raffle.draw_date|date:"F d, Y, h:i A" }}</p>
-                        </div>
-                    </div>
-                    <div id="countdown-timer" class="flex gap-4 py-6 px-4" data-end-date="{{ raffle.draw_date|date:"c" }}">
-                        <div class="flex grow basis-0 flex-col items-stretch gap-4">
-                            <div class="flex h-14 grow items-center justify-center rounded-lg px-3 bg-[#f3e7e8]">
-                                <p id="countdown-days" class="text-[#1b0e0e] text-lg font-bold leading-tight tracking-[-0.015em]"></p>
+
+                    <!-- Countdown Timer -->
+                    {% if rifa.estado == 'activa' %}
+                    <div class="mb-6">
+                        <h3 class="text-lg font-bold text-dark mb-4">Tiempo Restante</h3>
+                        <div id="countdown-timer" class="grid grid-cols-4 gap-2" data-end-date="{{ rifa.fecha_fin|date:'c' }}">
+                            <div class="text-center">
+                                <div class="bg-accent rounded-lg p-3">
+                                    <p id="countdown-days" class="text-2xl font-bold text-dark">00</p>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-1">Días</p>
                             </div>
-                            <div class="flex items-center justify-center">
-                                <p class="text-[#1b0e0e] text-sm font-normal leading-normal">Days</p>
+                            <div class="text-center">
+                                <div class="bg-accent rounded-lg p-3">
+                                    <p id="countdown-hours" class="text-2xl font-bold text-dark">00</p>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-1">Horas</p>
                             </div>
-                        </div>
-                        <div class="flex grow basis-0 flex-col items-stretch gap-4">
-                            <div class="flex h-14 grow items-center justify-center rounded-lg px-3 bg-[#f3e7e8]">
-                                <p id="countdown-hours" class="text-[#1b0e0e] text-lg font-bold leading-tight tracking-[-0.015em]"></p>
+                            <div class="text-center">
+                                <div class="bg-accent rounded-lg p-3">
+                                    <p id="countdown-minutes" class="text-2xl font-bold text-dark">00</p>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-1">Minutos</p>
                             </div>
-                            <div class="flex items-center justify-center">
-                                <p class="text-[#1b0e0e] text-sm font-normal leading-normal">Hours</p>
+                            <div class="text-center">
+                                <div class="bg-accent rounded-lg p-3">
+                                    <p id="countdown-seconds" class="text-2xl font-bold text-dark">00</p>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-1">Segundos</p>
                             </div>
                         </div>
-                        <div class="flex grow basis-0 flex-col items-stretch gap-4">
-                            <div class="flex h-14 grow items-center justify-center rounded-lg px-3 bg-[#f3e7e8]">
-                                <p id="countdown-minutes" class="text-[#1b0e0e] text-lg font-bold leading-tight tracking-[-0.015em]"></p>
-                            </div>
-                            <div class="flex items-center justify-center">
-                                <p class="text-[#1b0e0e] text-sm font-normal leading-normal">Minutes</p>
-                            </div>
-                        </div>
-                        <div class="flex grow basis-0 flex-col items-stretch gap-4">
-                            <div class="flex h-14 grow items-center justify-center rounded-lg px-3 bg-[#f3e7e8]">
-                                <p id="countdown-seconds" class="text-[#1b0e0e] text-lg font-bold leading-tight tracking-[-0.015em]"></p>
-                            </div>
-                            <div class="flex items-center justify-center">
-                                <p class="text-[#1b0e0e] text-sm font-normal leading-normal">Seconds</p>
-                            </div>
-                        </div>
-                    </div>
-                    <h2 class="text-[#1b0e0e] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">
-                        Buy Tickets
-                    </h2>
-                    {% if messages %}
-                    <div class="px-4">
-                        {% for message in messages %}
-                        <div class="{% if message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %} p-4 rounded-lg">
-                            {{ message }}
-                        </div>
-                        {% endfor %}
                     </div>
                     {% endif %}
-                    <form action="{% url 'buy_raffle_tickets' raffle_id=raffle.id %}" method="post">
+
+                    <!-- Progress Bar -->
+                    <div class="mb-6">
+                        <div class="flex justify-between text-sm text-gray-600 mb-2">
+                            <span>Progreso de venta</span>
+                            <span>{{ rifa.porcentaje_vendido|floatformat:1 }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="bg-primary h-3 rounded-full transition-all duration-300" 
+                                 style="width: {{ rifa.porcentaje_vendido }}%"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">{{ rifa.tickets_vendidos }} de {{ rifa.total_tickets }} tickets vendidos</p>
+                    </div>
+
+                    <!-- Financial Tracking -->
+                    <div class="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4 mb-6">
+                        <h4 class="text-sm font-bold text-dark mb-3 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                            </svg>
+                            Información Financiera
+                        </h4>
+                        
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div class="text-center">
+                                <p class="text-lg font-bold text-green-600">${{ rifa.total_recaudado }}</p>
+                                <p class="text-xs text-gray-600">Total Recaudado</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-lg font-bold text-blue-600">${{ rifa.total_esperado }}</p>
+                                <p class="text-xs text-gray-600">Total Esperado</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-lg font-bold text-orange-600">{{ rifa.participantes_unicos }}</p>
+                                <p class="text-xs text-gray-600">Participantes</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-lg font-bold text-purple-600">{{ rifa.tickets_vendidos }}</p>
+                                <p class="text-xs text-gray-600">Tickets Vendidos</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sorteo Status -->
+                    {% if rifa.estado_sorteo == 'proximo_cerrar' %}
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                            <h4 class="text-sm font-medium text-yellow-800">¡Próximo a cerrar!</h4>
+                        </div>
+                        <p class="text-sm text-yellow-700 mt-1">
+                            Esta rifa cerrará en menos de 24 horas. ¡No te pierdas la oportunidad!
+                        </p>
+                    </div>
+                    {% elif rifa.estado_sorteo == 'cerrado' %}
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            <h4 class="text-sm font-medium text-red-800">Rifa cerrada</h4>
+                        </div>
+                        <p class="text-sm text-red-700 mt-1">
+                            El período de venta ha terminado. El sorteo se realizará pronto.
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Purchase Section -->
+                {% if rifa.estado == 'activa' and rifa.tickets_disponibles > 0 %}
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-bold text-dark mb-4">Comprar Tickets</h3>
+                    
+                    {% if messages %}
+                        <div class="mb-4">
+                            {% for message in messages %}
+                                <div class="{% if message.tags == 'success' %}bg-green-100 text-green-700 border border-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-blue-100 text-blue-700 border border-blue-200{% endif %} p-3 rounded-lg">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'comprar_ticket_rifa' rifa.id %}">
                         {% csrf_token %}
-                        <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
-                            <label class="flex flex-col min-w-40 flex-1">
-                                <select name="quantity" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#1b0e0e] focus:outline-0 focus:ring-0 border border-[#e7d0d1] bg-[#fcf8f8] focus:border-[#e7d0d1] h-14 bg-[image:--select-button-svg] placeholder:text-[#994d51] p-[15px] text-base font-normal leading-normal">
-                                    {% if tickets_available > 0 %}
-                                        {% for i in "x"|ljust:tickets_available|make_list %}
-                                        <option value="{{ forloop.counter }}">{{ forloop.counter }}</option>
-                                        {% endfor %}
-                                    {% else %}
-                                        <option value="" disabled selected>No tickets available</option>
-                                    {% endif %}
-                                </select>
+                        <div class="mb-4">
+                            <label for="quantity" class="block text-sm font-medium text-gray-700 mb-2">
+                                Cantidad de tickets
                             </label>
+                            <select name="quantity" id="quantity" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                {% for i in "x"|ljust:rifa.tickets_disponibles|make_list %}
+                                    <option value="{{ forloop.counter }}">{{ forloop.counter }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
-                        <div class="flex px-4 py-3">
-                            <button type="submit" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 flex-1 bg-[#e92932] text-[#fcf8f8] text-base font-bold leading-normal tracking-[0.015em]"
-                                {% if tickets_available == 0 %}disabled{% endif %}>
-                                <span class="truncate">Buy Tickets</span>
-                            </button>
+                        
+                        <div class="mb-4 p-3 bg-accent rounded-lg">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-dark">Total a pagar:</span>
+                                <span class="text-lg font-bold text-primary" id="total-price">${{ rifa.precio_ticket }}</span>
+                            </div>
                         </div>
+
+                        <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-primary hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+                            Comprar Tickets
+                        </button>
                     </form>
                 </div>
+                {% elif rifa.estado == 'finalizada' %}
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-bold text-dark mb-4">Rifa Finalizada</h3>
+                    {% if rifa.ganador %}
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-1">Ganador:</p>
+                        <p class="text-lg font-bold text-dark">{{ rifa.ganador.get_full_name_or_username }}</p>
+                    </div>
+                    {% else %}
+                    <p class="text-gray-600 text-center">No se ha seleccionado un ganador aún.</p>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-bold text-dark mb-4">No Disponible</h3>
+                    <p class="text-gray-600 text-center">
+                        {% if rifa.estado == 'pausada' %}
+                            Esta rifa está pausada temporalmente.
+                        {% elif rifa.tickets_disponibles == 0 %}
+                            Todos los tickets han sido vendidos.
+                        {% else %}
+                            Esta rifa no está disponible para compra.
+                        {% endif %}
+                    </p>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
-    <script>
-        function updateCountdown() {
-            const countdownElement = document.getElementById('countdown-timer');
-            if (!countdownElement) return;
+</div>
 
-            const endDate = new Date(countdownElement.dataset.endDate);
-            const now = new Date();
-            const difference = endDate - now;
+<script>
+    // Countdown Timer
+    function updateCountdown() {
+        const countdownElement = document.getElementById('countdown-timer');
+        if (!countdownElement) return;
 
-            if (difference <= 0) {
-                document.getElementById('countdown-days').innerText = '00';
-                document.getElementById('countdown-hours').innerText = '00';
-                document.getElementById('countdown-minutes').innerText = '00';
-                document.getElementById('countdown-seconds').innerText = '00';
-                return;
-            }
-
-            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-
-            document.getElementById('countdown-days').innerText = String(days).padStart(2, '0');
-            document.getElementById('countdown-hours').innerText = String(hours).padStart(2, '0');
-            document.getElementById('countdown-minutes').innerText = String(minutes).padStart(2, '0');
-            document.getElementById('countdown-seconds').innerText = String(seconds).padStart(2, '0');
+        const endDateString = countdownElement.dataset.endDate;
+        if (!endDateString) {
+            console.error('No se encontró la fecha de fin en el elemento countdown');
+            return;
         }
 
-        updateCountdown();
-        setInterval(updateCountdown, 1000);
-    </script>
-</body>
+        const endDate = new Date(endDateString);
+        const now = new Date();
+        
+        // Verificar si la fecha es válida
+        if (isNaN(endDate.getTime())) {
+            console.error('Fecha de fin inválida:', endDateString);
+            document.getElementById('countdown-days').innerText = '--';
+            document.getElementById('countdown-hours').innerText = '--';
+            document.getElementById('countdown-minutes').innerText = '--';
+            document.getElementById('countdown-seconds').innerText = '--';
+            return;
+        }
 
-</html>
+        const difference = endDate - now;
+
+        if (difference <= 0) {
+            document.getElementById('countdown-days').innerText = '00';
+            document.getElementById('countdown-hours').innerText = '00';
+            document.getElementById('countdown-minutes').innerText = '00';
+            document.getElementById('countdown-seconds').innerText = '00';
+            
+            // Si la rifa ha terminado, recargar la página para mostrar el estado actualizado
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+            return;
+        }
+
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        document.getElementById('countdown-days').innerText = String(days).padStart(2, '0');
+        document.getElementById('countdown-hours').innerText = String(hours).padStart(2, '0');
+        document.getElementById('countdown-minutes').innerText = String(minutes).padStart(2, '0');
+        document.getElementById('countdown-seconds').innerText = String(seconds).padStart(2, '0');
+
+        // Cambiar color cuando esté próximo a cerrar (menos de 24 horas)
+        if (difference <= 86400000) { // 24 horas en milisegundos
+            const countdownElements = document.querySelectorAll('#countdown-days, #countdown-hours, #countdown-minutes, #countdown-seconds');
+            countdownElements.forEach(el => {
+                el.classList.add('text-red-600');
+            });
+        }
+    }
+
+    // Update total price when quantity changes
+    document.getElementById('quantity').addEventListener('change', function() {
+        const quantity = parseInt(this.value);
+        const pricePerTicket = {{ rifa.precio_ticket }};
+        const total = quantity * pricePerTicket;
+        document.getElementById('total-price').textContent = '$' + total.toFixed(2);
+    });
+
+    // Initialize countdown
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+</script>
+{% endblock %}

@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mis Notificaciones - Rifas Anica{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-light py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-dark">Mis Notificaciones</h1>
+            <p class="text-gray-600">Mantente al día con las últimas novedades</p>
+        </div>
+
+        <!-- Filtros -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <form method="get" class="flex flex-wrap gap-4">
+                <div class="flex-1 min-w-48">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                    <select name="tipo" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Todos</option>
+                        <option value="rifa" {% if request.GET.tipo == 'rifa' %}selected{% endif %}>Rifas</option>
+                        <option value="san" {% if request.GET.tipo == 'san' %}selected{% endif %}>Sanes</option>
+                        <option value="pago" {% if request.GET.tipo == 'pago' %}selected{% endif %}>Pagos</option>
+                        <option value="sistema" {% if request.GET.tipo == 'sistema' %}selected{% endif %}>Sistema</option>
+                    </select>
+                </div>
+                <div class="flex-1 min-w-48">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                                    <select name="leido" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Todas</option>
+                    <option value="false" {% if request.GET.leido == 'false' %}selected{% endif %}>No leídas</option>
+                    <option value="true" {% if request.GET.leido == 'true' %}selected{% endif %}>Leídas</option>
+                </select>
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-red-700 transition-colors">
+                        Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Lista de notificaciones -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-xl font-semibold text-dark">Notificaciones</h2>
+                {% if notificaciones %}
+                <button onclick="marcarTodasLeidas()" class="text-sm text-primary hover:text-red-700">
+                    Marcar todas como leídas
+                </button>
+                {% endif %}
+            </div>
+            
+            {% if notificaciones %}
+            <div class="divide-y divide-gray-200">
+                {% for notificacion in notificaciones %}
+                <div class="p-6 hover:bg-gray-50 transition-colors {% if not notificacion.leido %}bg-blue-50{% endif %}">
+                    <div class="flex items-start space-x-4">
+                        <!-- Icono según tipo -->
+                        <div class="flex-shrink-0">
+                            {% if notificacion.tipo == 'rifa' %}
+                                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                </div>
+                            {% elif notificacion.tipo == 'san' %}
+                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                </div>
+                            {% elif notificacion.tipo == 'pago' %}
+                                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                    </svg>
+                                </div>
+                            {% else %}
+                                <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Contenido -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-sm font-medium text-dark">
+                                    {{ notificacion.titulo }}
+                                </h3>
+                                <div class="flex items-center space-x-2">
+                                    {% if not notificacion.leido %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            Nueva
+                                        </span>
+                                    {% endif %}
+                                    <span class="text-xs text-gray-500">
+                                        {{ notificacion.fecha_creacion|timesince }}
+                                    </span>
+                                </div>
+                            </div>
+                            <p class="mt-1 text-sm text-gray-600">
+                                {{ notificacion.mensaje }}
+                            </p>
+                            
+                            <!-- Acciones -->
+                            <div class="mt-3 flex items-center space-x-4">
+                                {% if notificacion.url %}
+                                    <a href="{{ notificacion.url }}" class="text-sm text-primary hover:text-red-700">
+                                        Ver más
+                                    </a>
+                                {% endif %}
+                                {% if not notificacion.leido %}
+                                    <button onclick="marcarLeida({{ notificacion.id }})" class="text-sm text-gray-500 hover:text-gray-700">
+                                        Marcar como leída
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Paginación -->
+            {% if notificaciones.has_other_pages %}
+            <div class="px-6 py-4 border-t border-gray-200">
+                <nav class="flex items-center justify-between">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        {% if notificaciones.has_previous %}
+                            <a href="?page={{ notificaciones.previous_page_number }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Anterior</a>
+                        {% endif %}
+                        {% if notificaciones.has_next %}
+                            <a href="?page={{ notificaciones.next_page_number }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Siguiente</a>
+                        {% endif %}
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                Mostrando <span class="font-medium">{{ notificaciones.start_index }}</span> a <span class="font-medium">{{ notificaciones.end_index }}</span> de <span class="font-medium">{{ notificaciones.paginator.count }}</span> notificaciones
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                                {% if notificaciones.has_previous %}
+                                    <a href="?page={{ notificaciones.previous_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Anterior</a>
+                                {% endif %}
+                                
+                                {% for num in notificaciones.paginator.page_range %}
+                                    {% if notificaciones.number == num %}
+                                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-primary text-sm font-medium text-white">{{ num }}</span>
+                                    {% elif num > notificaciones.number|add:'-3' and num < notificaciones.number|add:'3' %}
+                                        <a href="?page={{ num }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">{{ num }}</a>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if notificaciones.has_next %}
+                                    <a href="?page={{ notificaciones.next_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Siguiente</a>
+                                {% endif %}
+                            </nav>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4 19h6v-2H4v2zM20 4v6h2V4h-2zM4 4v6h2V4H4z"></path>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No hay notificaciones</h3>
+                <p class="mt-1 text-sm text-gray-500">No tienes notificaciones para mostrar.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function marcarLeida(notificacionId) {
+    fetch(`/notificaciones/${notificacionId}/marcar-leida/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function marcarTodasLeidas() {
+    fetch('/notificaciones/marcar-todas-leidas/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}

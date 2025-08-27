@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Inicio - Rifas Anica{% endblock %}
+
+{% block content %}
+<div class="relative flex size-full min-h-screen flex-col bg-light group/design-root overflow-x-hidden">
+    <!-- Hero Section -->
+    <section class="relative bg-gradient-to-br from-primary to-secondary text-white py-20 px-4 sm:px-6 lg:px-10">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center">
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-[-0.015em] mb-6">
+                    Tu Plataforma de <span class="text-accent">Rifas y Sanes</span>
+                </h1>
+                <p class="text-xl sm:text-2xl text-gray-100 mb-8 max-w-3xl mx-auto">
+                    Participa en emocionantes rifas y únete a sanes confiables. 
+                    Una plataforma segura y transparente para tus inversiones.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="{% url 'rifa_list' %}" class="flex min-w-[200px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-accent text-dark text-lg font-bold leading-normal tracking-[0.015em] hover:bg-gray-200 transition-colors">
+                        <span class="truncate">Ver Rifas</span>
+                    </a>
+                    <a href="{% url 'san_list' %}" class="flex min-w-[200px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-white text-primary text-lg font-bold leading-normal tracking-[0.015em] hover:bg-gray-100 transition-colors">
+                        <span class="truncate">Ver Sanes</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-16 px-4 sm:px-6 lg:px-10 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl sm:text-4xl font-bold text-dark mb-4">¿Por qué elegirnos?</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    Ofrecemos la mejor experiencia en rifas y sanes con transparencia total y seguridad garantizada.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="text-center p-6 rounded-lg bg-light">
+                    <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-dark mb-2">100% Seguro</h3>
+                    <p class="text-gray-600">Todas las transacciones están protegidas y verificadas por nuestro sistema.</p>
+                </div>
+                
+                <div class="text-center p-6 rounded-lg bg-light">
+                    <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-dark mb-2">Transparente</h3>
+                    <p class="text-gray-600">Puedes verificar cada rifa y san en tiempo real con total transparencia.</p>
+                </div>
+                
+                <div class="text-center p-6 rounded-lg bg-light">
+                    <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-dark mb-2">Fácil de Usar</h3>
+                    <p class="text-gray-600">Interfaz intuitiva que te permite participar en rifas y sanes fácilmente.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Rifas Section -->
+    <section class="py-16 px-4 sm:px-6 lg:px-10 bg-light">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-bold text-dark">Rifas Activas</h2>
+                <a href="{% url 'rifa_list' %}" class="text-primary hover:text-secondary font-medium transition-colors">
+                    Ver todas →
+                </a>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for rifa in rifas_activas|slice:":6" %}
+                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                    <div class="aspect-video bg-gray-200">
+                        {% if rifa.imagen %}
+                            <img src="{{ rifa.imagen.url }}" alt="{{ rifa.titulo }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-gray-500">
+                                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-dark mb-2">{{ rifa.titulo }}</h3>
+                        <p class="text-gray-600 mb-4 line-clamp-2">{{ rifa.descripcion|truncatewords:15 }}</p>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-2xl font-bold text-primary">${{ rifa.precio_ticket }}</span>
+                            <span class="text-sm text-gray-500">{{ rifa.tickets_disponibles }} tickets disponibles</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
+                            <div class="bg-primary h-2 rounded-full" style="width: {{ rifa.porcentaje_vendido }}%"></div>
+                        </div>
+                        <a href="{% url 'rifa_detail' rifa.pk %}" class="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-light text-sm font-bold leading-normal tracking-[0.015em] hover:bg-red-700 transition-colors">
+                            <span class="truncate">Ver Detalles</span>
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-full text-center py-12">
+                    <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No hay rifas activas</h3>
+                    <p class="text-gray-500">Pronto tendremos nuevas rifas emocionantes para ti.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Sanes Section -->
+    <section class="py-16 px-4 sm:px-6 lg:px-10 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-bold text-dark">Sanes Disponibles</h2>
+                <a href="{% url 'san_list' %}" class="text-primary hover:text-secondary font-medium transition-colors">
+                    Ver todos →
+                </a>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for san in sanes_activos|slice:":6" %}
+                <div class="bg-light rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                    <div class="aspect-video bg-gray-200">
+                        {% if san.imagen %}
+                            <img src="{{ san.imagen.url }}" alt="{{ san.nombre }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-gray-500">
+                                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-dark mb-2">{{ san.nombre }}</h3>
+                        <p class="text-gray-600 mb-4 line-clamp-2">{{ san.descripcion|truncatewords:15 }}</p>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-2xl font-bold text-primary">${{ san.precio_cuota }}</span>
+                            <span class="text-sm text-gray-500">{{ san.cupos_disponibles }} cupos disponibles</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
+                            <div class="bg-primary h-2 rounded-full" style="width: {{ san.porcentaje_ocupado }}%"></div>
+                        </div>
+                        <a href="{% url 'san_detail' san.pk %}" class="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-light text-sm font-bold leading-normal tracking-[0.015em] hover:bg-red-700 transition-colors">
+                            <span class="truncate">Ver Detalles</span>
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-full text-center py-12">
+                    <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No hay sanes disponibles</h3>
+                    <p class="text-gray-500">Pronto tendremos nuevos sanes para ti.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-16 px-4 sm:px-6 lg:px-10 bg-gradient-to-r from-primary to-secondary text-white">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-3xl sm:text-4xl font-bold mb-6">¿Listo para empezar?</h2>
+            <p class="text-xl text-gray-100 mb-8">
+                Únete a nuestra comunidad y comienza a participar en rifas y sanes emocionantes.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'register' %}" class="flex min-w-[200px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-accent text-dark text-lg font-bold leading-normal tracking-[0.015em] hover:bg-gray-200 transition-colors">
+                        <span class="truncate">Registrarse</span>
+                    </a>
+                    <a href="{% url 'login' %}" class="flex min-w-[200px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-white text-primary text-lg font-bold leading-normal tracking-[0.015em] hover:bg-gray-100 transition-colors">
+                        <span class="truncate">Iniciar Sesión</span>
+                    </a>
+                {% else %}
+                    <a href="{% url 'rifa_list' %}" class="flex min-w-[200px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-accent text-dark text-lg font-bold leading-normal tracking-[0.015em] hover:bg-gray-200 transition-colors">
+                        <span class="truncate">Ver Rifas</span>
+                    </a>
+                    <a href="{% url 'san_list' %}" class="flex min-w-[200px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-white text-primary text-lg font-bold leading-normal tracking-[0.015em] hover:bg-gray-100 transition-colors">
+                        <span class="truncate">Ver Sanes</span>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

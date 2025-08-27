@@ -1,138 +1,663 @@
+{% extends 'base.html' %}
 {% load static %}
-{% load widget_tweaks %}
 
-<html>
-<head>
-    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
-    <link rel="stylesheet"
-          as="style"
-          onload="this.rel='stylesheet'"
-          href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@400;500;700;800">
-    <title>Crear un nuevo SAN</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <style>
-        .form-input {
-            border-color: #e3d4d4;
-            background-color: #fbf9f9;
-            color: #191010;
-        }
-        .form-input:focus {
-            border-color: #e3d4d4;
-            outline: none;
-            ring: none;
-        }
-        .form-input::placeholder {
-            color: #8b5b5c;
-        }
-    </style>
-</head>
-<body>
-<div class="relative flex size-full min-h-screen flex-col bg-[#fbf9f9] group/design-root overflow-x-hidden"
-     style="font-family: 'Plus Jakarta Sans','Noto Sans', sans-serif;">
-    <div class="layout-container flex h-full grow flex-col">
+{% block title %}Crear San - Rifas Anica{% endblock %}
 
-        <!-- HEADER -->
-        <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f1e9ea] px-10 py-3">
-            <div class="flex items-center gap-4 text-[#191010]">
-                <h2 class="text-[#191010] text-lg font-bold leading-tight">Coop</h2>
+{% block content %}
+<div class="min-h-screen bg-light py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center space-x-4 mb-4">
+                <a href="{% url 'san_list' %}" class="text-primary hover:text-red-700 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </a>
+                <h1 class="text-3xl font-bold text-dark">Crear Nuevo San</h1>
             </div>
-        </header>
-
-        <!-- FORM -->
-        <div class="px-40 flex flex-1 justify-center py-5">
-            <div class="layout-content-container flex flex-col w-[512px] max-w-[960px] py-5 flex-1">
-                <div class="flex flex-wrap justify-between gap-3 p-4">
-                    <p class="text-[#191010] text-[32px] font-bold leading-tight">Crear un nuevo SAN</p>
-                </div>
-
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-
-                    <!-- Nombre del SAN -->
-                    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
-                        <label class="flex flex-col flex-1">
-                            <p class="text-base font-medium pb-2">Nombre del SAN</p>
-                            {% render_field form.name class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] text-base" placeholder="Ingrese el nombre del SAN" %}
-                        </label>
-                    </div>
-
-                    <!-- Organizador -->
-                    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
-                        <label class="flex flex-col flex-1">
-                            <p class="text-base font-medium pb-2">Organizador</p>
-                            {% render_field form.organizador class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] text-base" placeholder="Ingrese el organizador" %}
-                        </label>
-                    </div>
-
-                    <!-- Fecha de Inicio -->
-                    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
-                        <label class="flex flex-col flex-1">
-                            <p class="text-base font-medium pb-2">Fecha de Inicio</p>
-                            {% render_field form.fecha_inicio class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] text-base" type="date" %}
-                        </label>
-                    </div>
-
-                    <!-- Precio Total -->
-                    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
-                        <label class="flex flex-col flex-1">
-                            <p class="text-base font-medium pb-2">Precio Total</p>
-                            {% render_field form.total_price class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] text-base" placeholder="Ingrese el precio total" %}
-                        </label>
-                    </div>
-
-                    <!-- Número de Cuotas -->
-                    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
-                        <label class="flex flex-col flex-1">
-                            <p class="text-base font-medium pb-2">Número de Cuotas</p>
-                            {% render_field form.num_cuotas class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] text-base" placeholder="Ingrese el número de cuotas" %}
-                        </label>
-                    </div>
-
-                    <!-- Frecuencia de Pago -->
-                    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
-                        <label class="flex flex-col flex-1">
-                            <p class="text-base font-medium pb-2">Frecuencia de Pago</p>
-                            {% render_field form.payment_frequency class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] text-base" %}
-                        </label>
-                    </div>
-
-                    <!-- Tipo de SAN -->
-                    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
-                        <label class="flex flex-col flex-1">
-                            <p class="text-base font-medium pb-2">Tipo de SAN</p>
-                            {% render_field form.type_of_san class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] text-base" %}
-                        </label>
-                    </div>
-
-                    <!-- Imagen -->
-                    <div class="flex flex-col p-4">
-                        <div class="flex flex-col items-center gap-6 rounded-xl border-2 border-dashed border-[#e3d4d4] px-6 py-14">
-                            <p class="text-lg font-bold text-center">Imagen del SAN</p>
-                            {% render_field form.image class="w-full text-[#191010] text-sm" %}
-                        </div>
-                    </div>
-
-                    <!-- Participantes -->
-                    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
-                        <label class="flex flex-col flex-1">
-                            <p class="text-base font-medium pb-2">Total de Participantes</p>
-                            {% render_field form.total_participantes class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl h-14 p-[15px] text-base" placeholder="Ingrese el total de participantes" %}
-                        </label>
-                    </div>
-
-                    <!-- Botón -->
-                    <div class="flex px-4 py-3 justify-end">
-                        <button type="submit"
-                                class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#e8b5b7] text-[#191010] text-sm font-bold">
-                            Crear SAN
-                        </button>
-                    </div>
-
-                </form>
-            </div>
+            <p class="text-gray-600">Completa la información para crear un nuevo san y comenzar a organizar ahorros colaborativos.</p>
         </div>
 
+        <!-- Messages -->
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="{% if message.tags == 'success' %}bg-green-100 text-green-700 border border-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-blue-100 text-blue-700 border border-blue-200{% endif %} p-4 rounded-lg">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Form -->
+        <div class="bg-white rounded-lg shadow-md p-8">
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Basic Information -->
+                <div>
+                    <h3 class="text-lg font-bold text-dark mb-4">Información Básica</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.nombre.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.nombre.label }}
+                            </label>
+                            {{ form.nombre }}
+                            {% if form.nombre.errors %}
+                                <div class="mt-1 text-sm text-red-600">
+                                    {% for error in form.nombre.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.tipo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.tipo.label }}
+                            </label>
+                            {{ form.tipo }}
+                            {% if form.tipo.errors %}
+                                <div class="mt-1 text-sm text-red-600">
+                                    {% for error in form.tipo.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label for="{{ form.descripcion.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.descripcion.label }}
+                    </label>
+                    {{ form.descripcion }}
+                    {% if form.descripcion.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.descripcion.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Financial Information -->
+                <div>
+                    <h3 class="text-lg font-bold text-dark mb-4">Información Financiera</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="{{ form.precio_total.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.precio_total.label }}
+                            </label>
+                            {{ form.precio_total }}
+                            {% if form.precio_total.errors %}
+                                <div class="mt-1 text-sm text-red-600">
+                                    {% for error in form.precio_total.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.numero_cuotas.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.numero_cuotas.label }}
+                            </label>
+                            {{ form.numero_cuotas }}
+                            {% if form.numero_cuotas.errors %}
+                                <div class="mt-1 text-sm text-red-600">
+                                    {% for error in form.numero_cuotas.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.total_participantes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.total_participantes.label }}
+                            </label>
+                            {{ form.total_participantes }}
+                            {% if form.total_participantes.errors %}
+                                <div class="mt-1 text-sm text-red-600">
+                                    {% for error in form.total_participantes.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label for="{{ form.frecuencia_pago.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.frecuencia_pago.label }}
+                            </label>
+                            {{ form.frecuencia_pago }}
+                            {% if form.frecuencia_pago.errors %}
+                                <div class="mt-1 text-sm text-red-600">
+                                    {% for error in form.frecuencia_pago.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.tipo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.tipo.label }}
+                            </label>
+                            {{ form.tipo }}
+                            {% if form.tipo.errors %}
+                                <div class="mt-1 text-sm text-red-600">
+                                    {% for error in form.tipo.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cálculos Automáticos -->
+                <div id="calculos-container" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6" style="display: none;">
+                    <h4 class="text-lg font-semibold text-blue-800 mb-3">📊 Cálculos Automáticos</h4>
+                    
+                    <!-- Estado de viabilidad -->
+                    <div class="mb-4">
+                        <div id="estado-viabilidad" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium">
+                            <!-- Se llena dinámicamente -->
+                        </div>
+                    </div>
+                    
+                    <!-- Métricas principales -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                        <div class="bg-white p-3 rounded-lg border">
+                            <div class="text-sm text-gray-600">Cuota por Participante</div>
+                            <div id="cuota-participante" class="text-lg font-semibold text-blue-600">$0.00</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border">
+                            <div class="text-sm text-gray-600">Periodos Necesarios</div>
+                            <div id="periodos-necesarios" class="text-lg font-semibold text-blue-600">0</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border">
+                            <div class="text-sm text-gray-600">Periodos Disponibles</div>
+                            <div id="periodos-disponibles" class="text-lg font-semibold text-blue-600">0</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border">
+                            <div class="text-sm text-gray-600">Monto Total Aportado</div>
+                            <div id="monto-total-aportado" class="text-lg font-semibold text-blue-600">$0.00</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border">
+                            <div class="text-sm text-gray-600">Diferencia</div>
+                            <div id="diferencia" class="text-lg font-semibold text-green-600">$0.00</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Alertas -->
+                    <div id="alertas-container" class="space-y-2">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+
+                    <!-- Fechas sugeridas -->
+                    <div id="fechas-sugeridas" class="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg" style="display: none;">
+                        <h5 class="text-sm font-semibold text-purple-800 mb-2">📅 Fechas Sugeridas</h5>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                            <div>
+                                <span class="text-purple-600 font-medium">Inicio sugerido:</span>
+                                <span id="fecha-inicio-sugerida" class="text-purple-800">-</span>
+                            </div>
+                            <div>
+                                <span class="text-purple-600 font-medium">Fin sugerido:</span>
+                                <span id="fecha-fin-sugerida" class="text-purple-800">-</span>
+                            </div>
+                            <div>
+                                <span class="text-purple-600 font-medium">Duración:</span>
+                                <span id="duracion-dias" class="text-purple-800">-</span>
+                            </div>
+                            <div>
+                                <span class="text-purple-600 font-medium">Periodos por mes:</span>
+                                <span id="periodos-por-mes" class="text-purple-800">-</span>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs text-purple-600">
+                            💡 Estas fechas aseguran que el san sea viable con los parámetros actuales.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dates -->
+                <div>
+                    <h3 class="text-lg font-bold text-dark mb-4">Fechas</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.fecha_inicio.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.fecha_inicio.label }}
+                            </label>
+                            {{ form.fecha_inicio }}
+                            {% if form.fecha_inicio.errors %}
+                                <div class="mt-1 text-sm text-red-600">
+                                    {% for error in form.fecha_inicio.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.fecha_fin.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.fecha_fin.label }}
+                            </label>
+                            {{ form.fecha_fin }}
+                            {% if form.fecha_fin.errors %}
+                                <div class="mt-1 text-sm text-red-600">
+                                    {% for error in form.fecha_fin.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Image Upload -->
+                <div>
+                    <label for="{{ form.imagen.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.imagen.label }}
+                    </label>
+                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-primary transition-colors">
+                        <div class="space-y-1 text-center">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <div class="flex text-sm text-gray-600">
+                                <label for="{{ form.imagen.id_for_label }}" class="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-red-700 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary">
+                                    <span>Subir imagen</span>
+                                    {{ form.imagen }}
+                                </label>
+                                <p class="pl-1">o arrastrar y soltar</p>
+                            </div>
+                            <p class="text-xs text-gray-500">
+                                PNG, JPG, GIF hasta 10MB
+                            </p>
+                        </div>
+                    </div>
+                    {% if form.imagen.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.imagen.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Estado -->
+                <div>
+                    <label for="{{ form.estado.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.estado.label }}
+                    </label>
+                    {{ form.estado }}
+                    {% if form.estado.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.estado.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Non-field errors -->
+                {% if form.non_field_errors %}
+                    <div class="bg-red-100 text-red-700 p-4 rounded-lg">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Buttons -->
+                <div class="flex gap-4 pt-6">
+                    <button type="submit" class="flex-1 flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-primary hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+                        Crear San
+                    </button>
+                    <a href="{% url 'san_list' %}" class="flex-1 flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tips -->
+        <div class="mt-8 bg-accent rounded-lg p-6">
+            <h3 class="text-lg font-bold text-dark mb-4">💡 Consejos para crear un san exitoso</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+                <div>
+                    <h4 class="font-medium text-dark mb-2">📝 Descripción clara</h4>
+                    <p>Explica detalladamente el propósito del san y qué se va a comprar o ahorrar.</p>
+                </div>
+                <div>
+                    <h4 class="font-medium text-dark mb-2">💰 Precio razonable</h4>
+                    <p>Establece un precio por cuota que sea accesible para todos los participantes.</p>
+                </div>
+                <div>
+                    <h4 class="font-medium text-dark mb-2">📅 Fechas realistas</h4>
+                    <p>Define fechas de inicio y fin que permitan completar todas las cuotas.</p>
+                </div>
+                <div>
+                    <h4 class="font-medium text-dark mb-2">👥 Participantes adecuados</h4>
+                    <p>Considera el número de participantes según el tipo de san y el monto total.</p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-</body>
-</html>
+
+<script>
+    // Drag and drop functionality for image upload
+    const dropZone = document.querySelector('.border-dashed');
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        dropZone.classList.add('border-primary');
+    }
+
+    function unhighlight(e) {
+        dropZone.classList.remove('border-primary');
+    }
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        const fileInput = document.getElementById('{{ form.imagen.id_for_label }}');
+        
+        fileInput.files = files;
+        
+        // Trigger change event
+        const event = new Event('change', { bubbles: true });
+        fileInput.dispatchEvent(event);
+    }
+
+    // Set minimum dates for date inputs
+    const fechaInicioInput = document.getElementById('{{ form.fecha_inicio.id_for_label }}');
+    const fechaFinInput = document.getElementById('{{ form.fecha_fin.id_for_label }}');
+    
+    if (fechaInicioInput) {
+        const today = new Date().toISOString().split('T')[0];
+        fechaInicioInput.setAttribute('min', today);
+    }
+    
+    if (fechaFinInput) {
+        const today = new Date().toISOString().split('T')[0];
+        fechaFinInput.setAttribute('min', today);
+    }
+
+    // Cálculos automáticos en tiempo real
+    const form = document.querySelector('form');
+    const inputs = form.querySelectorAll('input, select');
+    let updateTimeout;
+    let isUpdating = false;
+    
+    // Función para formatear moneda
+    function formatearMoneda(valor) {
+        return new Intl.NumberFormat('es-ES', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2
+        }).format(valor);
+    }
+    
+    // Función para calcular fechas sugeridas
+    function calcularFechasSugeridas(numeroCuotas, frecuenciaPago) {
+        const hoy = new Date();
+        const fechaInicio = new Date(hoy);
+        
+        const diasPorPeriodo = {
+            'diaria': 1,
+            'semanal': 7,
+            'quincenal': 14,
+            'mensual': 30
+        };
+        
+        const diasPorPeriodoValor = diasPorPeriodo[frecuenciaPago] || 30;
+        // Calcular días totales necesarios (número de cuotas - 1) * días por periodo
+        const diasTotalesNecesarios = Math.max(0, (numeroCuotas - 1) * diasPorPeriodoValor);
+        
+        const fechaFin = new Date(hoy);
+        fechaFin.setDate(fechaFin.getDate() + diasTotalesNecesarios);
+        
+        // Calcular periodos por mes de manera más precisa
+        let periodosPorMes;
+        if (frecuenciaPago === 'diaria') {
+            periodosPorMes = 30;
+        } else if (frecuenciaPago === 'semanal') {
+            periodosPorMes = 4; // ~4 semanas por mes
+        } else if (frecuenciaPago === 'quincenal') {
+            periodosPorMes = 2; // 2 quincenas por mes
+        } else if (frecuenciaPago === 'mensual') {
+            periodosPorMes = 1; // 1 mes por mes
+        } else {
+            periodosPorMes = 1;
+        }
+        
+        return {
+            fechaInicio: fechaInicio.toISOString().split('T')[0],
+            fechaFin: fechaFin.toISOString().split('T')[0],
+            diasTotales: diasTotalesNecesarios,
+            periodosPorMes: periodosPorMes
+        };
+    }
+    
+    // Función principal de cálculos
+    function calcularSan() {
+        if (isUpdating) return;
+        
+        const precioTotal = parseFloat(document.getElementById('{{ form.precio_total.id_for_label }}').value) || 0;
+        const totalParticipantes = parseInt(document.getElementById('{{ form.total_participantes.id_for_label }}').value) || 0;
+        const frecuenciaPago = document.getElementById('{{ form.frecuencia_pago.id_for_label }}').value;
+        const numeroCuotas = parseInt(document.getElementById('{{ form.numero_cuotas.id_for_label }}').value) || 0;
+        const fechaInicio = document.getElementById('{{ form.fecha_inicio.id_for_label }}').value;
+        const fechaFin = document.getElementById('{{ form.fecha_fin.id_for_label }}').value;
+        
+        // Solo calcular si hay datos mínimos
+        if (!precioTotal || !totalParticipantes || !frecuenciaPago || !numeroCuotas) {
+            document.getElementById('calculos-container').style.display = 'none';
+            return;
+        }
+        
+        isUpdating = true;
+        
+        // Calcular cuota por participante
+        const cuotaPorParticipante = precioTotal / numeroCuotas;
+        const periodosNecesarios = numeroCuotas;
+        
+        // Calcular periodos disponibles según fechas
+        let periodosDisponibles = 0;
+        if (fechaInicio && fechaFin) {
+            const inicio = new Date(fechaInicio);
+            const fin = new Date(fechaFin);
+            const deltaDias = Math.ceil((fin - inicio) / (1000 * 60 * 60 * 24));
+            
+            const diasPorPeriodo = {
+                'diaria': 1,
+                'semanal': 7,
+                'quincenal': 14,
+                'mensual': 30
+            };
+            
+            const diasPorPeriodoValor = diasPorPeriodo[frecuenciaPago] || 30;
+            periodosDisponibles = Math.max(1, Math.floor(deltaDias / diasPorPeriodoValor));
+        }
+        
+        // Calcular monto total aportado
+        const montoTotalAportado = cuotaPorParticipante * totalParticipantes;
+        const diferencia = montoTotalAportado - precioTotal;
+        
+        // Verificar viabilidad
+        let viable = true;
+        const alertas = [];
+        
+        // Verificar si los periodos necesarios caben en el tiempo disponible
+        if (periodosDisponibles > 0 && numeroCuotas > periodosDisponibles) {
+            viable = false;
+            alertas.push(`⚠️ El número de cuotas (${numeroCuotas}) excede los periodos disponibles (${periodosDisponibles}) entre las fechas indicadas.`);
+        }
+        
+        // Verificar si se cubre el monto total
+        if (montoTotalAportado < precioTotal) {
+            viable = false;
+            alertas.push(`⚠️ Los parámetros no cubren el monto total. Faltan ${formatearMoneda(Math.abs(diferencia))}`);
+        }
+        
+        // Verificar si las fechas son válidas
+        if (fechaInicio && fechaFin && new Date(fechaInicio) >= new Date(fechaFin)) {
+            viable = false;
+            alertas.push('⚠️ La fecha de fin debe ser posterior a la fecha de inicio.');
+        }
+        
+        // Verificar si el número de participantes es razonable
+        if (totalParticipantes < 2) {
+            viable = false;
+            alertas.push('⚠️ Se requieren al menos 2 participantes para un san.');
+        }
+        
+        // Agregar información adicional si es viable
+        if (viable) {
+            alertas.push(`✅ San viable: Cada participante pagará ${formatearMoneda(cuotaPorParticipante)} por periodo`);
+            if (periodosDisponibles > 0) {
+                alertas.push(`✅ Tiempo disponible: ${periodosDisponibles} periodos entre las fechas`);
+            }
+        }
+        
+        // Actualizar la interfaz
+        document.getElementById('calculos-container').style.display = 'block';
+        
+        // Estado de viabilidad
+        const estadoElement = document.getElementById('estado-viabilidad');
+        if (viable) {
+            estadoElement.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800';
+            estadoElement.innerHTML = '✅ San Viable';
+        } else {
+            estadoElement.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800';
+            estadoElement.innerHTML = '❌ San No Viable';
+        }
+        
+        // Métricas
+        document.getElementById('cuota-participante').textContent = formatearMoneda(cuotaPorParticipante);
+        document.getElementById('periodos-necesarios').textContent = periodosNecesarios;
+        document.getElementById('periodos-disponibles').textContent = periodosDisponibles;
+        document.getElementById('monto-total-aportado').textContent = formatearMoneda(montoTotalAportado);
+        
+        const diferenciaElement = document.getElementById('diferencia');
+        diferenciaElement.textContent = formatearMoneda(diferencia);
+        diferenciaElement.className = diferencia >= 0 ? 'text-lg font-semibold text-green-600' : 'text-lg font-semibold text-red-600';
+        
+        // Alertas
+        const alertasContainer = document.getElementById('alertas-container');
+        alertasContainer.innerHTML = '';
+        alertas.forEach(alerta => {
+            const alertaElement = document.createElement('div');
+            alertaElement.className = 'text-sm p-2 rounded';
+            if (alerta.includes('⚠️')) {
+                alertaElement.className += ' bg-yellow-100 text-yellow-800 border border-yellow-300';
+            } else if (alerta.includes('✅')) {
+                alertaElement.className += ' bg-green-100 text-green-800 border border-green-300';
+            } else {
+                alertaElement.className += ' bg-blue-100 text-blue-800 border border-blue-300';
+            }
+            alertaElement.textContent = alerta;
+            alertasContainer.appendChild(alertaElement);
+        });
+        
+        // Fechas sugeridas
+        const fechasSugeridas = calcularFechasSugeridas(numeroCuotas, frecuenciaPago);
+        const fechasContainer = document.getElementById('fechas-sugeridas');
+        
+        if (fechasSugeridas) {
+            fechasContainer.style.display = 'block';
+            document.getElementById('fecha-inicio-sugerida').textContent = new Date(fechasSugeridas.fechaInicio).toLocaleDateString('es-ES');
+            document.getElementById('fecha-fin-sugerida').textContent = new Date(fechasSugeridas.fechaFin).toLocaleDateString('es-ES');
+            document.getElementById('duracion-dias').textContent = `${fechasSugeridas.diasTotales} días`;
+            document.getElementById('periodos-por-mes').textContent = fechasSugeridas.periodosPorMes;
+        } else {
+            fechasContainer.style.display = 'none';
+        }
+        
+        isUpdating = false;
+    }
+    
+    // Debounce function
+    function debounce(func, wait) {
+        return function executedFunction(...args) {
+            clearTimeout(updateTimeout);
+            updateTimeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+    
+    // Apply debouncing
+    const debouncedCalculo = debounce(calcularSan, 300);
+    
+    // Add event listeners
+    inputs.forEach(input => {
+        if (input.type !== 'file' && input.type !== 'submit') {
+            input.addEventListener('input', debouncedCalculo);
+            input.addEventListener('change', debouncedCalculo);
+            input.addEventListener('blur', debouncedCalculo);
+        }
+    });
+    
+    // Ejecutar cálculos al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(calcularSan, 100);
+    });
+    
+    // Validación del formulario antes de enviar
+    form.addEventListener('submit', function(e) {
+        const precioTotal = document.getElementById('{{ form.precio_total.id_for_label }}').value;
+        const totalParticipantes = document.getElementById('{{ form.total_participantes.id_for_label }}').value;
+        const frecuenciaPago = document.getElementById('{{ form.frecuencia_pago.id_for_label }}').value;
+        const numeroCuotas = document.getElementById('{{ form.numero_cuotas.id_for_label }}').value;
+        const fechaInicio = document.getElementById('{{ form.fecha_inicio.id_for_label }}').value;
+        const fechaFin = document.getElementById('{{ form.fecha_fin.id_for_label }}').value;
+        
+        // Verificar campos requeridos básicos
+        if (!precioTotal || !totalParticipantes || !frecuenciaPago || !numeroCuotas || !fechaInicio || !fechaFin) {
+            e.preventDefault();
+            alert('Por favor completa todos los campos requeridos.');
+            return false;
+        }
+        
+        // Verificar que las fechas sean válidas
+        if (fechaInicio && fechaFin && new Date(fechaInicio) >= new Date(fechaFin)) {
+            e.preventDefault();
+            alert('La fecha de fin debe ser posterior a la fecha de inicio.');
+            return false;
+        }
+        
+        // Verificar que los números sean positivos
+        if (parseFloat(precioTotal) <= 0 || parseInt(totalParticipantes) <= 0 || parseInt(numeroCuotas) <= 0) {
+            e.preventDefault();
+            alert('Los valores numéricos deben ser mayores a 0.');
+            return false;
+        }
+        
+        // Permitir el envío sin validación financiera estricta
+        console.log('Formulario válido, permitiendo envío...');
+        return true;
+    });
+</script>
+{% endblock %}

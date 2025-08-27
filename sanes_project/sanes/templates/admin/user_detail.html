@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Usuario - Administración{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">Detalle de Usuario</h1>
+                    <p class="text-gray-600 mt-2">Información completa del usuario</p>
+                </div>
+                <a href="{% url 'admin_user_list' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                    Volver a la Lista
+                </a>
+            </div>
+        </div>
+
+        <!-- Información del usuario -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Información básica -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Información Básica</h2>
+                
+                <div class="flex items-center mb-6">
+                    <div class="flex-shrink-0 h-20 w-20">
+                        {% if usuario.foto_perfil %}
+                            <img class="h-20 w-20 rounded-full object-cover" src="{{ usuario.foto_perfil.url }}" alt="{{ usuario.username }}">
+                        {% else %}
+                            <div class="h-20 w-20 rounded-full bg-gray-300 flex items-center justify-center">
+                                <span class="text-gray-600 font-medium text-2xl">{{ usuario.username|first|upper }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900">{{ usuario.get_full_name_or_username }}</h3>
+                        <p class="text-gray-500">@{{ usuario.username }}</p>
+                        <p class="text-gray-500">{{ usuario.email }}</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Rol:</span>
+                        <span class="font-medium">{{ usuario.get_rol_display }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Estado:</span>
+                        <span class="font-medium {% if usuario.is_active %}text-green-600{% else %}text-red-600{% endif %}">
+                            {% if usuario.is_active %}Activo{% else %}Inactivo{% endif %}
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Fecha de registro:</span>
+                        <span class="font-medium">{{ usuario.date_joined|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    {% if usuario.phone_number %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Teléfono:</span>
+                        <span class="font-medium">{{ usuario.phone_number }}</span>
+                    </div>
+                    {% endif %}
+                    {% if usuario.cedula %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Cédula:</span>
+                        <span class="font-medium">{{ usuario.cedula }}</span>
+                    </div>
+                    {% endif %}
+                    {% if usuario.oficio %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Oficio:</span>
+                        <span class="font-medium">{{ usuario.oficio }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Estadísticas -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Estadísticas</h2>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h3 class="text-sm font-medium text-blue-800">Rifas Organizadas</h3>
+                        <p class="text-2xl font-bold text-blue-600">{{ rifas_organizadas.count }}</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h3 class="text-sm font-medium text-green-800">Sanes Organizados</h3>
+                        <p class="text-2xl font-bold text-green-600">{{ sanes_organizados.count }}</p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h3 class="text-sm font-medium text-purple-800">Tickets Comprados</h3>
+                        <p class="text-2xl font-bold text-purple-600">{{ tickets_comprados.count }}</p>
+                    </div>
+                    <div class="bg-orange-50 p-4 rounded-lg">
+                        <h3 class="text-sm font-medium text-orange-800">Participaciones en Sanes</h3>
+                        <p class="text-2xl font-bold text-orange-600">{{ participaciones.count }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actividad del usuario -->
+        <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Actividad del Usuario</h2>
+            
+            <!-- Tabs -->
+            <div class="border-b border-gray-200 mb-6">
+                <nav class="-mb-px flex space-x-8">
+                    <button class="tab-button active border-blue-500 text-blue-600 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm" 
+                            data-tab="rifas">
+                        Rifas Organizadas
+                    </button>
+                    <button class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm" 
+                            data-tab="sanes">
+                        Sanes Organizados
+                    </button>
+                    <button class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm" 
+                            data-tab="tickets">
+                        Tickets Comprados
+                    </button>
+                    <button class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm" 
+                            data-tab="participaciones">
+                        Participaciones
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab content -->
+            <div id="rifas" class="tab-content">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for rifa in rifas_organizadas %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <a href="{% url 'rifa_detail' pk=rifa.pk %}" class="text-blue-600 hover:text-blue-900">
+                                        {{ rifa.titulo }}
+                                    </a>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                                        {% if rifa.estado == 'activa' %}bg-green-100 text-green-800{% elif rifa.estado == 'finalizada' %}bg-blue-100 text-blue-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ rifa.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ rifa.created_at|date:"d/m/Y" }}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="px-6 py-4 text-center text-gray-500">
+                                    No ha organizado ninguna rifa
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="sanes" class="tab-content hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for san in sanes_organizados %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <a href="{% url 'san_detail' pk=san.pk %}" class="text-blue-600 hover:text-blue-900">
+                                        {{ san.nombre }}
+                                    </a>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                                        {% if san.estado == 'activo' %}bg-green-100 text-green-800{% elif san.estado == 'finalizado' %}bg-blue-100 text-blue-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ san.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ san.created_at|date:"d/m/Y" }}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="px-6 py-4 text-center text-gray-500">
+                                    No ha organizado ningún san
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tickets" class="tab-content hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rifa</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for ticket in tickets_comprados %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <a href="{% url 'rifa_detail' pk=ticket.rifa.pk %}" class="text-blue-600 hover:text-blue-900">
+                                        {{ ticket.rifa.titulo }}
+                                    </a>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ ticket.numero }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${{ ticket.precio_pagado }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ ticket.fecha_compra|date:"d/m/Y" }}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                                    No ha comprado ningún ticket
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="participaciones" class="tab-content hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">San</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Orden de Cobro</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cuotas Pagadas</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for participacion in participaciones %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <a href="{% url 'san_detail' pk=participacion.san.pk %}" class="text-blue-600 hover:text-blue-900">
+                                        {{ participacion.san.nombre }}
+                                    </a>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ participacion.orden_cobro }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ participacion.cuotas_pagadas }}/{{ participacion.san.numero_cuotas }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ participacion.fecha_inscripcion|date:"d/m/Y" }}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                                    No participa en ningún san
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabName = button.getAttribute('data-tab');
+            
+            // Remove active class from all buttons and hide all content
+            tabButtons.forEach(btn => {
+                btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+            tabContents.forEach(content => content.classList.add('hidden'));
+            
+            // Add active class to clicked button and show corresponding content
+            button.classList.add('active', 'border-blue-500', 'text-blue-600');
+            button.classList.remove('border-transparent', 'text-gray-500');
+            document.getElementById(tabName).classList.remove('hidden');
+        });
+    });
+});
+</script>
+{% endblock %}

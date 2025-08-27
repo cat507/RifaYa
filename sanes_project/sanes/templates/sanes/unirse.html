@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Unirse al San - {{ san.nombre }} - Rifas Anica{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-light py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-dark">Unirse al San</h1>
+                    <p class="text-gray-600">Confirma tu participación en este san</p>
+                </div>
+                <a href="{% url 'san_detail' san.id %}" class="text-primary hover:text-red-700">
+                    ← Volver al San
+                </a>
+            </div>
+        </div>
+
+        <!-- Información del San -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+            <div class="p-6">
+                <div class="flex items-start space-x-6">
+                    {% if san.imagen %}
+                        <img class="h-24 w-24 rounded-lg object-cover" src="{{ san.imagen.url }}" alt="{{ san.nombre }}">
+                    {% else %}
+                        <div class="h-24 w-24 rounded-lg bg-gray-200 flex items-center justify-center">
+                            <svg class="h-12 w-12 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                            </svg>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="flex-1">
+                        <h2 class="text-2xl font-bold text-dark mb-2">{{ san.nombre }}</h2>
+                        <p class="text-gray-600 mb-4">{{ san.descripcion }}</p>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Tipo</p>
+                                <p class="text-lg font-semibold text-dark">{{ san.get_tipo_display }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Cuota</p>
+                                <p class="text-lg font-semibold text-dark">${{ san.cuota_por_persona|default:san.precio_total }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Participantes</p>
+                                <p class="text-lg font-semibold text-dark">{{ san.participantes.count }}/{{ san.total_participantes }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Estado</p>
+                                <p class="text-lg font-semibold">
+                                    {% if san.estado == 'activo' %}
+                                        <span class="text-green-600">Activo</span>
+                                    {% elif san.estado == 'completado' %}
+                                        <span class="text-blue-600">Completado</span>
+                                    {% else %}
+                                        <span class="text-red-600">Cancelado</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario de confirmación -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-dark">Confirmar Participación</h3>
+            </div>
+            
+            <div class="p-6">
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-yellow-800">Información Importante</h3>
+                            <div class="mt-2 text-sm text-yellow-700">
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>Al unirte al san, te comprometes a pagar la cuota mensual de ${{ san.cuota_por_persona|default:san.precio_total }}.</li>
+                                    <li>Tu orden de cobro será asignado automáticamente según el orden de inscripción.</li>
+                                    <li>Una vez confirmada tu participación, no podrás retirarte del san.</li>
+                                    <li>Recibirás notificaciones sobre los pagos y el estado del san.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h4 class="font-medium text-dark mb-3">Resumen de tu participación:</h4>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Cuota mensual:</span>
+                                <span class="font-medium">${{ san.cuota_por_persona|default:san.precio_total }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Duración del san:</span>
+                                <span class="font-medium">{{ san.total_participantes }} meses</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Total a pagar:</span>
+                                <span class="font-medium">${{ san.precio_total }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center">
+                        <input id="confirmar" name="confirmar" type="checkbox" required class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+                        <label for="confirmar" class="ml-2 block text-sm text-gray-900">
+                            Confirmo que he leído y acepto las condiciones del san
+                        </label>
+                    </div>
+
+                    <div class="flex space-x-4">
+                        <button type="submit" class="flex-1 bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-red-700 transition-colors">
+                            Confirmar Participación
+                        </button>
+                        <a href="{% url 'san_detail' san.id %}" class="flex-1 bg-gray-200 text-gray-800 px-6 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors text-center">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

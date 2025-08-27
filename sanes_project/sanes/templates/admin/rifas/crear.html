@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Crear Nueva Rifa - Administración{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-light py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-dark">Crear Nueva Rifa</h1>
+            <p class="text-gray-600">Administra las rifas del sistema</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <!-- Formulario -->
+            <div class="p-6">
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Información básica -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="{{ form.titulo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.titulo.label }}
+                            </label>
+                            {{ form.titulo }}
+                            {% if form.titulo.errors %}
+                                <div class="mt-1 text-sm text-red-600">
+                                    {% for error in form.titulo.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.premio.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.premio.label }}
+                            </label>
+                            {{ form.premio }}
+                            {% if form.premio.errors %}
+                                <div class="mt-1 text-sm text-red-600">
+                                    {% for error in form.premio.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Descripción -->
+                    <div>
+                        <label for="{{ form.descripcion.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.descripcion.label }}
+                        </label>
+                        {{ form.descripcion }}
+                        {% if form.descripcion.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.descripcion.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Información de tickets -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label for="{{ form.precio_ticket.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.precio_ticket.label }}
+                            </label>
+                            {{ form.precio_ticket }}
+                            {% if form.precio_ticket.errors %}
+                                <div class="mt-1 text-sm text-red-600">
+                                    {% for error in form.precio_ticket.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.total_tickets.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.total_tickets.label }}
+                            </label>
+                            {{ form.total_tickets }}
+                            {% if form.total_tickets.errors %}
+                                <div class="mt-1 text-sm text-red-600">
+                                    {% for error in form.total_tickets.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.estado.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.estado.label }}
+                            </label>
+                            {{ form.estado }}
+                            {% if form.estado.errors %}
+                                <div class="mt-1 text-sm text-red-600">
+                                    {% for error in form.estado.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Fechas -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="{{ form.fecha_fin.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.fecha_fin.label }}
+                            </label>
+                            {{ form.fecha_fin }}
+                            {% if form.fecha_fin.errors %}
+                                <div class="mt-1 text-sm text-red-600">
+                                    {% for error in form.fecha_fin.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.imagen.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.imagen.label }}
+                            </label>
+                            {{ form.imagen }}
+                            {% if form.imagen.errors %}
+                                <div class="mt-1 text-sm text-red-600">
+                                    {% for error in form.imagen.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <p class="mt-1 text-sm text-gray-500">Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 5MB.</p>
+                        </div>
+                    </div>
+
+                    <!-- Errores generales -->
+                    {% if form.non_field_errors %}
+                        <div class="bg-red-100 text-red-700 p-4 rounded-lg">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Mensajes de éxito -->
+                    {% if messages %}
+                        <div class="space-y-2">
+                            {% for message in messages %}
+                                <div class="{% if message.tags == 'success' %}bg-green-100 text-green-700 border border-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-blue-100 text-blue-700 border border-blue-200{% endif %} p-4 rounded-lg">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Botones -->
+                    <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                        <a href="{% url 'admin_dashboard' %}" 
+                           class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+                            Cancelar
+                        </a>
+                        <button type="submit" 
+                                class="px-6 py-2 bg-primary text-white rounded-md font-medium hover:bg-red-700 transition-colors">
+                            Crear Rifa
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

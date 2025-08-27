@@ -1,127 +1,252 @@
-<html>
-  <head>
-    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
-    <link
-      rel="stylesheet"
-      as="style"
-      onload="this.rel='stylesheet'"
-      href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Plus+Jakarta+Sans%3Awght%40400%3B500%3B700%3B800"
-    />
+{% extends 'base.html' %}
+{% load static %}
 
-    <title>Stitch Design</title>
-    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+{% block title %}Resumen de Orden - Rifas Anica{% endblock %}
 
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  </head>
-  <body>
-    <div
-      class="relative flex size-full min-h-screen flex-col bg-[#fcf8f8] group/design-root overflow-x-hidden"
-      style='--radio-dot-svg: url(&apos;data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(233,41,50)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3ccircle cx=%278%27 cy=%278%27 r=%273%27/%3e%3c/svg%3e&apos;); font-family: "Plus Jakarta Sans", "Noto Sans", sans-serif;'
-    >
-      <div class="layout-container flex h-full grow flex-col">
-        <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f3e7e8] px-10 py-3">
-          <div class="flex items-center gap-4 text-[#1b0e0e]">
-            <div class="size-4">
-              <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4H17.3334V17.3334H30.6666V30.6666H44V44H4V4Z" fill="currentColor"></path></svg>
+{% block content %}
+<div class="min-h-screen bg-light py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center space-x-4 mb-4">
+                <a href="{% url 'home' %}" class="text-primary hover:text-red-700 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </a>
+                <h1 class="text-3xl font-bold text-dark">Resumen de Orden</h1>
             </div>
-            <h2 class="text-[#1b0e0e] text-lg font-bold leading-tight tracking-[-0.015em]">RaffleApp</h2>
-          </div>
-          <div class="flex flex-1 justify-end gap-8">
-            <div class="flex items-center gap-9">
-              <a class="text-[#1b0e0e] text-sm font-medium leading-normal" href="#">Raffles</a>
-              <a class="text-[#1b0e0e] text-sm font-medium leading-normal" href="#">My Tickets</a>
-              <a class="text-[#1b0e0e] text-sm font-medium leading-normal" href="#">Winners</a>
-            </div>
-            <button
-              class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-[#f3e7e8] text-[#1b0e0e] gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5"
-            >
-              <div class="text-[#1b0e0e]" data-icon="Bell" data-size="20px" data-weight="regular">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-                  <path
-                    d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216ZM48,184c7.7-13.24,16-43.92,16-80a64,64,0,1,1,128,0c0,36.05,8.28,66.73,16,80Z"
-                  ></path>
-                </svg>
-              </div>
-            </button>
-            <div
-              class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
-              style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC0O8i06eQOunZqmds_LvP8i2WJKSTGdTj0gN8gvo0gbjp6z1KWaYDO941NoONhylGgglGF8cFu7acFaaO0mzRiiX-4xGxnO8wT0cmg2zhOvP1dtxo02ecqXjJRd1HGF7oDaLld6AWFGO-3eCYVDcb2EFz-iB5zMzZs7O2oWhsGhGv-di5bPszrFjNc64a6kdvLWNeAhQRmxYjRoqJtl-B9R0z8Wq2Js4gHa93U5e3PUyDLMoOT9PDLAvSU_S1DDRoX1qCkNujM9K1h");'
-            ></div>
-          </div>
-        </header>
-        <div class="px-40 flex flex-1 justify-center py-5">
-          <div class="layout-content-container flex flex-col w-[512px] max-w-[512px] py-5 max-w-[960px] flex-1">
-            <div class="flex flex-wrap justify-between gap-3 p-4"><p class="text-[#1b0e0e] tracking-light text-[32px] font-bold leading-tight min-w-72">Order Summary</p></div>
-            <h3 class="text-[#1b0e0e] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">Raffle Details</h3>
-            <div class="flex items-center gap-4 bg-[#fcf8f8] px-4 min-h-[72px] py-2">
-              <div class="flex flex-col justify-center">
-                <p class="text-[#1b0e0e] text-base font-medium leading-normal line-clamp-1">Grand Prize Raffle</p>
-                <p class="text-[#994d51] text-sm font-normal leading-normal line-clamp-2">10 Tickets</p>
-              </div>
-            </div>
-            <h3 class="text-[#1b0e0e] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">Payment Details</h3>
-            <div class="p-4">
-              <div class="flex justify-between gap-x-6 py-2">
-                <p class="text-[#994d51] text-sm font-normal leading-normal">Subtotal</p>
-                <p class="text-[#1b0e0e] text-sm font-normal leading-normal text-right">$50.00</p>
-              </div>
-              <div class="flex justify-between gap-x-6 py-2">
-                <p class="text-[#994d51] text-sm font-normal leading-normal">Total</p>
-                <p class="text-[#1b0e0e] text-sm font-normal leading-normal text-right">$50.00</p>
-              </div>
-            </div>
-            <h3 class="text-[#1b0e0e] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">Payment Method</h3>
-            <div class="flex flex-col gap-3 p-4">
-              <label class="flex items-center gap-4 rounded-lg border border-solid border-[#e7d0d1] p-[15px]">
-                <input
-                  type="radio"
-                  class="h-5 w-5 border-2 border-[#e7d0d1] bg-transparent text-transparent checked:border-[#e92932] checked:bg-[image:--radio-dot-svg] focus:outline-none focus:ring-0 focus:ring-offset-0 checked:focus:border-[#e92932]"
-                  name="20e55dc6-1e26-446d-9306-2c58c35824f6"
-                  checked=""
-                />
-                <div class="flex grow flex-col"><p class="text-[#1b0e0e] text-sm font-medium leading-normal">Mobile Payment / Bank Transfer</p></div>
-              </label>
-            </div>
-            <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
-              <label class="flex flex-col min-w-40 flex-1">
-                <p class="text-[#1b0e0e] text-base font-medium leading-normal pb-2">Reference Number</p>
-                <input
-                  placeholder="Enter reference number"
-                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#1b0e0e] focus:outline-0 focus:ring-0 border border-[#e7d0d1] bg-[#fcf8f8] focus:border-[#e7d0d1] h-14 placeholder:text-[#994d51] p-[15px] text-base font-normal leading-normal"
-                  value=""
-                />
-              </label>
-            </div>
-            <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
-              <label class="flex flex-col min-w-40 flex-1">
-                <p class="text-[#1b0e0e] text-base font-medium leading-normal pb-2">Amount Paid</p>
-                <input
-                  placeholder="Enter amount paid"
-                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#1b0e0e] focus:outline-0 focus:ring-0 border border-[#e7d0d1] bg-[#fcf8f8] focus:border-[#e7d0d1] h-14 placeholder:text-[#994d51] p-[15px] text-base font-normal leading-normal"
-                  value=""
-                />
-              </label>
-            </div>
-            <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
-              <label class="flex flex-col min-w-40 flex-1">
-                <p class="text-[#1b0e0e] text-base font-medium leading-normal pb-2">Payment Proof</p>
-                <input
-                  placeholder="Upload payment proof"
-                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#1b0e0e] focus:outline-0 focus:ring-0 border border-[#e7d0d1] bg-[#fcf8f8] focus:border-[#e7d0d1] h-14 placeholder:text-[#994d51] p-[15px] text-base font-normal leading-normal"
-                  value=""
-                />
-              </label>
-            </div>
-            <div class="flex px-4 py-3">
-              <button
-                class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 flex-1 bg-[#e92932] text-[#fcf8f8] text-base font-bold leading-normal tracking-[0.015em]"
-              >
-                <span class="truncate">Confirm Purchase</span>
-              </button>
-            </div>
-          </div>
+            <p class="text-gray-600">Revisa los detalles de tu orden antes de confirmar la compra</p>
         </div>
-      </div>
+
+        <!-- Messages -->
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="{% if message.tags == 'success' %}bg-green-100 text-green-700 border border-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-blue-100 text-blue-700 border border-blue-200{% endif %} p-4 rounded-lg">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Order Details -->
+            <div class="lg:col-span-2">
+                <!-- Order Items -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-bold text-dark mb-4">Detalles de la Orden</h2>
+                    
+                    {% if order_items %}
+                        <div class="space-y-4">
+                            {% for item in order_items %}
+                            <div class="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
+                                <!-- Item Image -->
+                                <div class="flex-shrink-0">
+                                    {% if item.rifa and item.rifa.imagen %}
+                                        <img src="{{ item.rifa.imagen.url }}" alt="{{ item.rifa.titulo }}" class="w-16 h-16 rounded-lg object-cover">
+                                    {% elif item.san and item.san.imagen %}
+                                        <img src="{{ item.san.imagen.url }}" alt="{{ item.san.nombre }}" class="w-16 h-16 rounded-lg object-cover">
+                                    {% else %}
+                                        <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                            </svg>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Item Details -->
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-dark">
+                                        {% if item.rifa %}
+                                            {{ item.rifa.titulo }}
+                                        {% elif item.san %}
+                                            {{ item.san.nombre }}
+                                        {% else %}
+                                            {{ item.descripcion }}
+                                        {% endif %}
+                                    </h3>
+                                    <p class="text-sm text-gray-600">
+                                        {% if item.rifa %}
+                                            Rifa - {{ item.cantidad }} ticket{{ item.cantidad|pluralize }}
+                                        {% elif item.san %}
+                                            San - Cupo #{{ item.numero_cupo }}
+                                        {% else %}
+                                            {{ item.descripcion }}
+                                        {% endif %}
+                                    </p>
+                                    {% if item.rifa %}
+                                        <p class="text-xs text-gray-500">Precio por ticket: ${{ item.rifa.precio_ticket }}</p>
+                                    {% elif item.san %}
+                                        <p class="text-xs text-gray-500">Precio por cuota: ${{ item.san.precio_cuota }}</p>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Item Price -->
+                                <div class="text-right">
+                                    <p class="font-bold text-primary">${{ item.precio|floatformat:2 }}</p>
+                                    {% if item.cantidad and item.cantidad > 1 %}
+                                        <p class="text-xs text-gray-500">{{ item.cantidad }} x ${{ item.precio_unitario|floatformat:2 }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8">
+                            <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                            </svg>
+                            <p class="text-gray-600">No hay elementos en esta orden.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Customer Information -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-bold text-dark mb-4">Información del Cliente</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
+                            <p class="text-dark font-medium">{{ user.get_full_name_or_username }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <p class="text-dark font-medium">{{ user.email }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                            <p class="text-dark font-medium">{{ user.phone_number|default:"No especificado" }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Cédula</label>
+                            <p class="text-dark font-medium">{{ user.cedula|default:"No especificado" }}</p>
+                        </div>
+                        {% if user.address %}
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
+                            <p class="text-dark font-medium">{{ user.address }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-md p-6 sticky top-8">
+                    <h2 class="text-xl font-bold text-dark mb-4">Resumen de Compra</h2>
+                    
+                    <!-- Order Info -->
+                    <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-700">Número de orden:</span>
+                            <span class="text-sm font-bold text-dark">{{ order.id_unico }}</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-700">Fecha:</span>
+                            <span class="text-sm text-dark">{{ order.fecha_creacion|date:"d/m/Y H:i" }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-700">Estado:</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                {% if order.estado == 'pendiente' %}bg-yellow-100 text-yellow-800
+                                {% elif order.estado == 'pagada' %}bg-green-100 text-green-800
+                                {% elif order.estado == 'cancelada' %}bg-red-100 text-red-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ order.get_estado_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Price Breakdown -->
+                    <div class="space-y-3 mb-6">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Subtotal:</span>
+                            <span class="font-medium text-dark">${{ order.subtotal|floatformat:2 }}</span>
+                        </div>
+                        {% if order.descuento %}
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Descuento:</span>
+                            <span class="font-medium text-green-600">-${{ order.descuento|floatformat:2 }}</span>
+                        </div>
+                        {% endif %}
+                        {% if order.impuestos %}
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Impuestos:</span>
+                            <span class="font-medium text-dark">${{ order.impuestos|floatformat:2 }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Envío:</span>
+                            <span class="font-medium text-dark">${{ order.costo_envio|floatformat:2 }}</span>
+                        </div>
+                        <div class="border-t border-gray-200 pt-3">
+                            <div class="flex justify-between text-lg font-bold">
+                                <span class="text-dark">Total:</span>
+                                <span class="text-primary">${{ order.total|floatformat:2 }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    {% if order.metodo_pago %}
+                    <div class="mb-6">
+                        <h3 class="text-sm font-medium text-gray-700 mb-2">Método de pago</h3>
+                        <div class="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+                            {% if order.metodo_pago == 'tarjeta' %}
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                </svg>
+                                <span class="text-sm font-medium text-dark">Tarjeta de crédito/débito</span>
+                            {% elif order.metodo_pago == 'transferencia' %}
+                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                </svg>
+                                <span class="text-sm font-medium text-dark">Transferencia bancaria</span>
+                            {% elif order.metodo_pago == 'efectivo' %}
+                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                </svg>
+                                <span class="text-sm font-medium text-dark">Efectivo</span>
+                            {% else %}
+                                <span class="text-sm font-medium text-dark">{{ order.get_metodo_pago_display }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Action Buttons -->
+                    <div class="space-y-3">
+                        {% if order.estado == 'pendiente' %}
+                            <a href="{% url 'confirmar_compra' order.id %}" 
+                               class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-primary hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+                                Confirmar Compra
+                            </a>
+                            <a href="{% url 'cancelar_orden' order.id %}" 
+                               class="w-full flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors">
+                                Cancelar Orden
+                            </a>
+                        {% elif order.estado == 'pagada' %}
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <p class="text-sm text-green-600 font-medium">Orden pagada exitosamente</p>
+                            </div>
+                        {% endif %}
+                        
+                        <a href="{% url 'home' %}" 
+                           class="w-full flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors">
+                            Volver al Inicio
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </body>
-</html>
+</div>
+{% endblock %}

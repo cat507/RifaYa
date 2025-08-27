@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Usuario - {{ usuario.username }} - Admin{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-light py-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-dark">Detalle de Usuario</h1>
+                    <p class="text-gray-600">Información completa del usuario</p>
+                </div>
+                <a href="{% url 'admin_usuarios' %}" class="text-primary hover:text-red-700">
+                    ← Volver a Usuarios
+                </a>
+            </div>
+        </div>
+
+        <!-- Información del Usuario -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Perfil del Usuario -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-xl font-semibold text-dark">Información Personal</h2>
+                    </div>
+                    
+                    <div class="p-6">
+                        <div class="flex items-start space-x-6">
+                            {% if usuario.foto_perfil %}
+                                <img class="h-24 w-24 rounded-full object-cover" src="{{ usuario.foto_perfil.url }}" alt="{{ usuario.username }}">
+                            {% else %}
+                                <div class="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center">
+                                    <svg class="h-12 w-12 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                    </svg>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="flex-1">
+                                <h3 class="text-2xl font-bold text-dark mb-2">{{ usuario.get_full_name|default:usuario.username }}</h3>
+                                <p class="text-gray-600 mb-4">{{ usuario.email }}</p>
+                                
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-500">Usuario</p>
+                                        <p class="text-lg font-semibold text-dark">{{ usuario.username }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-500">Estado</p>
+                                        <p class="text-lg font-semibold">
+                                            {% if usuario.is_active %}
+                                                <span class="text-green-600">Activo</span>
+                                            {% else %}
+                                                <span class="text-red-600">Inactivo</span>
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-500">Teléfono</p>
+                                        <p class="text-lg font-semibold text-dark">{{ usuario.phone_number|default:"No especificado" }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-500">Cédula</p>
+                                        <p class="text-lg font-semibold text-dark">{{ usuario.cedula|default:"No especificada" }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-500">Fecha de Nacimiento</p>
+                                        <p class="text-lg font-semibold text-dark">{{ usuario.date_of_birth|date:"d/m/Y"|default:"No especificada" }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-500">Oficio</p>
+                                        <p class="text-lg font-semibold text-dark">{{ usuario.oficio|default:"No especificado" }}</p>
+                                    </div>
+                                </div>
+                                
+                                {% if usuario.address %}
+                                <div class="mt-4">
+                                    <p class="text-sm font-medium text-gray-500">Dirección</p>
+                                    <p class="text-lg font-semibold text-dark">{{ usuario.address }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estadísticas del Usuario -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden mt-8">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-xl font-semibold text-dark">Estadísticas</h2>
+                    </div>
+                    
+                    <div class="p-6">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-primary">{{ usuario.rifas_participadas.count }}</div>
+                                <div class="text-sm text-gray-600">Rifas Participadas</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-blue-600">{{ usuario.sanes_participados.count }}</div>
+                                <div class="text-sm text-gray-600">Sanes Participados</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-green-600">{{ usuario.facturas.count }}</div>
+                                <div class="text-sm text-gray-600">Facturas</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-purple-600">{{ usuario.fecha_registro|date:"d/m/Y" }}</div>
+                                <div class="text-sm text-gray-600">Fecha Registro</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de Acciones -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-xl font-semibold text-dark">Acciones</h2>
+                    </div>
+                    
+                    <div class="p-6 space-y-4">
+                        <a href="{% url 'admin_usuario_editar' usuario.id %}" class="w-full bg-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors text-center block">
+                            Editar Usuario
+                        </a>
+                        
+                        {% if usuario.is_active %}
+                            <button onclick="cambiarEstado({{ usuario.id }}, false)" class="w-full bg-yellow-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-yellow-600 transition-colors">
+                                Desactivar Usuario
+                            </button>
+                        {% else %}
+                            <button onclick="cambiarEstado({{ usuario.id }}, true)" class="w-full bg-green-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-600 transition-colors">
+                                Activar Usuario
+                            </button>
+                        {% endif %}
+                        
+                        <button onclick="resetearPassword({{ usuario.id }})" class="w-full bg-blue-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors">
+                            Resetear Contraseña
+                        </button>
+                        
+                        <button onclick="eliminarUsuario({{ usuario.id }})" class="w-full bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors">
+                            Eliminar Usuario
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Información de Seguridad -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden mt-6">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-xl font-semibold text-dark">Seguridad</h2>
+                    </div>
+                    
+                    <div class="p-6 space-y-4">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Último Login</p>
+                            <p class="text-sm text-dark">{{ usuario.last_login|date:"d/m/Y H:i"|default:"Nunca" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Fecha de Registro</p>
+                            <p class="text-sm text-dark">{{ usuario.date_joined|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Staff</p>
+                            <p class="text-sm text-dark">
+                                {% if usuario.is_staff %}
+                                    <span class="text-green-600">Sí</span>
+                                {% else %}
+                                    <span class="text-red-600">No</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Superusuario</p>
+                            <p class="text-sm text-dark">
+                                {% if usuario.is_superuser %}
+                                    <span class="text-green-600">Sí</span>
+                                {% else %}
+                                    <span class="text-red-600">No</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function cambiarEstado(userId, activo) {
+    if (confirm('¿Estás seguro de que quieres cambiar el estado del usuario?')) {
+        fetch(`/admin/usuarios/${userId}/cambiar-estado/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: JSON.stringify({ activo: activo }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error al cambiar el estado del usuario');
+            }
+        });
+    }
+}
+
+function resetearPassword(userId) {
+    if (confirm('¿Estás seguro de que quieres resetear la contraseña del usuario?')) {
+        fetch(`/admin/usuarios/${userId}/resetear-password/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Contraseña reseteada. La nueva contraseña es: ' + data.password);
+            } else {
+                alert('Error al resetear la contraseña');
+            }
+        });
+    }
+}
+
+function eliminarUsuario(userId) {
+    if (confirm('¿Estás seguro de que quieres eliminar este usuario? Esta acción no se puede deshacer.')) {
+        fetch(`/admin/usuarios/${userId}/eliminar/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = '{% url "admin_usuarios" %}';
+            } else {
+                alert('Error al eliminar el usuario');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}
+

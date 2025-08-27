@@ -1,0 +1,351 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Subir Comprobante - Factura {{ factura.id_unico }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-light py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-2xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-dark">Subir Comprobante</h1>
+                    <p class="text-gray-600 mt-2">Factura {{ factura.id_unico }} - {{ factura.concepto }}</p>
+                </div>
+                <a href="{% url 'factura_detail' factura.pk %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Volver
+                </a>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="{% if message.tags == 'success' %}bg-green-100 text-green-700 border border-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-blue-100 text-blue-700 border border-blue-200{% endif %} p-4 rounded-lg">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Factura Summary -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-bold text-dark">Resumen de la Factura</h2>
+            </div>
+            
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Número de Factura</label>
+                        <p class="text-lg font-semibold text-dark">{{ factura.id_unico }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Monto a Pagar</label>
+                        <p class="text-2xl font-bold text-primary">${{ factura.monto|floatformat:2 }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Concepto</label>
+                        <p class="text-dark">{{ factura.concepto }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {% if factura.estado == 'pagada' %}bg-green-100 text-green-800
+                            {% elif factura.estado == 'pendiente' %}bg-yellow-100 text-yellow-800
+                            {% elif factura.estado == 'vencida' %}bg-red-100 text-red-800
+                            {% elif factura.estado == 'cancelada' %}bg-gray-100 text-gray-800
+                            {% else %}bg-blue-100 text-blue-800{% endif %}">
+                            {{ factura.get_estado_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Form -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-bold text-dark">Subir Comprobante de Pago</h2>
+            </div>
+            
+            <div class="p-6">
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Instructions -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-blue-800">Instrucciones</h3>
+                                <div class="mt-2 text-sm text-blue-700">
+                                    <ul class="list-disc list-inside space-y-1">
+                                        <li>Sube una imagen clara del comprobante de pago</li>
+                                        <li>Formatos aceptados: JPG, PNG, PDF</li>
+                                        <li>Tamaño máximo: 10 MB</li>
+                                        <li>Asegúrate de que el monto y la fecha sean visibles</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- File Upload -->
+                    <div>
+                        <label for="{{ form.archivo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Comprobante de Pago *
+                        </label>
+                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-primary transition-colors">
+                            <div class="space-y-1 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <div class="flex text-sm text-gray-600">
+                                    <label for="{{ form.archivo.id_for_label }}" class="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-red-700 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary">
+                                        <span>Subir archivo</span>
+                                        {{ form.archivo }}
+                                    </label>
+                                    <p class="pl-1">o arrastra y suelta</p>
+                                </div>
+                                <p class="text-xs text-gray-500">PNG, JPG, PDF hasta 10MB</p>
+                            </div>
+                        </div>
+                        {% if form.archivo.errors %}
+                            <div class="mt-2 text-sm text-red-600">
+                                {% for error in form.archivo.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div>
+                        <label for="{{ form.metodo_pago.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Método de Pago *
+                        </label>
+                        <select name="{{ form.metodo_pago.name }}" id="{{ form.metodo_pago.id_for_label }}" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <option value="">Selecciona un método de pago</option>
+                            <option value="transferencia" {% if form.metodo_pago.value == 'transferencia' %}selected{% endif %}>Transferencia Bancaria</option>
+                            <option value="deposito" {% if form.metodo_pago.value == 'deposito' %}selected{% endif %}>Depósito Bancario</option>
+                            <option value="efectivo" {% if form.metodo_pago.value == 'efectivo' %}selected{% endif %}>Efectivo</option>
+                            <option value="tarjeta" {% if form.metodo_pago.value == 'tarjeta' %}selected{% endif %}>Tarjeta de Crédito/Débito</option>
+                            <option value="otro" {% if form.metodo_pago.value == 'otro' %}selected{% endif %}>Otro</option>
+                        </select>
+                        {% if form.metodo_pago.errors %}
+                            <div class="mt-2 text-sm text-red-600">
+                                {% for error in form.metodo_pago.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Payment Date -->
+                    <div>
+                        <label for="{{ form.fecha_pago.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Fecha de Pago *
+                        </label>
+                        <input type="date" name="{{ form.fecha_pago.name }}" id="{{ form.fecha_pago.id_for_label }}" 
+                               value="{% if form.fecha_pago.value %}{{ form.fecha_pago.value|date:'Y-m-d' }}{% endif %}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        {% if form.fecha_pago.errors %}
+                            <div class="mt-2 text-sm text-red-600">
+                                {% for error in form.fecha_pago.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Amount Paid -->
+                    <div>
+                        <label for="{{ form.monto_pagado.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Monto Pagado *
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 sm:text-sm">$</span>
+                            </div>
+                            <input type="number" name="{{ form.monto_pagado.name }}" id="{{ form.monto_pagado.id_for_label }}" 
+                                   value="{% if form.monto_pagado.value %}{{ form.monto_pagado.value }}{% else %}{{ factura.monto }}{% endif %}"
+                                   step="0.01" min="0"
+                                   class="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                   placeholder="0.00">
+                        </div>
+                        {% if form.monto_pagado.errors %}
+                            <div class="mt-2 text-sm text-red-600">
+                                {% for error in form.monto_pagado.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">Monto original: ${{ factura.monto|floatformat:2 }}</p>
+                    </div>
+
+                    <!-- Reference Number -->
+                    <div>
+                        <label for="{{ form.numero_referencia.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Número de Referencia
+                        </label>
+                        <input type="text" name="{{ form.numero_referencia.name }}" id="{{ form.numero_referencia.id_for_label }}" 
+                               value="{% if form.numero_referencia.value %}{{ form.numero_referencia.value }}{% endif %}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                               placeholder="Número de transacción, referencia bancaria, etc.">
+                        {% if form.numero_referencia.errors %}
+                            <div class="mt-2 text-sm text-red-600">
+                                {% for error in form.numero_referencia.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Notes -->
+                    <div>
+                        <label for="{{ form.notas.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Notas Adicionales
+                        </label>
+                        <textarea name="{{ form.notas.name }}" id="{{ form.notas.id_for_label }}" rows="4"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                  placeholder="Información adicional sobre el pago...">{% if form.notas.value %}{{ form.notas.value }}{% endif %}</textarea>
+                        {% if form.notas.errors %}
+                            <div class="mt-2 text-sm text-red-600">
+                                {% for error in form.notas.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="flex space-x-4 pt-4">
+                        <button type="submit" 
+                                class="flex-1 inline-flex justify-center items-center px-4 py-3 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-primary hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            Subir Comprobante
+                        </button>
+                        
+                        <a href="{% url 'factura_detail' factura.pk %}" 
+                           class="inline-flex items-center px-4 py-3 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Previous Comprobantes -->
+        {% if factura.comprobantes.all %}
+        <div class="mt-8 bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-bold text-dark">Comprobantes Anteriores</h2>
+            </div>
+            
+            <div class="p-6">
+                <div class="space-y-4">
+                    {% for comprobante in factura.comprobantes.all %}
+                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10">
+                                <div class="h-10 w-10 rounded-lg bg-gray-200 flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-dark">Comprobante #{{ comprobante.id }}</p>
+                                <p class="text-sm text-gray-500">{{ comprobante.fecha_subida|date:"d/m/Y H:i" }} - ${{ comprobante.monto_pagado|floatformat:2 }}</p>
+                                <p class="text-xs text-gray-400">{{ comprobante.get_metodo_pago_display }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                {% if comprobante.estado == 'aprobado' %}bg-green-100 text-green-800
+                                {% elif comprobante.estado == 'pendiente' %}bg-yellow-100 text-yellow-800
+                                {% elif comprobante.estado == 'rechazado' %}bg-red-100 text-red-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ comprobante.get_estado_display }}
+                            </span>
+                            {% if comprobante.archivo %}
+                                <a href="{{ comprobante.archivo.url }}" 
+                                   class="text-primary hover:text-red-700 transition-colors"
+                                   target="_blank">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Auto-fill today's date if not set
+document.addEventListener('DOMContentLoaded', function() {
+    const fechaPagoInput = document.getElementById('{{ form.fecha_pago.id_for_label }}');
+    if (!fechaPagoInput.value) {
+        const today = new Date().toISOString().split('T')[0];
+        fechaPagoInput.value = today;
+    }
+    
+    // File upload preview
+    const fileInput = document.getElementById('{{ form.archivo.id_for_label }}');
+    const uploadArea = fileInput.closest('.border-dashed');
+    
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            uploadArea.classList.add('border-primary', 'bg-primary-50');
+            uploadArea.classList.remove('border-gray-300');
+        } else {
+            uploadArea.classList.remove('border-primary', 'bg-primary-50');
+            uploadArea.classList.add('border-gray-300');
+        }
+    });
+    
+    // Drag and drop functionality
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('border-primary', 'bg-primary-50');
+    });
+    
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.classList.remove('border-primary', 'bg-primary-50');
+    });
+    
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('border-primary', 'bg-primary-50');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            fileInput.dispatchEvent(new Event('change'));
+        }
+    });
+});
+</script>
+{% endblock %}
+

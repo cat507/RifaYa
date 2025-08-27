@@ -280,6 +280,15 @@ class Rifa(models.Model):
 
     def __str__(self):
         return self.titulo
+    
+    @property
+    def comentarios(self):
+        """Retorna los comentarios activos de la rifa"""
+        return Comment.objects.filter(
+            content_type=ContentType.objects.get_for_model(self),
+            object_id=self.id,
+            activo=True
+        )
 
     def get_absolute_url(self):
         return reverse('rifa_detail', args=[str(self.id)])
@@ -478,6 +487,15 @@ class San(models.Model):
 
     def __str__(self):
         return self.nombre
+    
+    @property
+    def comentarios(self):
+        """Retorna los comentarios activos del san"""
+        return Comment.objects.filter(
+            content_type=ContentType.objects.get_for_model(self),
+            object_id=self.id,
+            activo=True
+        )
 
     def get_absolute_url(self):
         return reverse('san_detail', args=[str(self.id)])
@@ -581,6 +599,23 @@ class ParticipacionSan(models.Model):
         self.cuotas_pagadas += 1
         self.fecha_ultima_cuota = date.today()
         self.save()
+    
+    @property
+    def total_pagado(self):
+        """Retorna el total pagado por el participante"""
+        return self.cuotas_pagadas * self.san.precio_cuota
+    
+    @property
+    def porcentaje_completado(self):
+        """Retorna el porcentaje de cuotas pagadas"""
+        if self.san.numero_cuotas > 0:
+            return (self.cuotas_pagadas / self.san.numero_cuotas) * 100
+        return 0
+    
+    @property
+    def numero_cupo(self):
+        """Retorna el número de cupo asignado"""
+        return self.orden_cobro
 
 
 # ---------------------
@@ -948,3 +983,267 @@ class CambiarFotoPerfilForm(forms.ModelForm):
     class Meta:
         model = CustomUser
         fields = ['foto_perfil']
+
+class Notificacion(models.Model):
+    """
+    Notificaciones enviadas a los usuarios (ej: recordatorios de pagos,
+    resultados de rifas, avisos de admin, etc.)
+    """
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="notificaciones"
+    )
+    titulo = models.CharField(max_length=200)
+    mensaje = models.TextField()
+    leido = models.BooleanField(default=False)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-fecha_creacion']
+
+    def __str__(self):
+        return f"{self.titulo} → {self.usuario}"
+
+
+class Reporte(models.Model):
+    """
+    Registro de reportes generados en el sistema.
+    Puede almacenar datos agregados o referencias a rifas/sanes.
+    """
+    TIPO_REPORTE = [
+        ('rifa', 'Rifa'),
+        ('san', 'San'),
+        ('usuario', 'Usuario'),
+        ('finanzas', 'Finanzas'),
+    ]
+
+    administrador = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reportes_generados"
+    )
+    tipo = models.CharField(max_length=20, choices=TIPO_REPORTE)
+    descripcion = models.TextField()
+    archivo = models.FileField(upload_to="reportes/", null=True, blank=True)
+    fecha_generacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-fecha_generacion']
+
+    def __str__(self):
+        return f"Reporte {self.tipo} ({self.fecha_generacion.date()})"
+
+
+class HistorialAccion(models.Model):
+    """
+    Auditoría básica de acciones importantes en el sistema.
+    Útil para control administrativo.
+    """
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="acciones"
+    )
+    accion = models.CharField(max_length=255)
+    detalle = models.TextField(blank=True, null=True)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f"{self.usuario} → {self.accion} ({self.fecha})"
+
+class SorteoRifa(models.Model):
+    """
+    Registro histórico de cada sorteo de una rifa.
+    Permite llevar evidencia del proceso y guardar resultados previos.
+    """
+    rifa = models.ForeignKey("Rifa", on_delete=models.CASCADE, related_name="sorteos")
+    fecha_sorteo = models.DateTimeField(auto_now_add=True)
+    ticket_ganador = models.ForeignKey(
+        "Ticket",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="sorteos_ganados"
+    )
+    evidencia = models.FileField(upload_to="rifas/evidencias/", null=True, blank=True)
+
+    def __str__(self):
+        return f"Sorteo de {self.rifa.nombre} - {self.fecha_sorteo.strftime('%d/%m/%Y')}"
+
+
+
+class TurnoSan(models.Model):
+    """
+    Control más estructurado de los turnos en un sane.
+    Útil cuando los turnos se asignan de forma aleatoria o cambian con el tiempo.
+    """
+    san = models.ForeignKey("San", on_delete=models.CASCADE, related_name="turnos")
+    participante = models.ForeignKey(
+        "ParticipacionSan",
+        on_delete=models.CASCADE,
+        related_name="turnos"
+    )
+    numero_turno = models.PositiveIntegerField()
+    fecha_asignacion = models.DateTimeField(auto_now_add=True)
+    cumplido = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ("san", "numero_turno")
+        ordering = ["numero_turno"]
+
+    def __str__(self):
+        return f"Turno {self.numero_turno} - {self.participante.usuario.username} en {self.san.nombre}"
+class Mensaje(models.Model):
+    """
+    Mensajería interna simple entre usuarios (ej. soporte o coordinación).
+    """
+    remitente = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="mensajes_enviados"
+    )
+    destinatario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="mensajes_recibidos"
+    )
+    asunto = models.CharField(max_length=255)
+    contenido = models.TextField()
+    leido = models.BooleanField(default=False)
+    fecha_envio = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-fecha_envio"]
+
+    def __str__(self):
+        return f"De {self.remitente.username} para {self.destinatario.username} - {self.asunto}"
+
+# ---------------------
+# MODELO DE COMENTARIOS
+# ---------------------
+class Comment(models.Model):
+    """Comentarios para rifas y sanes"""
+    # Usuario que hace el comentario
+    usuario = models.ForeignKey(
+        CustomUser, 
+        on_delete=models.CASCADE, 
+        verbose_name="Usuario",
+        related_name='comentarios'
+    )
+    
+    # Contenido genérico (Rifa o San)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, verbose_name="Tipo de Contenido")
+    object_id = models.PositiveIntegerField(verbose_name="ID del Objeto")
+    content_object = GenericForeignKey('content_type', 'object_id')
+    
+    # Contenido del comentario
+    texto = models.TextField(verbose_name="Comentario")
+    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
+    fecha_actualizacion = models.DateTimeField(auto_now=True, verbose_name="Fecha de Actualización")
+    
+    # Estado del comentario
+    activo = models.BooleanField(default=True, verbose_name="Activo")
+    
+    class Meta:
+        verbose_name = 'Comentario'
+        verbose_name_plural = 'Comentarios'
+        ordering = ['-fecha_creacion']
+    
+    def __str__(self):
+        return f"Comentario de {self.usuario.username} en {self.content_object}"
+    
+    def get_short_text(self):
+        """Retorna el texto truncado para mostrar en listas"""
+        return self.texto[:100] + "..." if len(self.texto) > 100 else self.texto
+
+
+# ---------------------
+# MODELO DE LOGS DEL SISTEMA
+# ---------------------
+class SystemLog(models.Model):
+    """Logs de acciones del sistema"""
+    TIPOS_ACCION = [
+        ('crear', 'Crear'),
+        ('editar', 'Editar'),
+        ('eliminar', 'Eliminar'),
+        ('pagar', 'Pagar'),
+        ('confirmar', 'Confirmar'),
+        ('rechazar', 'Rechazar'),
+        ('comentar', 'Comentar'),
+        ('unirse', 'Unirse'),
+        ('salir', 'Salir'),
+        ('login', 'Iniciar Sesión'),
+        ('logout', 'Cerrar Sesión'),
+        ('registro', 'Registro'),
+        ('admin', 'Acción Administrativa'),
+    ]
+    
+    NIVELES = [
+        ('info', 'Información'),
+        ('warning', 'Advertencia'),
+        ('error', 'Error'),
+        ('success', 'Éxito'),
+    ]
+    
+    # Usuario que realiza la acción
+    usuario = models.ForeignKey(
+        CustomUser, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        verbose_name="Usuario",
+        related_name='logs'
+    )
+    
+    # Información de la acción
+    tipo_accion = models.CharField(max_length=20, choices=TIPOS_ACCION, verbose_name="Tipo de Acción")
+    nivel = models.CharField(max_length=10, choices=NIVELES, default='info', verbose_name="Nivel")
+    descripcion = models.TextField(verbose_name="Descripción")
+    
+    # Objeto relacionado (opcional)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Tipo de Contenido")
+    object_id = models.PositiveIntegerField(null=True, blank=True, verbose_name="ID del Objeto")
+    content_object = GenericForeignKey('content_type', 'object_id')
+    
+    # Información adicional
+    ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name="Dirección IP")
+    user_agent = models.TextField(blank=True, null=True, verbose_name="User Agent")
+    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
+    
+    # Datos adicionales en JSON
+    datos_adicionales = models.JSONField(default=dict, blank=True, verbose_name="Datos Adicionales")
+    
+    class Meta:
+        verbose_name = 'Log del Sistema'
+        verbose_name_plural = 'Logs del Sistema'
+        ordering = ['-fecha_creacion']
+        indexes = [
+            models.Index(fields=['usuario', 'tipo_accion']),
+            models.Index(fields=['fecha_creacion']),
+            models.Index(fields=['nivel']),
+        ]
+    
+    def __str__(self):
+        return f"{self.tipo_accion} - {self.usuario.username if self.usuario else 'Sistema'} - {self.fecha_creacion.strftime('%d/%m/%Y %H:%M')}"
+    
+    @classmethod
+    def log_action(cls, usuario, tipo_accion, descripcion, nivel='info', content_object=None, ip_address=None, user_agent=None, datos_adicionales=None):
+        """Método de clase para crear logs fácilmente"""
+        return cls.objects.create(
+            usuario=usuario,
+            tipo_accion=tipo_accion,
+            descripcion=descripcion,
+            nivel=nivel,
+            content_object=content_object,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            datos_adicionales=datos_adicionales or {}
+        )

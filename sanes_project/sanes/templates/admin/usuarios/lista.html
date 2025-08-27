@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestionar Usuarios - Rifas Anica{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-light py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-dark">Gestionar Usuarios</h1>
+            <p class="text-gray-600">Administra los usuarios del sistema</p>
+        </div>
+
+        <!-- Filtros y búsqueda -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+                    <input type="text" name="q" value="{{ request.GET.q }}" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="Buscar por nombre, email o cédula...">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                    <select name="is_active" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Todos</option>
+                        <option value="1" {% if request.GET.is_active == '1' %}selected{% endif %}>Activos</option>
+                        <option value="0" {% if request.GET.is_active == '0' %}selected{% endif %}>Inactivos</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Ordenar por</label>
+                    <select name="sort" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="date_joined" {% if request.GET.sort == 'date_joined' %}selected{% endif %}>Fecha de registro</option>
+                        <option value="username" {% if request.GET.sort == 'username' %}selected{% endif %}>Nombre de usuario</option>
+                        <option value="email" {% if request.GET.sort == 'email' %}selected{% endif %}>Email</option>
+                        <option value="last_login" {% if request.GET.sort == 'last_login' %}selected{% endif %}>Último acceso</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="w-full bg-primary text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">
+                        Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Lista de usuarios -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-dark">Usuarios Registrados</h2>
+            </div>
+            
+            {% if usuarios %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contacto</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Último Acceso</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registro</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for usuario in usuarios %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    {% if usuario.foto_perfil %}
+                                        <img class="h-10 w-10 rounded-full object-cover" src="{{ usuario.foto_perfil.url }}" alt="{{ usuario.get_full_name }}">
+                                    {% else %}
+                                        <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                            <svg class="h-6 w-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                            </svg>
+                                        </div>
+                                    {% endif %}
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-dark">{{ usuario.get_full_name|default:usuario.username }}</div>
+                                        <div class="text-sm text-gray-500">@{{ usuario.username }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ usuario.email }}</div>
+                                <div class="text-sm text-gray-500">{{ usuario.phone_number|default:"Sin teléfono" }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if usuario.is_active %}
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Activo</span>
+                                {% else %}
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Inactivo</span>
+                                {% endif %}
+                                {% if usuario.is_staff %}
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 ml-1">Staff</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {% if usuario.last_login %}
+                                    {{ usuario.last_login|date:"d/m/Y H:i" }}
+                                {% else %}
+                                    Nunca
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ usuario.date_joined|date:"d/m/Y" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex space-x-2">
+                                    <a href="{% url 'admin_user_detail' usuario.id %}" class="text-primary hover:text-red-700">Ver</a>
+                                    {% if usuario.is_active %}
+                                        <a href="#" onclick="toggleUserStatus({{ usuario.id }}, false)" class="text-orange-600 hover:text-orange-900">Desactivar</a>
+                                    {% else %}
+                                        <a href="#" onclick="toggleUserStatus({{ usuario.id }}, true)" class="text-green-600 hover:text-green-900">Activar</a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            {% if usuarios.has_other_pages %}
+            <div class="px-6 py-4 border-t border-gray-200">
+                <nav class="flex items-center justify-between">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        {% if usuarios.has_previous %}
+                            <a href="?page={{ usuarios.previous_page_number }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Anterior</a>
+                        {% endif %}
+                        {% if usuarios.has_next %}
+                            <a href="?page={{ usuarios.next_page_number }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Siguiente</a>
+                        {% endif %}
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                Mostrando <span class="font-medium">{{ usuarios.start_index }}</span> a <span class="font-medium">{{ usuarios.end_index }}</span> de <span class="font-medium">{{ usuarios.paginator.count }}</span> usuarios
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                                {% if usuarios.has_previous %}
+                                    <a href="?page={{ usuarios.previous_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Anterior</a>
+                                {% endif %}
+                                
+                                {% for num in usuarios.paginator.page_range %}
+                                    {% if usuarios.number == num %}
+                                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-primary text-sm font-medium text-white">{{ num }}</span>
+                                    {% elif num > usuarios.number|add:'-3' and num < usuarios.number|add:'3' %}
+                                        <a href="?page={{ num }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">{{ num }}</a>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if usuarios.has_next %}
+                                    <a href="?page={{ usuarios.next_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Siguiente</a>
+                                {% endif %}
+                            </nav>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No hay usuarios para mostrar</h3>
+                <p class="mt-1 text-sm text-gray-500">No se encontraron usuarios que coincidan con los criterios de búsqueda.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Botones de exportación -->
+        <div class="mt-8 flex justify-end space-x-4">
+            <button onclick="window.print()" class="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">
+                Imprimir Lista
+            </button>
+            <a href="?export=excel" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+                Exportar Excel
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleUserStatus(userId, activate) {
+    if (confirm(activate ? '¿Estás seguro de que quieres activar este usuario?' : '¿Estás seguro de que quieres desactivar este usuario?')) {
+        // Aquí iría la lógica para cambiar el estado del usuario
+        // Por ahora solo mostramos un mensaje
+        alert(activate ? 'Usuario activado' : 'Usuario desactivado');
+    }
+}
+</script>
+{% endblock %}
+

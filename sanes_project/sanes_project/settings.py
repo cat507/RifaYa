@@ -49,13 +49,8 @@ AUTH_USER_MODEL = "sanes.CustomUser"
 
 ACCOUNT_EMAIL_VERIFICATION = "optional"
 ACCOUNT_LOGIN_METHODS = {"username", "email"}
-ACCOUNT_SIGNUP_FIELDS = {
-    "email": {"required": True},
-    "username": {"required": True},
-    "password1": {"required": True},  # importante
-    "password2": {"required": True},  # importante
-}
-ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
+ACCOUNT_UNIQUE_EMAIL = True
 
 # URLs de redireccionamiento
 LOGIN_REDIRECT_URL = "/"
@@ -65,7 +60,10 @@ ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_FORMS = {
     "login": "sanes.forms.CustomLoginForm",
 }
-LOGOUT_REDIRECT_URL = "login/"
+
+# Adaptadores personalizados
+ACCOUNT_ADAPTER = "sanes.adapters.CustomAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "sanes.adapters.CustomSocialAccountAdapter"
 
 # ================================
 # 📧 Email
@@ -85,16 +83,13 @@ SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "SCOPE": ["profile", "email"],
         "AUTH_PARAMS": {"access_type": "online"},
+        "APP": {
+            "client_id": config("GOOGLE_CLIENT_ID", default=""),
+            "secret": config("GOOGLE_CLIENT_SECRET", default=""),
+            "key": "",
+        }
     }
 }
-
-SOCIALACCOUNT_PROVIDERS["google"].update({
-    "APP": {
-        "client_id": config("GOOGLE_CLIENT_ID"),
-        "secret": config("GOOGLE_CLIENT_SECRET"),
-        "key": "",
-    }
-})
 
 # ================================
 # ⚙️ Middleware

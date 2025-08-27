@@ -1,17 +1,312 @@
-<form method="POST" enctype="multipart/form-data"></form>
-    {% csrf_token %}
-    <p>Monto en Bs: {{ monto_bs }}</p>
-    <p>Monto en Pesos: {{ monto_pesos }}</p>
-    <p>Monto en USD: {{ monto_usd }}</p>
+{% extends 'base.html' %}
+{% load static %}
 
-    <label for="metodo_pago">Método de Pago:</label>
-    <select name="metodo_pago">
-        <option value="transferencia">Transferencia Bancaria</option>
-        <option value="efectivo">Efectivo</option>
-    </select>
+{% block title %}Confirmar Compra - Rifas Anica{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-light py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center space-x-4 mb-4">
+                <a href="{% url 'ordersummary' order.id %}" class="text-primary hover:text-red-700 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </a>
+                <h1 class="text-3xl font-bold text-dark">Confirmar Compra</h1>
+            </div>
+            <p class="text-gray-600">Completa el proceso de pago para finalizar tu orden</p>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="{% if message.tags == 'success' %}bg-green-100 text-green-700 border border-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-blue-100 text-blue-700 border border-blue-200{% endif %} p-4 rounded-lg">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Payment Form -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-bold text-dark mb-6">Información de Pago</h2>
+                    
+                    <form method="post" enctype="multipart/form-data" class="space-y-6">
+                        {% csrf_token %}
+                        
+                        <!-- Payment Method -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Método de Pago</label>
+                            <div class="space-y-3">
+                                <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                    <input type="radio" name="metodo_pago" value="tarjeta" class="h-4 w-4 text-primary border-gray-300 focus:ring-primary" required>
+                                    <div class="ml-3 flex items-center">
+                                        <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                        </svg>
+                                        <span class="text-sm font-medium text-dark">Tarjeta de crédito/débito</span>
+                                    </div>
+                                </label>
+                                
+                                <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                    <input type="radio" name="metodo_pago" value="transferencia" class="h-4 w-4 text-primary border-gray-300 focus:ring-primary">
+                                    <div class="ml-3 flex items-center">
+                                        <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                        </svg>
+                                        <span class="text-sm font-medium text-dark">Transferencia bancaria</span>
+                                    </div>
+                                </label>
+                                
+                                <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                    <input type="radio" name="metodo_pago" value="efectivo" class="h-4 w-4 text-primary border-gray-300 focus:ring-primary">
+                                    <div class="ml-3 flex items-center">
+                                        <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                        </svg>
+                                        <span class="text-sm font-medium text-dark">Efectivo</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Reference Number -->
+                        <div>
+                            <label for="numero_referencia" class="block text-sm font-medium text-gray-700 mb-2">
+                                Número de Referencia
+                            </label>
+                            <input type="text" name="numero_referencia" id="numero_referencia" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                   placeholder="Ingresa el número de referencia del pago">
+                        </div>
+
+                        <!-- Amount Paid -->
+                        <div>
+                            <label for="monto_pagado" class="block text-sm font-medium text-gray-700 mb-2">
+                                Monto Pagado
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2 text-gray-500">$</span>
+                                <input type="number" name="monto_pagado" id="monto_pagado" step="0.01" min="0"
+                                       class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                       placeholder="0.00" value="{{ order.total|floatformat:2 }}">
+                            </div>
+                        </div>
+
+                        <!-- Payment Proof -->
+                        <div>
+                            <label for="comprobante_pago" class="block text-sm font-medium text-gray-700 mb-2">
+                                Comprobante de Pago
+                            </label>
+                            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-primary transition-colors">
+                                <div class="space-y-1 text-center">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <div class="flex text-sm text-gray-600">
+                                        <label for="comprobante_pago" class="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-red-700 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary">
+                                            <span>Subir archivo</span>
+                                            <input type="file" name="comprobante_pago" id="comprobante_pago" 
+                                                   class="sr-only" accept="image/*,.pdf">
+                                        </label>
+                                        <p class="pl-1">o arrastrar y soltar</p>
+                                    </div>
+                                    <p class="text-xs text-gray-500">
+                                        PNG, JPG, PDF hasta 10MB
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Notes -->
+                        <div>
+                            <label for="notas" class="block text-sm font-medium text-gray-700 mb-2">
+                                Notas Adicionales (Opcional)
+                            </label>
+                            <textarea name="notas" id="notas" rows="3"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                      placeholder="Información adicional sobre el pago..."></textarea>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="pt-4">
+                            <button type="submit" 
+                                    class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-primary hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+                                Confirmar Pago
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-md p-6 sticky top-8">
+                    <h2 class="text-xl font-bold text-dark mb-4">Resumen de la Orden</h2>
+                    
+                    <!-- Order Info -->
+                    <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-700">Orden #:</span>
+                            <span class="text-sm font-bold text-dark">{{ order.id_unico }}</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-700">Fecha:</span>
+                            <span class="text-sm text-dark">{{ order.fecha_creacion|date:"d/m/Y H:i" }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-700">Estado:</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                Pendiente de Pago
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <div class="mb-4">
+                        <h3 class="text-sm font-medium text-gray-700 mb-3">Productos</h3>
+                        <div class="space-y-3">
+                            {% for item in order_items %}
+                            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                                <div class="flex-shrink-0">
+                                    {% if item.rifa and item.rifa.imagen %}
+                                        <img src="{{ item.rifa.imagen.url }}" alt="{{ item.rifa.titulo }}" class="w-12 h-12 rounded-lg object-cover">
+                                    {% elif item.san and item.san.imagen %}
+                                        <img src="{{ item.san.imagen.url }}" alt="{{ item.san.nombre }}" class="w-12 h-12 rounded-lg object-cover">
+                                    {% else %}
+                                        <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                            </svg>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-dark truncate">
+                                        {% if item.rifa %}
+                                            {{ item.rifa.titulo }}
+                                        {% elif item.san %}
+                                            {{ item.san.nombre }}
+                                        {% else %}
+                                            {{ item.descripcion }}
+                                        {% endif %}
+                                    </p>
+                                    <p class="text-xs text-gray-500">
+                                        {% if item.rifa %}
+                                            {{ item.cantidad }} ticket{{ item.cantidad|pluralize }}
+                                        {% elif item.san %}
+                                            Cupo #{{ item.numero_cupo }}
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-bold text-primary">${{ item.precio|floatformat:2 }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Price Breakdown -->
+                    <div class="space-y-2 mb-4">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Subtotal:</span>
+                            <span class="font-medium text-dark">${{ order.subtotal|floatformat:2 }}</span>
+                        </div>
+                        {% if order.descuento %}
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Descuento:</span>
+                            <span class="font-medium text-green-600">-${{ order.descuento|floatformat:2 }}</span>
+                        </div>
+                        {% endif %}
+                        {% if order.impuestos %}
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Impuestos:</span>
+                            <span class="font-medium text-dark">${{ order.impuestos|floatformat:2 }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Envío:</span>
+                            <span class="font-medium text-dark">${{ order.costo_envio|floatformat:2 }}</span>
+                        </div>
+                        <div class="border-t border-gray-200 pt-2">
+                            <div class="flex justify-between text-lg font-bold">
+                                <span class="text-dark">Total:</span>
+                                <span class="text-primary">${{ order.total|floatformat:2 }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Instructions -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h3 class="text-sm font-medium text-blue-800 mb-2">Instrucciones de Pago</h3>
+                        <ul class="text-xs text-blue-700 space-y-1">
+                            <li>• Completa el pago usando el método seleccionado</li>
+                            <li>• Guarda el número de referencia de tu transacción</li>
+                            <li>• Sube el comprobante de pago</li>
+                            <li>• Tu orden será procesada una vez confirmado el pago</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Drag and drop functionality for file upload
+    const dropZone = document.querySelector('.border-dashed');
     
-    <label for="comprobante">Subir comprobante de pago:</label>
-    <input type="file" name="comprobante">
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
 
-    <button type="submit">Confirmar</button>
-</form>
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        dropZone.classList.add('border-primary');
+    }
+
+    function unhighlight(e) {
+        dropZone.classList.remove('border-primary');
+    }
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        const fileInput = document.getElementById('comprobante_pago');
+        
+        fileInput.files = files;
+        
+        // Trigger change event
+        const event = new Event('change', { bubbles: true });
+        fileInput.dispatchEvent(event);
+    }
+
+    // Auto-fill amount paid with order total
+    document.addEventListener('DOMContentLoaded', function() {
+        const montoPagadoInput = document.getElementById('monto_pagado');
+        if (montoPagadoInput) {
+            montoPagadoInput.value = '{{ order.total|floatformat:2 }}';
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Turnos del San - {{ san.nombre }} - Rifas Anica{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-light py-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-dark">Turnos del San</h1>
+                    <p class="text-gray-600">{{ san.nombre }} - Orden de cobro</p>
+                </div>
+                <a href="{% url 'san_detail' san.id %}" class="text-primary hover:text-red-700">
+                    ← Volver al San
+                </a>
+            </div>
+        </div>
+
+        <!-- Información del San -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+            <div class="p-6">
+                <div class="flex items-start space-x-6">
+                    {% if san.imagen %}
+                        <img class="h-20 w-20 rounded-lg object-cover" src="{{ san.imagen.url }}" alt="{{ san.nombre }}">
+                    {% else %}
+                        <div class="h-20 w-20 rounded-lg bg-gray-200 flex items-center justify-center">
+                            <svg class="h-10 w-10 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                            </svg>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="flex-1">
+                        <h2 class="text-2xl font-bold text-dark mb-2">{{ san.nombre }}</h2>
+                        <p class="text-gray-600 mb-4">{{ san.descripcion }}</p>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Tipo</p>
+                                <p class="text-lg font-semibold text-dark">{{ san.get_tipo_display }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Cuota</p>
+                                <p class="text-lg font-semibold text-dark">${{ san.cuota_por_persona|default:san.precio_total }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Participantes</p>
+                                <p class="text-lg font-semibold text-dark">{{ participaciones.count }}/{{ san.total_participantes }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Estado</p>
+                                <p class="text-lg font-semibold">
+                                    {% if san.estado == 'activo' %}
+                                        <span class="text-green-600">Activo</span>
+                                    {% elif san.estado == 'completado' %}
+                                        <span class="text-blue-600">Completado</span>
+                                    {% else %}
+                                        <span class="text-red-600">Cancelado</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de turnos -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-dark">Orden de Cobro</h2>
+            </div>
+            
+            {% if participaciones %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Turno</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Participante</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Inscripción</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for participacion in participaciones %}
+                        <tr class="hover:bg-gray-50 {% if participacion.orden_cobro == 1 and san.estado == 'completado' %}bg-yellow-50{% endif %}">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-8 w-8">
+                                        {% if participacion.orden_cobro == 1 and san.estado == 'completado' %}
+                                            <div class="h-8 w-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                                                <svg class="h-4 w-4 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                </svg>
+                                            </div>
+                                        {% else %}
+                                            <div class="h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center">
+                                                <span class="text-sm font-medium text-gray-900">{{ participacion.orden_cobro }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">Turno {{ participacion.orden_cobro }}</div>
+                                        {% if participacion.orden_cobro == 1 and san.estado == 'completado' %}
+                                            <div class="text-xs text-yellow-600 font-medium">¡Tu turno!</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    {% if participacion.usuario.foto_perfil %}
+                                        <img class="h-8 w-8 rounded-full object-cover" src="{{ participacion.usuario.foto_perfil.url }}" alt="{{ participacion.usuario.username }}">
+                                    {% else %}
+                                        <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                                            <svg class="h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                            </svg>
+                                        </div>
+                                    {% endif %}
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ participacion.usuario.get_full_name|default:participacion.usuario.username }}
+                                        </div>
+                                        <div class="text-sm text-gray-500">{{ participacion.usuario.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ participacion.fecha_inscripcion|date:"d/m/Y" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if participacion.orden_cobro == 1 and san.estado == 'completado' %}
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        ¡Tu turno!
+                                    </span>
+                                {% elif participacion.orden_cobro <= san.participantes.count and san.estado == 'completado' %}
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        Completado
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                                        Pendiente
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex space-x-2">
+                                    <a href="{% url 'user_profile' %}" class="text-primary hover:text-red-700">
+                                        Ver Perfil
+                                    </a>
+                                    {% if user.is_staff %}
+                                        <button onclick="contactarParticipante({{ participacion.usuario.id }})" class="text-blue-600 hover:text-blue-900">
+                                            Contactar
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <p class="font-medium text-gray-700">Total Participantes:</p>
+                        <p class="text-gray-600">{{ participaciones.count }} de {{ san.total_participantes }}</p>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-700">Próximo Turno:</p>
+                        <p class="text-gray-600">
+                            {% if san.estado == 'activo' %}
+                                Turno {{ participaciones.count|add:1 }}
+                            {% elif san.estado == 'completado' %}
+                                San completado
+                            {% else %}
+                                San cancelado
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-700">Cuota por Persona:</p>
+                        <p class="text-gray-600">${{ san.cuota_por_persona|default:san.precio_total }}</p>
+                    </div>
+                </div>
+            </div>
+
+            {% else %}
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No hay participantes</h3>
+                <p class="mt-1 text-sm text-gray-500">Este san aún no tiene participantes.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function contactarParticipante(userId) {
+    // Aquí puedes implementar la funcionalidad de contacto
+    // Por ejemplo, abrir un modal o redirigir a una página de contacto
+    alert('Funcionalidad de contacto en desarrollo');
+}
+</script>
+{% endblock %}

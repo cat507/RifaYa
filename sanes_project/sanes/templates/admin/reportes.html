@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reportes - Administración{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-7xl mx-auto">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">Reportes del Sistema</h1>
+            <p class="text-gray-600 mb-6">Estadísticas y reportes generales</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-blue-50 p-6 rounded-lg">
+                    <h3 class="text-lg font-semibold text-blue-800">Total Recaudado Rifas</h3>
+                    <p class="text-3xl font-bold text-blue-600">${{ total_recaudado_rifas|floatformat:2 }}</p>
+                </div>
+                <div class="bg-green-50 p-6 rounded-lg">
+                    <h3 class="text-lg font-semibold text-green-800">Total Recaudado Sanes</h3>
+                    <p class="text-3xl font-bold text-green-600">${{ total_recaudado_sanes|floatformat:2 }}</p>
+                </div>
+                <div class="bg-purple-50 p-6 rounded-lg">
+                    <h3 class="text-lg font-semibold text-purple-800">Usuarios Activos</h3>
+                    <p class="text-3xl font-bold text-purple-600">{{ usuarios_activos }}</p>
+                </div>
+                <div class="bg-orange-50 p-6 rounded-lg">
+                    <h3 class="text-lg font-semibold text-orange-800">Rifas Finalizadas</h3>
+                    <p class="text-3xl font-bold text-orange-600">{{ rifas_finalizadas }}</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Sanes Finalizados</h3>
+                    <p class="text-2xl font-bold text-gray-600">{{ sanes_finalizados }}</p>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Total General</h3>
+                    <p class="text-2xl font-bold text-gray-600">${{ total_recaudado_rifas|add:total_recaudado_sanes|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
