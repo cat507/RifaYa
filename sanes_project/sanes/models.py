@@ -100,6 +100,26 @@ class Factura(models.Model):
         ('tarjeta', 'Tarjeta de Crédito/Débito'),
         ('otro', 'Otro'),
     ]
+<<<<<<< HEAD
+=======
+    
+    # Campos para compatibilidad con código existente
+    TIPOS_CHOICES = [
+        ('rifa', 'Rifa'),
+        ('san', 'San'),
+        ('cuota_san', 'Cuota de San'),
+        ('ticket_rifa', 'Ticket de Rifa'),
+        ('inscripcion_san', 'Inscripción a San'),
+        ('otro', 'Otro'),
+    ]
+    
+    ESTADOS_CHOICES = [
+        ('pendiente', 'Pendiente'),
+        ('pagada', 'Pagada'),
+        ('vencida', 'Vencida'),
+        ('cancelada', 'Cancelada'),
+    ]
+>>>>>>> 61950c8 (Corrección de error y estado estable)
 
     # Identificación única
     codigo = models.CharField(max_length=20, unique=True, editable=False, null=True, blank=True, verbose_name="Código de Factura")
@@ -117,6 +137,15 @@ class Factura(models.Model):
     object_id = models.PositiveIntegerField(null=True, blank=True, verbose_name="ID del Objeto")
     content_object = GenericForeignKey('content_type', 'object_id')
     
+<<<<<<< HEAD
+=======
+    # Campos para compatibilidad con código existente
+    concepto = models.CharField(max_length=255, blank=True, null=True, verbose_name="Concepto")
+    monto = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="Monto")
+    tipo = models.CharField(max_length=20, choices=TIPOS_CHOICES, default='otro', verbose_name="Tipo")
+    estado = models.CharField(max_length=20, choices=ESTADOS_CHOICES, default='pendiente', verbose_name="Estado")
+    
+>>>>>>> 61950c8 (Corrección de error y estado estable)
     # Información de la factura
     fecha_emision = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Emisión")
     fecha_vencimiento = models.DateTimeField(
@@ -152,6 +181,15 @@ class Factura(models.Model):
     
     # Notas adicionales
     notas = models.TextField(blank=True, null=True, verbose_name="Notas Adicionales")
+<<<<<<< HEAD
+=======
+    
+    # Campos adicionales para compatibilidad
+    fecha_pago = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de Pago")
+    rifa = models.ForeignKey('Rifa', null=True, blank=True, on_delete=models.SET_NULL, verbose_name="Rifa")
+    san = models.ForeignKey('San', null=True, blank=True, on_delete=models.SET_NULL, verbose_name="San")
+    archivo = models.FileField(upload_to='facturas/', null=True, blank=True, verbose_name="Archivo")
+>>>>>>> 61950c8 (Corrección de error y estado estable)
 
     class Meta:
         verbose_name = 'Factura'
@@ -194,6 +232,19 @@ class Factura(models.Model):
     def is_vencida(self):
         """Verifica si la factura está vencida"""
         return timezone.now() > self.fecha_vencimiento
+<<<<<<< HEAD
+=======
+    
+    # Métodos para compatibilidad con código existente
+    @property
+    def id_unico(self):
+        """Alias para el código de la factura"""
+        return self.codigo
+    
+    def get_estado_display(self):
+        """Retorna el estado para compatibilidad"""
+        return self.get_estado_pago_display()
+>>>>>>> 61950c8 (Corrección de error y estado estable)
 
     def confirmar_pago(self, monto=None):
         """Confirma el pago de la factura"""

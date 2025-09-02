@@ -46,6 +46,7 @@ class CustomLoginForm(LoginForm):
         if "remember" in self.fields:
             self.fields["remember"].label = "Recordarme"
 
+<<<<<<< HEAD
     def clean(self):
         cleaned_data = super().clean()
         # Asegurar que el request esté disponible
@@ -56,6 +57,8 @@ class CustomLoginForm(LoginForm):
             self.request = factory.get('/')
         return cleaned_data
 
+=======
+>>>>>>> 61950c8 (Corrección de error y estado estable)
 class CustomUserCreationForm(UserCreationForm):
     """Formulario personalizado de registro de usuarios"""
     first_name = forms.CharField(
@@ -227,6 +230,7 @@ class PerfilForm(forms.ModelForm):
 # ---------------------
 class RifaForm(forms.ModelForm):
     """Formulario para crear/editar rifas"""
+<<<<<<< HEAD
     # Campo adicional opcional para cálculos (no se guarda en el modelo)
     valor_premio_monetario = forms.DecimalField(
         required=False,
@@ -239,6 +243,8 @@ class RifaForm(forms.ModelForm):
             'step': '0.01'
         })
     )
+=======
+>>>>>>> 61950c8 (Corrección de error y estado estable)
     class Meta:
         model = Rifa
         fields = [
@@ -393,27 +399,57 @@ class FacturaForm(forms.ModelForm):
     """Formulario para facturas"""
     class Meta:
         model = Factura
+<<<<<<< HEAD
         fields = ['monto_total', 'fecha_vencimiento', 'estado_pago', 'metodo_pago', 'comprobante_pago', 'notas']
         widgets = {
+=======
+        fields = ['concepto', 'monto', 'tipo', 'estado', 'monto_total', 'estado_pago', 'metodo_pago', 'fecha_vencimiento', 'notas']
+        widgets = {
+            'concepto': forms.TextInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'placeholder': 'Concepto de la factura'
+            }),
+            'monto': forms.NumberInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'min': '0.01',
+                'step': '0.01',
+                'placeholder': 'Monto'
+            }),
+            'tipo': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+            }),
+            'estado': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+            }),
+>>>>>>> 61950c8 (Corrección de error y estado estable)
             'monto_total': forms.NumberInput(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
                 'min': '0.01',
                 'step': '0.01',
                 'placeholder': 'Monto total'
             }),
+<<<<<<< HEAD
             'fecha_vencimiento': forms.DateTimeInput(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
                 'type': 'datetime-local'
             }),
+=======
+>>>>>>> 61950c8 (Corrección de error y estado estable)
             'estado_pago': forms.Select(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
             }),
             'metodo_pago': forms.Select(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
             }),
+<<<<<<< HEAD
             'comprobante_pago': forms.FileInput(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
                 'accept': 'image/*,.pdf'
+=======
+            'fecha_vencimiento': forms.DateInput(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'type': 'date'
+>>>>>>> 61950c8 (Corrección de error y estado estable)
             }),
             'notas': forms.Textarea(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
