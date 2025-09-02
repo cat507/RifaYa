@@ -57,16 +57,17 @@ from rest_framework import status
 
 from .forms import (
     CustomUserCreationForm, CustomLoginForm, RifaForm, SanForm, 
-    ParticipacionSanForm, CupoForm, FacturaForm, PagoForm, PerfilForm,
+    ParticipacionSanForm, CupoForm, FacturaForm, PerfilForm,
     CompraTicketForm, InscripcionSanForm
 )
 from .models import (
     CustomUser, Factura, Rifa, Ticket, San, ParticipacionSan, 
-    Cupo, Orden, Pago, Comment, Imagen, SorteoRifa, Notificacion, SystemLog
+    Cupo, Comment, SystemLog, PagoSimulado, NotificacionMejorada,
+    Notificacion, Reporte, HistorialAccion, SorteoRifa, TurnoSan, Mensaje
 )
 from .serializers import (
     RifaSerializer, SanSerializer, TicketSerializer, FacturaSerializer,
-    ParticipacionSanSerializer, CupoSerializer, OrdenSerializer, PagoSerializer
+    ParticipacionSanSerializer, CupoSerializer
 )
 from .backends import EmailOrUsernameModelBackend
 
@@ -349,40 +350,51 @@ class RifaUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
 @login_required
 def comprar_ticket_rifa(request, rifa_id):
-    """Comprar un ticket de rifa"""
+    """Comprar tickets de una rifa con pasarelas de pago simuladas"""
     rifa = get_object_or_404(Rifa, id=rifa_id)
     
     if not rifa.puede_vender_tickets():
-        messages.error(request, 'No se pueden comprar tickets para esta rifa.')
+        messages.error(request, 'Esta rifa no está disponible para compra de tickets.')
         return redirect('rifa_detail', pk=rifa_id)
     
     if request.method == 'POST':
         cantidad = int(request.POST.get('cantidad', 1))
+        metodo_pago = request.POST.get('metodo_pago', 'efectivo')
         
         if cantidad > rifa.tickets_disponibles:
             messages.error(request, 'No hay suficientes tickets disponibles.')
             return redirect('rifa_detail', pk=rifa_id)
         
-        # Crear orden y factura
+        if cantidad <= 0:
+            messages.error(request, 'La cantidad debe ser mayor a 0.')
+            return redirect('rifa_detail', pk=rifa_id)
+        
+        # Crear factura y procesar pago
         with transaction.atomic():
-            orden = Orden.objects.create(
-                usuario=request.user,
-                content_type=ContentType.objects.get_for_model(Rifa),
-                object_id=rifa.id,
-                subtotal=rifa.precio_ticket * cantidad,
-                total=rifa.precio_ticket * cantidad,
-                estado='pendiente'
-            )
-            
+            # Crear factura
             factura = Factura.objects.create(
                 usuario=request.user,
                 content_type=ContentType.objects.get_for_model(Rifa),
                 object_id=rifa.id,
                 monto_total=rifa.precio_ticket * cantidad,
-                estado_pago='pendiente'
+                estado_pago='pendiente',
+                metodo_pago=metodo_pago,
+                tipo='ticket_rifa',
+                concepto=f'Compra de {cantidad} ticket(s) - {rifa.titulo}',
+                monto=rifa.precio_ticket * cantidad
+            )
+            
+            # Crear pago simulado
+            pago_simulado = PagoSimulado.objects.create(
+                usuario=request.user,
+                factura=factura,
+                monto=factura.monto_total,
+                metodo_pago=metodo_pago,
+                estado='pendiente'
             )
             
             # Crear tickets
+            tickets_creados = []
             for i in range(cantidad):
                 ticket = Ticket.objects.create(
                     rifa=rifa,
@@ -390,20 +402,97 @@ def comprar_ticket_rifa(request, rifa_id):
                     precio_pagado=rifa.precio_ticket,
                     factura=factura
                 )
+                tickets_creados.append(ticket)
             
             # Actualizar tickets disponibles
             rifa.tickets_disponibles -= cantidad
             rifa.save()
-        
-        messages.success(request, f'Se compraron {cantidad} ticket(s) exitosamente.')
-        return redirect('checkout_raffle', rifa_id=rifa_id)
+            
+            # Procesar pago simulado
+            if metodo_pago in ['paypal', 'stripe', 'nequi']:
+                # Simular procesamiento de pago electrónico
+                if pago_simulado.procesar_pago():
+                    factura.estado_pago = 'confirmado'
+                    factura.monto_pagado = factura.monto_total
+                    factura.fecha_pago = timezone.now()
+                    factura.save()
+                    
+                    # Crear notificación de confirmación
+                    NotificacionMejorada.objects.create(
+                        usuario=request.user,
+                        tipo='rifa',
+                        titulo='Ticket Comprado Exitosamente',
+                        mensaje=f'Has comprado {cantidad} ticket(s) para la rifa "{rifa.titulo}". El sorteo será el {rifa.fecha_fin.strftime("%d/%m/%Y")}.',
+                        canal='interno',
+                        prioridad='normal',
+                        content_object=rifa
+                    )
+                    
+                    # Log del sistema
+                    SystemLog.log_action(
+                        usuario=request.user,
+                        tipo_accion='pagar',
+                        descripcion=f'Compra exitosa de {cantidad} ticket(s) para rifa {rifa.titulo}',
+                        nivel='success',
+                        content_object=rifa,
+                        datos_adicionales={
+                            'cantidad': cantidad,
+                            'metodo_pago': metodo_pago,
+                            'factura_id': factura.id,
+                            'pago_id': pago_simulado.id
+                        }
+                    )
+                    
+                    messages.success(request, f'¡Compra exitosa! Se compraron {cantidad} ticket(s) para la rifa "{rifa.titulo}".')
+                    return redirect('checkout_raffle', rifa_id=rifa_id)
+                else:
+                    # Pago fallido
+                    messages.error(request, 'El pago no pudo ser procesado. Por favor, inténtalo de nuevo.')
+                    # Revertir cambios
+                    factura.delete()
+                    rifa.tickets_disponibles += cantidad
+                    rifa.save()
+                    return redirect('rifa_detail', pk=rifa_id)
+            else:
+                # Pago en efectivo o transferencia - pendiente de confirmación
+                messages.success(request, f'Se ha creado tu pedido de {cantidad} ticket(s). El pago está pendiente de confirmación.')
+                
+                # Log del sistema
+                SystemLog.log_action(
+                    usuario=request.user,
+                    tipo_accion='pagar',
+                    descripcion=f'Pedido creado de {cantidad} ticket(s) para rifa {rifa.titulo} - Pago pendiente',
+                    nivel='info',
+                    content_object=rifa,
+                    datos_adicionales={
+                        'cantidad': cantidad,
+                        'metodo_pago': metodo_pago,
+                        'factura_id': factura.id,
+                        'estado': 'pendiente'
+                    }
+                )
+                
+                return redirect('checkout_raffle', rifa_id=rifa_id)
     
-    return redirect('rifa_detail', pk=rifa_id)
+    # GET request - mostrar formulario de compra
+    context = {
+        'rifa': rifa,
+        'max_tickets': min(rifa.tickets_disponibles, 10),  # Máximo 10 tickets por compra
+        'metodos_pago': [
+            ('efectivo', 'Efectivo'),
+            ('transferencia', 'Transferencia Bancaria'),
+            ('paypal', 'PayPal'),
+            ('stripe', 'Stripe'),
+            ('nequi', 'Nequi'),
+        ]
+    }
+    
+    return render(request, 'rifas/comprar_ticket.html', context)
 
 
 @login_required
 def checkout_raffle(request, rifa_id):
-    """Checkout para compra de tickets de rifa"""
+    """Checkout para compra de tickets de rifa con información detallada"""
     rifa = get_object_or_404(Rifa, id=rifa_id)
     tickets_usuario = rifa.tickets.filter(usuario=request.user).order_by('-fecha_compra')
     
@@ -414,11 +503,26 @@ def checkout_raffle(request, rifa_id):
     # Obtener la factura más reciente
     factura = tickets_usuario.first().factura
     
+    # Obtener información del pago
+    pago_simulado = factura.pagos_simulados.first() if factura.pagos_simulados.exists() else None
+    
+    # Calcular estadísticas
+    total_tickets = tickets_usuario.count()
+    total_pagado = tickets_usuario.aggregate(total=Sum('precio_pagado'))['total'] or 0
+    
+    # Verificar si hay pagos pendientes
+    pagos_pendientes = factura.pagos_simulados.filter(estado='pendiente').exists()
+    
     context = {
         'rifa': rifa,
         'tickets': tickets_usuario,
         'factura': factura,
-        'total_pagado': tickets_usuario.aggregate(total=Sum('precio_pagado'))['total'] or 0
+        'pago_simulado': pago_simulado,
+        'total_pagado': total_pagado,
+        'total_tickets': total_tickets,
+        'pagos_pendientes': pagos_pendientes,
+        'max_tickets': rifa.tickets_disponibles,
+        'cantidad_seleccionada': total_tickets
     }
     
     return render(request, 'raffle/raffle_checkout.html', context)
@@ -546,55 +650,238 @@ class SanUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
 @login_required
 def inscribirse_san(request, san_id):
-    """Inscribirse en un san"""
+    """Inscribirse en un SAN con asignación automática de turnos"""
     san = get_object_or_404(San, id=san_id)
     
-    if not san.puede_agregar_participante():
-        messages.error(request, 'No se puede inscribir en este san.')
+    # Verificar si el usuario ya está inscrito
+    if san.participaciones.filter(usuario=request.user).exists():
+        messages.warning(request, 'Ya estás inscrito en este SAN.')
         return redirect('san_detail', pk=san_id)
     
-    # Verificar si ya está inscrito
-    if san.participaciones.filter(usuario=request.user).exists():
-        messages.warning(request, 'Ya estás inscrito en este san.')
+    # Verificar si hay cupos disponibles
+    if not san.puede_agregar_participante():
+        messages.error(request, 'Este SAN no tiene cupos disponibles o no está activo.')
         return redirect('san_detail', pk=san_id)
     
     if request.method == 'POST':
-        # Crear participación
-        participacion = ParticipacionSan.objects.create(
-            san=san,
-            usuario=request.user,
-            orden_cobro=san.participaciones.count() + 1
-        )
+        metodo_pago = request.POST.get('metodo_pago', 'efectivo')
+        acepto_terminos = request.POST.get('acepto_terminos', False)
         
-        # Actualizar contador de participantes
-        san.participantes_actuales += 1
-        san.save()
+        if not acepto_terminos:
+            messages.error(request, 'Debes aceptar los términos y condiciones para inscribirte.')
+            return redirect('san_detail', pk=san_id)
         
-        messages.success(request, 'Te has inscrito exitosamente en el san.')
-        return redirect('checkout_san', san_id=san_id)
+        # Procesar inscripción
+        with transaction.atomic():
+            # Asignar orden de cobro (sorteo automático o por orden de inscripción)
+            if san.tipo == 'ahorro':
+                # Para SANes de ahorro, asignar turno aleatorio
+                orden_cobro = random.randint(1, san.total_participantes)
+                while san.participaciones.filter(orden_cobro=orden_cobro).exists():
+                    orden_cobro = random.randint(1, san.total_participantes)
+            else:
+                # Para otros tipos, asignar por orden de inscripción
+                orden_cobro = san.participaciones.count() + 1
+            
+            # Crear participación
+            participacion = ParticipacionSan.objects.create(
+                san=san,
+                usuario=request.user,
+                orden_cobro=orden_cobro
+            )
+            
+            # Crear factura para la inscripción
+            factura = Factura.objects.create(
+                usuario=request.user,
+                content_type=ContentType.objects.get_for_model(San),
+                object_id=san.id,
+                monto_total=san.precio_cuota,
+                estado_pago='pendiente',
+                metodo_pago=metodo_pago,
+                tipo='inscripcion_san',
+                concepto=f'Inscripción al SAN {san.nombre}',
+                monto=san.precio_cuota
+            )
+            
+            # Crear pago simulado
+            pago_simulado = PagoSimulado.objects.create(
+                usuario=request.user,
+                factura=factura,
+                monto=san.precio_cuota,
+                metodo_pago=metodo_pago,
+                estado='pendiente'
+            )
+            
+            # Actualizar contador de participantes
+            san.participantes_actuales += 1
+            san.save()
+            
+            # Crear cupos para el participante
+            for i in range(1, san.numero_cuotas + 1):
+                # Calcular fecha de vencimiento según frecuencia
+                if i == 1:
+                    fecha_vencimiento = san.fecha_inicio
+                else:
+                    if san.frecuencia_pago == 'semanal':
+                        fecha_vencimiento = san.fecha_inicio + timedelta(weeks=i-1)
+                    elif san.frecuencia_pago == 'quincenal':
+                        fecha_vencimiento = san.fecha_inicio + timedelta(weeks=(i-1)*2)
+                    else:  # mensual
+                        fecha_vencimiento = san.fecha_inicio + timedelta(days=(i-1)*30)
+                
+                Cupo.objects.create(
+                    san=san,
+                    participacion=participacion,
+                    numero_semana=i,
+                    fecha_vencimiento=fecha_vencimiento,
+                    estado='asignado',
+                    asignado=True,
+                    monto_cuota=san.precio_cuota
+                )
+            
+            # Procesar pago de inscripción
+            if metodo_pago in ['paypal', 'stripe', 'nequi']:
+                # Simular procesamiento de pago electrónico
+                if pago_simulado.procesar_pago():
+                    factura.estado_pago = 'confirmado'
+                    factura.monto_pagado = factura.monto_total
+                    factura.fecha_pago = timezone.now()
+                    factura.save()
+                    
+                    # Marcar primera cuota como pagada
+                    primer_cupo = participacion.cupos.first()
+                    if primer_cupo:
+                        primer_cupo.estado = 'pagado'
+                        primer_cupo.fecha_pago = date.today()
+                        primer_cupo.save()
+                        
+                        participacion.cuotas_pagadas = 1
+                        participacion.fecha_ultima_cuota = date.today()
+                        participacion.save()
+                    
+                    # Crear notificación de confirmación
+                    NotificacionMejorada.objects.create(
+                        usuario=request.user,
+                        tipo='san',
+                        titulo='Inscripción Confirmada',
+                        mensaje=f'Te has inscrito exitosamente al SAN "{san.nombre}". Tu turno será el #{orden_cobro}.',
+                        canal='interno',
+                        prioridad='normal',
+                        content_object=san
+                    )
+                    
+                    # Log del sistema
+                    SystemLog.log_action(
+                        usuario=request.user,
+                        tipo_accion='unirse',
+                        descripcion=f'Inscripción exitosa al SAN {san.nombre} - Turno #{orden_cobro}',
+                        nivel='success',
+                        content_object=san,
+                        datos_adicionales={
+                            'orden_cobro': orden_cobro,
+                            'metodo_pago': metodo_pago,
+                            'factura_id': factura.id,
+                            'pago_id': pago_simulado.id
+                        }
+                    )
+                    
+                    messages.success(request, f'¡Inscripción exitosa! Te has unido al SAN "{san.nombre}" con el turno #{orden_cobro}.')
+                    return redirect('checkout_san', san_id=san_id)
+                else:
+                    # Pago fallido
+                    messages.error(request, 'El pago no pudo ser procesado. Por favor, inténtalo de nuevo.')
+                    # Revertir cambios
+                    participacion.delete()
+                    factura.delete()
+                    san.participantes_actuales -= 1
+                    san.save()
+                    return redirect('san_detail', pk=san_id)
+            else:
+                # Pago en efectivo o transferencia - pendiente de confirmación
+                messages.success(request, f'Te has inscrito al SAN "{san.nombre}" con el turno #{orden_cobro}. El pago está pendiente de confirmación.')
+                
+                # Log del sistema
+                SystemLog.log_action(
+                    usuario=request.user,
+                    tipo_accion='unirse',
+                    descripcion=f'Inscripción al SAN {san.nombre} - Turno #{orden_cobro} - Pago pendiente',
+                    nivel='info',
+                    content_object=san,
+                    datos_adicionales={
+                        'orden_cobro': orden_cobro,
+                        'metodo_pago': metodo_pago,
+                        'factura_id': factura.id,
+                        'estado': 'pendiente'
+                    }
+                )
+                
+                return redirect('checkout_san', san_id=san_id)
     
-    return redirect('san_detail', pk=san_id)
+    # GET request - mostrar formulario de inscripción
+    context = {
+        'san': san,
+        'metodos_pago': [
+            ('efectivo', 'Efectivo'),
+            ('transferencia', 'Transferencia Bancaria'),
+            ('paypal', 'PayPal'),
+            ('stripe', 'Stripe'),
+            ('nequi', 'Nequi'),
+        ]
+    }
+    
+    return render(request, 'san/inscribirse_san.html', context)
 
 
 @login_required
 def checkout_san(request, san_id):
-    """Checkout para inscripción en san"""
+    """Checkout para inscripción en SAN con información detallada"""
     san = get_object_or_404(San, id=san_id)
     participacion = san.participaciones.filter(usuario=request.user).first()
     
     if not participacion:
-        messages.error(request, 'No estás inscrito en este san.')
+        messages.error(request, 'No estás inscrito en este SAN.')
         return redirect('san_detail', pk=san_id)
     
-    # Obtener cuotas del usuario
-    cuotas = san.cupos.filter(participacion=participacion).order_by('numero_semana')
+    # Obtener cuotas del participante
+    cuotas = participacion.cupos.all().order_by('numero_semana')
+    
+    # Obtener facturas del participante
+    facturas = Factura.objects.filter(
+        usuario=request.user,
+        content_type=ContentType.objects.get_for_model(San),
+        object_id=san.id
+    ).order_by('-fecha_emision')
+    
+    # Calcular estadísticas
+    total_cuotas = cuotas.count()
+    cuotas_pagadas = cuotas.filter(estado='pagado').count()
+    cuotas_pendientes = cuotas.filter(estado='asignado').count()
+    total_pagado = cuotas_pagadas * san.precio_cuota
+    total_pendiente = cuotas_pendientes * san.precio_cuota
+    
+    # Obtener próxima cuota a pagar
+    proxima_cuota = cuotas.filter(estado='asignado').first()
+    
+    # Obtener pagos simulados
+    pagos_simulados = PagoSimulado.objects.filter(
+        factura__content_type=ContentType.objects.get_for_model(San),
+        factura__object_id=san.id,
+        usuario=request.user
+    ).order_by('-fecha_creacion')
     
     context = {
         'san': san,
         'participacion': participacion,
         'cuotas': cuotas,
-        'cuotas_pendientes': participacion.cuotas_pendientes(),
-        'monto_pendiente': participacion.monto_pendiente()
+        'facturas': facturas,
+        'pagos_simulados': pagos_simulados,
+        'total_cuotas': total_cuotas,
+        'cuotas_pagadas': cuotas_pagadas,
+        'cuotas_pendientes': cuotas_pendientes,
+        'total_pagado': total_pagado,
+        'total_pendiente': total_pendiente,
+        'proxima_cuota': proxima_cuota,
+        'porcentaje_completado': (cuotas_pagadas / total_cuotas * 100) if total_cuotas > 0 else 0
     }
     
     return render(request, 'san/cuotas_san.html', context)
@@ -1561,7 +1848,13 @@ class AdminUserDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         context['sanes_creados'] = San.objects.filter(organizador=usuario).count()
         context['tickets_comprados'] = Ticket.objects.filter(usuario=usuario).count()
         context['participaciones_san'] = ParticipacionSan.objects.filter(usuario=usuario).count()
-        context['facturas'] = Factura.objects.filter(usuario=usuario).order_by('-fecha_creacion')[:10]
+        context['facturas'] = Factura.objects.filter(usuario=usuario).order_by('-fecha_emision')[:10]
+        
+        # Variables que el template espera
+        context['rifas_organizadas'] = Rifa.objects.filter(organizador=usuario).order_by('-created_at')
+        context['sanes_organizados'] = San.objects.filter(organizador=usuario).order_by('-created_at')
+        context['tickets_comprados_list'] = Ticket.objects.filter(usuario=usuario).select_related('rifa').order_by('-fecha_compra')
+        context['participaciones'] = ParticipacionSan.objects.filter(usuario=usuario).select_related('san').order_by('-fecha_inscripcion')
         
         return context
 
@@ -1742,25 +2035,80 @@ def historial_pagos_san(request, san_id):
         messages.error(request, 'No tienes permisos para ver este historial.')
         return redirect('san_list')
     
-    # Obtener pagos del san
-    pagos = Pago.objects.filter(
+    # Obtener turnos del SAN
+    turnos = TurnoSan.objects.filter(san=san).select_related(
+        'participante__usuario'
+    ).order_by('numero_turno')
+    
+    # Obtener facturas del SAN
+    facturas = Factura.objects.filter(
         content_type=ContentType.objects.get_for_model(san),
         object_id=san.id
-    ).select_related('usuario').order_by('-fecha_pago')
+    ).select_related('usuario').order_by('-fecha_emision')
     
-    # Estadísticas
-    total_pagado = pagos.aggregate(total=Sum('monto'))['total'] or 0
+    # Obtener pagos simulados del SAN a través de las facturas
+    pagos = PagoSimulado.objects.filter(
+        factura__content_type=ContentType.objects.get_for_model(san),
+        factura__object_id=san.id
+    ).select_related('usuario', 'factura').order_by('-fecha_creacion')
+    
+    # Obtener cupos del SAN
+    cupos = Cupo.objects.filter(
+        participacion__san=san
+    ).select_related('participacion__usuario').order_by('fecha_vencimiento')
+    
+    # Estadísticas de turnos
+    total_turnos = turnos.count()
+    turnos_cumplidos = turnos.filter(estado='cumplido').count()
+    turnos_activos = turnos.filter(estado='activo').count()
+    turnos_pendientes = turnos.filter(estado='pendiente').count()
+    
+    # Estadísticas de pagos
+    total_pagado = pagos.filter(estado='exitoso').aggregate(total=Sum('monto'))['total'] or 0
+    total_pendiente = pagos.filter(estado='pendiente').aggregate(total=Sum('monto'))['total'] or 0
     total_esperado = san.precio_total
+    total_pendiente_cupos = cupos.filter(estado='asignado').aggregate(total=Sum('monto_cuota'))['total'] or 0
+    
+    # Calcular porcentaje completado
+    porcentaje_completado = (total_pagado / total_esperado * 100) if total_esperado > 0 else 0
+    
+    # Obtener próximo turno
+    proximo_turno = turnos.filter(estado='pendiente').order_by('numero_turno').first()
+    
+    # Obtener turno del usuario actual si es participante
+    turno_usuario = None
+    if not request.user.is_staff and not request.user == san.organizador:
+        try:
+            participacion = san.participaciones.get(usuario=request.user)
+            turno_usuario = turnos.filter(participante=participacion).first()
+        except ParticipacionSan.DoesNotExist:
+            pass
+    
+    # Verificar si es organizador
+    es_organizador = request.user == san.organizador
     
     context = {
         'san': san,
+        'turnos': turnos,
         'pagos': pagos,
+        'facturas': facturas,
+        'cupos': cupos,
+        'total_turnos': total_turnos,
+        'turnos_cumplidos': turnos_cumplidos,
+        'turnos_activos': turnos_activos,
+        'turnos_pendientes': turnos_pendientes,
         'total_pagado': total_pagado,
+        'total_pendiente': total_pendiente,
         'total_esperado': total_esperado,
-        'porcentaje_completado': (total_pagado / total_esperado * 100) if total_esperado > 0 else 0
+        'total_pendiente_cupos': total_pendiente_cupos,
+        'porcentaje_completado': porcentaje_completado,
+        'proximo_turno': proximo_turno,
+        'turno_usuario': turno_usuario,
+        'es_organizador': es_organizador,
+        'es_staff': request.user.is_staff,
     }
     
-    return render(request, 'sanes/historial_pagos.html', context)
+    return render(request, 'san/historial_pagos_mejorado.html', context)
 
 
 @login_required
@@ -1969,3 +2317,102 @@ def log_user_action(user, action_type, description, level='INFO', related_object
         objeto_relacionado=related_object,
         ip_address=ip_address or '0.0.0.0'
     )
+
+
+@login_required
+def gestionar_turnos_san(request, san_id):
+    """Gestionar turnos de un SAN con validación de pagos previos"""
+    san = get_object_or_404(San, id=san_id)
+    
+    # Verificar permisos
+    if not (request.user.is_staff or request.user == san.organizador):
+        messages.error(request, 'No tienes permisos para gestionar este SAN.')
+        return redirect('san_detail', san_id=san.id)
+    
+    # Obtener turnos existentes
+    turnos = TurnoSan.objects.filter(san=san).select_related(
+        'participante__usuario'
+    ).order_by('numero_turno')
+    
+    # Obtener participaciones sin turnos asignados
+    participaciones_sin_turno = san.participaciones.exclude(
+        id__in=turnos.values_list('participante_id', flat=True)
+    ).order_by('orden_cobro')
+    
+    if request.method == 'POST':
+        accion = request.POST.get('accion')
+        
+        if accion == 'crear_turnos':
+            # Crear turnos para todas las participaciones
+            for participacion in san.participaciones.order_by('orden_cobro'):
+                numero_turno = participacion.orden_cobro
+                
+                # Verificar si ya existe el turno
+                if not TurnoSan.objects.filter(san=san, numero_turno=numero_turno).exists():
+                    TurnoSan.objects.create(
+                        san=san,
+                        participante=participacion,
+                        numero_turno=numero_turno,
+                        monto_turno=san.precio_cuota,
+                        estado='pendiente'
+                    )
+            
+            messages.success(request, 'Turnos creados exitosamente para todas las participaciones.')
+            return redirect('gestionar_turnos_san', san_id=san.id)
+        
+        elif accion == 'activar_turno':
+            turno_id = request.POST.get('turno_id')
+            try:
+                turno = TurnoSan.objects.get(id=turno_id, san=san)
+                if turno.activar_turno():
+                    messages.success(request, f'Turno {turno.numero_turno} activado exitosamente.')
+                else:
+                    messages.error(request, f'No se puede activar el turno {turno.numero_turno}. Verifica que todos los turnos previos estén cumplidos.')
+            except TurnoSan.DoesNotExist:
+                messages.error(request, 'Turno no encontrado.')
+            
+            return redirect('gestionar_turnos_san', san_id=san.id)
+        
+        elif accion == 'cumplir_turno':
+            turno_id = request.POST.get('turno_id')
+            try:
+                turno = TurnoSan.objects.get(id=turno_id, san=san)
+                if turno.cumplir_turno():
+                    messages.success(request, f'Turno {turno.numero_turno} marcado como cumplido.')
+                    
+                    # Activar automáticamente el siguiente turno si es posible
+                    proximo_turno = turno.get_proximo_turno()
+                    if proximo_turno and proximo_turno.puede_activarse():
+                        proximo_turno.activar_turno()
+                        messages.info(request, f'Turno {proximo_turno.numero_turno} activado automáticamente.')
+                else:
+                    messages.error(request, f'No se puede cumplir el turno {turno.numero_turno}. Debe estar activo.')
+            except TurnoSan.DoesNotExist:
+                messages.error(request, 'Turno no encontrado.')
+            
+            return redirect('gestionar_turnos_san', san_id=san.id)
+    
+    # Calcular estadísticas
+    total_turnos = turnos.count()
+    turnos_cumplidos = turnos.filter(estado='cumplido').count()
+    turnos_activos = turnos.filter(estado='activo').count()
+    turnos_pendientes = turnos.filter(estado='pendiente').count()
+    
+    # Calcular monto acumulado
+    monto_acumulado = turnos_cumplidos * san.precio_cuota
+    proximo_turno = turnos.filter(estado='pendiente').order_by('numero_turno').first()
+    
+    context = {
+        'san': san,
+        'turnos': turnos,
+        'participaciones_sin_turno': participaciones_sin_turno,
+        'total_turnos': total_turnos,
+        'turnos_cumplidos': turnos_cumplidos,
+        'turnos_activos': turnos_activos,
+        'turnos_pendientes': turnos_pendientes,
+        'monto_acumulado': monto_acumulado,
+        'proximo_turno': proximo_turno,
+        'es_staff': request.user.is_staff,
+    }
+    
+    return render(request, 'admin/sanes/gestionar_turnos.html', context)

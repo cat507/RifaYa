@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Comentario{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Eliminar Comentario</h1>
+                    <p class="mt-2 text-gray-600">
+                        ¿Estás seguro de que quieres eliminar este comentario?
+                    </p>
+                </div>
+                <a href="{% url 'comentarios_list' content_type_id=comentario.content_type.id object_id=comentario.object_id %}" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Volver a Comentarios
+                </a>
+            </div>
+        </div>
+
+        <!-- Confirmación de eliminación -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <!-- Comentario a eliminar -->
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div class="flex items-start space-x-3">
+                    {% if comentario.usuario.foto_perfil %}
+                        <img src="{{ comentario.usuario.foto_perfil.url }}" 
+                             alt="{{ comentario.usuario.get_full_name_or_username }}"
+                             class="w-10 h-10 rounded-full object-cover">
+                    {% else %}
+                        <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                            <span class="text-gray-600 font-medium text-sm">
+                                {{ comentario.usuario.get_full_name_or_username|first|upper }}
+                            </span>
+                        </div>
+                    {% endif %}
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="text-sm font-medium text-gray-900">
+                                {{ comentario.usuario.get_full_name_or_username }}
+                            </span>
+                            <span class="text-xs text-gray-500">
+                                {{ comentario.fecha_creacion|date:"d/m/Y H:i" }}
+                            </span>
+                        </div>
+                        <p class="text-gray-800">{{ comentario.texto|linebreaks }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del comentario -->
+            <div class="mb-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Información del Comentario</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="font-medium text-gray-700">Autor:</span>
+                        <span class="text-gray-900 ml-2">{{ comentario.usuario.get_full_name_or_username }}</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-700">Fecha de creación:</span>
+                        <span class="text-gray-900 ml-2">{{ comentario.fecha_creacion|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-700">Sobre:</span>
+                        <span class="text-gray-900 ml-2">{{ comentario.content_object }}</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-700">Votos positivos:</span>
+                        <span class="text-gray-900 ml-2">{{ comentario.votos_positivos }}</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-700">Votos negativos:</span>
+                        <span class="text-gray-900 ml-2">{{ comentario.votos_negativos }}</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-700">Puntuación total:</span>
+                        <span class="text-gray-900 ml-2">{{ comentario.puntuacion_total }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de eliminación -->
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div>
+                    <label for="motivo" class="block text-sm font-medium text-gray-700 mb-2">
+                        Motivo de eliminación (opcional)
+                    </label>
+                    <textarea name="motivo" id="motivo" rows="3" 
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                              placeholder="Explica por qué estás eliminando este comentario..."></textarea>
+                </div>
+
+                <!-- Advertencia -->
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-yellow-800">Advertencia</h3>
+                            <div class="mt-2 text-sm text-yellow-700">
+                                <p>Esta acción no se puede deshacer. El comentario será marcado como eliminado y quedará registrado en el sistema de auditoría.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="flex justify-end space-x-3">
+                    <a href="{% url 'comentarios_list' content_type_id=comentario.content_type.id object_id=comentario.object_id %}" 
+                       class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Cancelar
+                    </a>
+                    <button type="submit" 
+                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        Eliminar Comentario
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-blue-800">¿Por qué eliminar comentarios?</h3>
+                    <div class="mt-2 text-sm text-blue-700">
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>Contenido inapropiado o ofensivo</li>
+                            <li>Spam o publicidad no deseada</li>
+                            <li>Información incorrecta o engañosa</li>
+                            <li>Violación de las políticas de la comunidad</li>
+                            <li>Comentarios duplicados o irrelevantes</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -54,6 +54,7 @@ urlpatterns = [
     path('sanes/<int:san_id>/checkout/', views.checkout_san, name='checkout_san'),
     path('sanes/historial/', views.historial_sanes, name='historial_sanes'),
     path('sanes/<int:san_id>/turnos/', views.turnos_san, name='turnos_san'),
+    path('sanes/<int:san_id>/gestionar-turnos/', views.gestionar_turnos_san, name='gestionar_turnos_san'),
     path('sanes/<int:san_id>/historial-pagos/', views.historial_pagos_san, name='historial_pagos_san'),
     path('sanes/participacion/<int:participacion_id>/adelantar-cuota/', views.adelantar_cuota_san, name='adelantar_cuota_san'),
 

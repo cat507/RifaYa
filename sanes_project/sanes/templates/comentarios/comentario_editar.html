@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Comentario{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Editar Comentario</h1>
+                    <p class="mt-2 text-gray-600">
+                        Edita tu comentario sobre: <span class="font-semibold">{{ comentario.content_object }}</span>
+                    </p>
+                </div>
+                <a href="{% url 'comentarios_list' content_type_id=comentario.content_type.id object_id=comentario.object_id %}" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Volver a Comentarios
+                </a>
+            </div>
+        </div>
+
+        <!-- Formulario de edición -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Comentario original (solo lectura) -->
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="text-sm font-medium text-gray-700 mb-2">Comentario Original</h3>
+                    <p class="text-gray-600 text-sm">{{ comentario.texto_original|default:comentario.texto|linebreaks }}</p>
+                    <p class="text-xs text-gray-500 mt-2">
+                        Creado el {{ comentario.fecha_creacion|date:"d/m/Y H:i" }}
+                    </p>
+                </div>
+
+                <!-- Campo de edición -->
+                <div>
+                    <label for="{{ form.texto.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.texto.label }}
+                    </label>
+                    {{ form.texto }}
+                    {% if form.texto.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.texto.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">
+                        El comentario original se conservará para auditoría.
+                    </p>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="flex justify-end space-x-3">
+                    <a href="{% url 'comentarios_list' content_type_id=comentario.content_type.id object_id=comentario.object_id %}" 
+                       class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Cancelar
+                    </a>
+                    <button type="submit" 
+                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-blue-800">Información Importante</h3>
+                    <div class="mt-2 text-sm text-blue-700">
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>Al editar un comentario, se marcará como "editado" y se conservará el texto original.</li>
+                            <li>Los usuarios podrán ver que el comentario ha sido modificado.</li>
+                            <li>Esta acción quedará registrada en el sistema de auditoría.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

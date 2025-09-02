@@ -76,40 +76,24 @@
         </div>
     </div>
 
-    <!-- Información de la Orden -->
-    {% if orden %}
+    <!-- Información del Pago -->
     <div class="bg-white rounded-lg shadow mb-8">
         <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-medium text-gray-900">Información de la Orden</h2>
+            <h2 class="text-lg font-medium text-gray-900">Información del Pago</h2>
         </div>
         <div class="px-6 py-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <h3 class="text-sm font-medium text-gray-500">Número de Orden</h3>
-                    <p class="mt-1 text-sm text-gray-900">#{{ orden.id }}</p>
+                    <h3 class="text-sm font-medium text-gray-500">Monto Total</h3>
+                    <p class="mt-1 text-2xl font-bold text-green-600">${{ factura.monto_total }}</p>
                 </div>
                 <div>
-                    <h3 class="text-sm font-medium text-gray-500">Estado de la Orden</h3>
-                    <p class="mt-1">
-                        {% if orden.estado == 'pendiente' %}
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                Pendiente
-                            </span>
-                        {% elif orden.estado == 'completada' %}
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                Completada
-                            </span>
-                        {% elif orden.estado == 'cancelada' %}
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                Cancelada
-                            </span>
-                        {% endif %}
-                    </p>
+                    <h3 class="text-sm font-medium text-gray-500">Método de Pago</h3>
+                    <p class="mt-1 text-sm text-gray-900">{{ factura.metodo_pago|default:"No especificado"|title }}</p>
                 </div>
             </div>
         </div>
     </div>
-    {% endif %}
 
     <!-- Resumen de Pago -->
     <div class="bg-white rounded-lg shadow mb-8">

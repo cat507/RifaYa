@@ -12,28 +12,74 @@ from datetime import date, timedelta
 import uuid
 import random
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 # ---------------------
-# MODELO DE USUARIO UNIFICADO
+# MODELO DE USUARIO UNIFICADO MEJORADO
 # ---------------------
 class CustomUser(AbstractUser):
-    """Usuario personalizado con roles y permisos claros"""
+    """Usuario personalizado con roles, permisos y sistema de reputación"""
     email = models.EmailField(unique=True, verbose_name="Correo Electrónico")
     phone_number = models.CharField(max_length=15, blank=True, null=True, verbose_name="Número de Teléfono")
     address = models.CharField(max_length=255, blank=True, null=True, verbose_name="Dirección")
     date_of_birth = models.DateField(blank=True, null=True, verbose_name="Fecha de Nacimiento")
     cedula = models.CharField(max_length=20, blank=True, null=True, verbose_name="Cédula")
     oficio = models.CharField(max_length=100, blank=True, null=True, verbose_name="Oficio")
+    
+    # Roles mejorados
+    ROLES_CHOICES = [
+        ('usuario', 'Usuario Participante'), 
+        ('organizador', 'Organizador'),
+        ('administrador', 'Administrador del Sistema')
+    ]
     rol = models.CharField(
         max_length=20, 
-        choices=[
-            ('usuario', 'Usuario'), 
-            ('administrador', 'Administrador')
-        ], 
+        choices=ROLES_CHOICES, 
         default='usuario',
         verbose_name="Rol"
     )
+    
+    # Sistema de reputación
+    puntuacion_reputacion = models.PositiveIntegerField(
+        default=100,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name="Puntuación de Reputación"
+    )
+    nivel_reputacion = models.CharField(
+        max_length=20,
+        choices=[
+            ('nuevo', 'Nuevo'),
+            ('confiable', 'Confiable'),
+            ('excelente', 'Excelente'),
+            ('premium', 'Premium')
+        ],
+        default='nuevo',
+        verbose_name="Nivel de Reputación"
+    )
+    
+    # Verificación de identidad
+    verificado = models.BooleanField(default=False, verbose_name="Usuario Verificado")
+    fecha_verificacion = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de Verificación")
+    documento_identidad = models.FileField(
+        upload_to='documentos_identidad/',
+        null=True,
+        blank=True,
+        verbose_name="Documento de Identidad"
+    )
+    
+    # Configuración de seguridad
+    dos_fa_habilitado = models.BooleanField(default=False, verbose_name="2FA Habilitado")
+    ultimo_login = models.DateTimeField(null=True, blank=True, verbose_name="Último Login")
+    intentos_login_fallidos = models.PositiveIntegerField(default=0, verbose_name="Intentos de Login Fallidos")
+    bloqueado_hasta = models.DateTimeField(null=True, blank=True, verbose_name="Bloqueado Hasta")
+    
+    # Información de contacto adicional
+    whatsapp = models.CharField(max_length=15, blank=True, null=True, verbose_name="WhatsApp")
+    facebook = models.URLField(blank=True, null=True, verbose_name="Facebook")
+    instagram = models.URLField(blank=True, null=True, verbose_name="Instagram")
+    
+    # Foto de perfil
     foto_perfil = models.ImageField(
         upload_to='photo_profiles/',
         blank=True,
@@ -72,14 +118,90 @@ class CustomUser(AbstractUser):
         return self.email or self.username
 
     def is_admin(self):
-        """Verifica si el usuario es administrador"""
+        """Verifica si el usuario es administrador del sistema"""
         return self.rol == 'administrador'
+    
+    def is_organizador(self):
+        """Verifica si el usuario es organizador"""
+        return self.rol == 'organizador'
+    
+    def is_participante(self):
+        """Verifica si el usuario es participante"""
+        return self.rol == 'usuario'
 
     def get_full_name_or_username(self):
         """Retorna el nombre completo o username como fallback"""
         if self.first_name and self.last_name:
             return f"{self.first_name} {self.last_name}"
         return self.username
+    
+    def actualizar_reputacion(self, puntos):
+        """Actualiza la puntuación de reputación del usuario"""
+        nueva_puntuacion = max(0, min(100, self.puntuacion_reputacion + puntos))
+        self.puntuacion_reputacion = nueva_puntuacion
+        
+        # Actualizar nivel de reputación
+        if nueva_puntuacion >= 90:
+            self.nivel_reputacion = 'premium'
+        elif nueva_puntuacion >= 75:
+            self.nivel_reputacion = 'excelente'
+        elif nueva_puntuacion >= 50:
+            self.nivel_reputacion = 'confiable'
+        else:
+            self.nivel_reputacion = 'nuevo'
+        
+        self.save()
+    
+    def puede_participar(self):
+        """Verifica si el usuario puede participar en actividades"""
+        return (
+            self.is_active and 
+            not self.bloqueado_hasta or 
+            timezone.now() > self.bloqueado_hasta
+        )
+    
+    def registrar_intento_login_fallido(self):
+        """Registra un intento de login fallido"""
+        self.intentos_login_fallidos += 1
+        if self.intentos_login_fallidos >= 5:
+            # Bloquear por 30 minutos
+            self.bloqueado_hasta = timezone.now() + timedelta(minutes=30)
+        self.save()
+    
+    def reset_intentos_login(self):
+        """Resetea los intentos de login fallidos"""
+        self.intentos_login_fallidos = 0
+        self.bloqueado_hasta = None
+        self.save()
+    
+    def verificar_identidad(self):
+        """Marca al usuario como verificado"""
+        self.verificado = True
+        self.fecha_verificacion = timezone.now()
+        self.save()
+    
+    def get_estadisticas_participacion(self):
+        """Retorna estadísticas de participación del usuario"""
+        from django.db.models import Count, Sum
+        
+        # Estadísticas de rifas
+        rifas_participadas = self.tickets_comprados.values('rifa').distinct().count()
+        tickets_comprados = self.tickets_comprados.count()
+        rifas_ganadas = self.rifas_ganadas.count()
+        
+        # Estadísticas de sanes
+        sanes_participados = self.participaciones_san.values('san').distinct().count()
+        cuotas_pagadas = self.participaciones_san.aggregate(
+            total=Sum('cuotas_pagadas')
+        )['total'] or 0
+        
+        return {
+            'rifas_participadas': rifas_participadas,
+            'tickets_comprados': tickets_comprados,
+            'rifas_ganadas': rifas_ganadas,
+            'sanes_participados': sanes_participados,
+            'cuotas_pagadas': cuotas_pagadas,
+        }
 
 
 # ---------------------
@@ -100,8 +222,6 @@ class Factura(models.Model):
         ('tarjeta', 'Tarjeta de Crédito/Débito'),
         ('otro', 'Otro'),
     ]
-<<<<<<< HEAD
-=======
     
     # Campos para compatibilidad con código existente
     TIPOS_CHOICES = [
@@ -119,7 +239,6 @@ class Factura(models.Model):
         ('vencida', 'Vencida'),
         ('cancelada', 'Cancelada'),
     ]
->>>>>>> 61950c8 (Corrección de error y estado estable)
 
     # Identificación única
     codigo = models.CharField(max_length=20, unique=True, editable=False, null=True, blank=True, verbose_name="Código de Factura")
@@ -137,15 +256,12 @@ class Factura(models.Model):
     object_id = models.PositiveIntegerField(null=True, blank=True, verbose_name="ID del Objeto")
     content_object = GenericForeignKey('content_type', 'object_id')
     
-<<<<<<< HEAD
-=======
     # Campos para compatibilidad con código existente
     concepto = models.CharField(max_length=255, blank=True, null=True, verbose_name="Concepto")
     monto = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="Monto")
     tipo = models.CharField(max_length=20, choices=TIPOS_CHOICES, default='otro', verbose_name="Tipo")
     estado = models.CharField(max_length=20, choices=ESTADOS_CHOICES, default='pendiente', verbose_name="Estado")
     
->>>>>>> 61950c8 (Corrección de error y estado estable)
     # Información de la factura
     fecha_emision = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Emisión")
     fecha_vencimiento = models.DateTimeField(
@@ -181,15 +297,12 @@ class Factura(models.Model):
     
     # Notas adicionales
     notas = models.TextField(blank=True, null=True, verbose_name="Notas Adicionales")
-<<<<<<< HEAD
-=======
     
     # Campos adicionales para compatibilidad
     fecha_pago = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de Pago")
     rifa = models.ForeignKey('Rifa', null=True, blank=True, on_delete=models.SET_NULL, verbose_name="Rifa")
     san = models.ForeignKey('San', null=True, blank=True, on_delete=models.SET_NULL, verbose_name="San")
     archivo = models.FileField(upload_to='facturas/', null=True, blank=True, verbose_name="Archivo")
->>>>>>> 61950c8 (Corrección de error y estado estable)
 
     class Meta:
         verbose_name = 'Factura'
@@ -199,9 +312,9 @@ class Factura(models.Model):
     def save(self, *args, **kwargs):
         if not self.codigo:
             # Generar código único basado en el tipo de contenido
-            if self.content_type.model == 'rifa':
+            if self.content_type and self.content_type.model == 'rifa':
                 prefijo = 'RIFA'
-            elif self.content_type.model == 'san':
+            elif self.content_type and self.content_type.model == 'san':
                 prefijo = 'SAN'
             else:
                 prefijo = 'FACT'
@@ -219,7 +332,9 @@ class Factura(models.Model):
 
     def get_tipo_contenido(self):
         """Retorna el tipo de contenido (Rifa o San)"""
-        return self.content_type.model_class().__name__
+        if self.content_type:
+            return self.content_type.model_class().__name__
+        return "General"
 
     def get_monto_pendiente(self):
         """Calcula el monto pendiente de pago"""
@@ -232,8 +347,6 @@ class Factura(models.Model):
     def is_vencida(self):
         """Verifica si la factura está vencida"""
         return timezone.now() > self.fecha_vencimiento
-<<<<<<< HEAD
-=======
     
     # Métodos para compatibilidad con código existente
     @property
@@ -244,13 +357,13 @@ class Factura(models.Model):
     def get_estado_display(self):
         """Retorna el estado para compatibilidad"""
         return self.get_estado_pago_display()
->>>>>>> 61950c8 (Corrección de error y estado estable)
 
     def confirmar_pago(self, monto=None):
         """Confirma el pago de la factura"""
         if monto:
             self.monto_pagado = monto
         self.estado_pago = 'confirmado'
+        self.fecha_pago = timezone.now()
         self.save()
 
     def rechazar_pago(self):
@@ -437,14 +550,29 @@ class Ticket(models.Model):
     def save(self, *args, **kwargs):
         if not self.codigo:
             self.codigo = f"TCK-{uuid.uuid4().hex[:8].upper()}"
+        
+        # Si no se especifica número o es el valor por defecto, asignar automáticamente
+        if not self.numero or self.numero == 1:
+            if self.rifa:
+                # Encontrar el siguiente número disponible
+                numeros_ocupados = set(self.rifa.tickets.values_list('numero', flat=True))
+                if self.pk:  # Si es una actualización, excluir el ticket actual
+                    numeros_ocupados.discard(self.numero)
+                
+                siguiente_numero = 1
+                while siguiente_numero in numeros_ocupados:
+                    siguiente_numero += 1
+                
+                self.numero = siguiente_numero
+        
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Ticket {self.numero} - {self.rifa.titulo}"
+        return f"Ticket {self.numero} - {self.rifa.titulo if self.rifa else 'Sin Rifa'}"
 
     def es_ganador(self):
         """Verifica si este ticket es el ganador"""
-        return self.rifa.ganador == self.usuario
+        return self.rifa and self.rifa.ganador == self.usuario
 
 
 # ---------------------
@@ -701,7 +829,7 @@ class Cupo(models.Model):
     numero_semana = models.PositiveIntegerField(default=1, verbose_name="Número de Semana")
     fecha_vencimiento = models.DateField(
         verbose_name="Fecha de Vencimiento",
-        null=True,   # <--- permitimos que inicialmente sea NULL
+        null=True,
         blank=True
     )
     
@@ -721,7 +849,6 @@ class Cupo(models.Model):
         verbose_name="Monto de la Cuota",
         default=0.00
     )
-
     
     def clean(self):
         if self.monto_cuota <= 0:
@@ -758,7 +885,6 @@ class Cupo(models.Model):
             return True
         return False
 
-
     def registrar_pago(self, factura):
         """Registra el pago del cupo"""
         self.estado = 'pagado'
@@ -772,416 +898,17 @@ class Cupo(models.Model):
 
 
 # ---------------------
-# MODELO DE ORDEN UNIFICADO
-# ---------------------
-class Orden(models.Model):
-    """Modelo unificado para órdenes de compra"""
-    ESTADOS_ORDEN = [
-        ('pendiente', 'Pendiente'),
-        ('confirmada', 'Confirmada'),
-        ('cancelada', 'Cancelada'),
-        ('completada', 'Completada'),
-    ]
-
-    # Identificación
-    codigo = models.CharField(max_length=20, unique=True, editable=False, null=True, blank=True, verbose_name="Código de Orden")
-    
-    # Usuario que realiza la orden
-    usuario = models.ForeignKey(
-        CustomUser, 
-        on_delete=models.CASCADE, 
-        related_name='ordenes',
-        verbose_name="Usuario"
-    )
-    
-    # Contenido genérico (Rifa o San)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Tipo de Contenido")
-    object_id = models.PositiveIntegerField(null=True, blank=True, verbose_name="ID del Objeto")
-    content_object = GenericForeignKey('content_type', 'object_id')
-    
-    # Información de la orden
-    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
-    fecha_actualizacion = models.DateTimeField(auto_now=True, verbose_name="Última Actualización")
-    
-    # Montos
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="Subtotal")
-    impuestos = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Impuestos")
-    total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="Total")
-    
-    # Estado
-    estado = models.CharField(
-        max_length=20, 
-        choices=ESTADOS_ORDEN, 
-        default='pendiente',
-        verbose_name="Estado"
-    )
-    
-    # Notas
-    notas = models.TextField(blank=True, null=True, verbose_name="Notas")
-
-    class Meta:
-        verbose_name = 'Orden'
-        verbose_name_plural = 'Órdenes'
-        ordering = ['-fecha_creacion']
-
-    def save(self, *args, **kwargs):
-        if not self.codigo:
-            self.codigo = f"ORD-{uuid.uuid4().hex[:8].upper()}"
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"Orden {self.codigo} - {self.usuario.get_full_name_or_username()}"
-
-    def get_tipo_contenido(self):
-        """Retorna el tipo de contenido (Rifa o San)"""
-        return self.content_type.model_class().__name__
-
-    def confirmar(self):
-        """Confirma la orden"""
-        self.estado = 'confirmada'
-        self.save()
-
-    def cancelar(self):
-        """Cancela la orden"""
-        self.estado = 'cancelada'
-        self.save()
-
-    def completar(self):
-        """Marca la orden como completada"""
-        self.estado = 'completada'
-        self.save()
-
-
-# ---------------------
-# MODELO DE PAGO UNIFICADO
-# ---------------------
-class Pago(models.Model):
-    """Modelo unificado para pagos"""
-    ESTADOS_PAGO = [
-        ('pendiente', 'Pendiente'),
-        ('confirmado', 'Confirmado'),
-        ('rechazado', 'Rechazado'),
-        ('cancelado', 'Cancelado'),
-    ]
-    
-    METODOS_PAGO = [
-        ('efectivo', 'Efectivo'),
-        ('transferencia', 'Transferencia'),
-        ('tarjeta', 'Tarjeta de Crédito/Débito'),
-        ('otro', 'Otro'),
-    ]
-
-    # Identificación
-    codigo = models.CharField(max_length=20, unique=True, editable=False, null=True, blank=True, verbose_name="Código de Pago")
-    
-    # Usuario que realiza el pago
-    usuario = models.ForeignKey(
-        CustomUser, 
-        on_delete=models.CASCADE, 
-        related_name='pagos_realizados',
-        verbose_name="Usuario"
-    )
-    
-    # Contenido genérico (Rifa, San, o Cupo)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Tipo de Contenido")
-    object_id = models.PositiveIntegerField(null=True, blank=True, verbose_name="ID del Objeto")
-    content_object = GenericForeignKey('content_type', 'object_id')
-    
-    # Información del pago
-    fecha_pago = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Pago")
-    monto = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="Monto")
-    
-    # Estado y método
-    estado = models.CharField(
-        max_length=20, 
-        choices=ESTADOS_PAGO, 
-        default='pendiente',
-        verbose_name="Estado"
-    )
-    metodo_pago = models.CharField(
-        max_length=20, 
-        choices=METODOS_PAGO, 
-        default='efectivo',
-        verbose_name="Método de Pago"
-    )
-    
-    # Comprobante y notas
-    comprobante_pago = models.ImageField(
-        upload_to='comprobantes/', 
-        blank=True, 
-        null=True,
-        verbose_name="Comprobante de Pago"
-    )
-    notas = models.TextField(blank=True, null=True, verbose_name="Notas")
-    
-    # Orden y factura asociadas
-    orden = models.ForeignKey(
-        Orden, 
-        on_delete=models.CASCADE, 
-        related_name='pagos',
-        verbose_name="Orden",
-        null=True,
-        blank=True
-    )
-    factura = models.ForeignKey(
-        Factura, 
-        on_delete=models.CASCADE, 
-        related_name='pagos',
-        verbose_name="Factura",
-        null=True,
-        blank=True
-    )
-
-    class Meta:
-        verbose_name = 'Pago'
-        verbose_name_plural = 'Pagos'
-        ordering = ['-fecha_pago']
-
-    def save(self, *args, **kwargs):
-        if not self.codigo:
-            self.codigo = f"PAG-{uuid.uuid4().hex[:8].upper()}"
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"Pago {self.codigo} - {self.usuario.get_full_name_or_username()}"
-
-    def get_tipo_contenido(self):
-        """Retorna el tipo de contenido"""
-        return self.content_type.model_class().__name__
-
-    def confirmar(self):
-        """Confirma el pago"""
-        self.estado = 'confirmado'
-        self.save()
-
-    def rechazar(self):
-        """Rechaza el pago"""
-        self.estado = 'rechazado'
-        self.save()
-
-    def cancelar(self):
-        """Cancela el pago"""
-        self.estado = 'cancelado'
-        self.save()
-
-
-# ---------------------
-# MODELOS DE SOPORTE
-# ---------------------
-class Comentario(models.Model):
-    """Modelo para comentarios en rifas y sanes"""
-    # Contenido genérico
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Tipo de Contenido")
-    object_id = models.PositiveIntegerField(null=True, blank=True, verbose_name="ID del Objeto")
-    content_object = GenericForeignKey('content_type', 'object_id')
-    
-    # Usuario que comenta
-    usuario = models.ForeignKey(
-        CustomUser, 
-        on_delete=models.CASCADE, 
-        verbose_name="Usuario"
-    )
-    
-    # Contenido del comentario
-    comentario = models.TextField(blank=True, verbose_name="Comentario")
-    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
-    
-    # Estado
-    activo = models.BooleanField(default=True, verbose_name="Comentario Activo")
-
-    class Meta:
-        verbose_name = 'Comentario'
-        verbose_name_plural = 'Comentarios'
-        ordering = ['-fecha_creacion']
-
-    def __str__(self):
-        return f"Comentario de {self.usuario.get_full_name_or_username()}"
-
-
-class Imagen(models.Model):
-    """Modelo para imágenes de rifas y sanes"""
-    # Contenido genérico
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Tipo de Contenido")
-    object_id = models.PositiveIntegerField(null=True, blank=True, verbose_name="ID del Objeto")
-    content_object = GenericForeignKey('content_type', 'object_id')
-    
-    # Imagen
-    imagen = models.ImageField(upload_to='contenido_images/', null=True, blank=True, verbose_name="Imagen")
-    titulo = models.CharField(max_length=200, blank=True, null=True, verbose_name="Título")
-    descripcion = models.TextField(blank=True, null=True, verbose_name="Descripción")
-    
-    # Orden y estado
-    orden = models.PositiveIntegerField(default=0, verbose_name="Orden")
-    activa = models.BooleanField(default=True, verbose_name="Imagen Activa")
-    
-    # Timestamps
-    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
-
-    class Meta:
-        verbose_name = 'Imagen'
-        verbose_name_plural = 'Imágenes'
-        ordering = ['orden', '-fecha_creacion']
-
-    def __str__(self):
-        return f"Imagen {self.titulo or self.id}"
-
-
-# ---------------------
-# FORMULARIOS
-# ---------------------
-class CambiarFotoPerfilForm(forms.ModelForm):
-    """Formulario para cambiar foto de perfil"""
-    class Meta:
-        model = CustomUser
-        fields = ['foto_perfil']
-
-class Notificacion(models.Model):
-    """
-    Notificaciones enviadas a los usuarios (ej: recordatorios de pagos,
-    resultados de rifas, avisos de admin, etc.)
-    """
-    usuario = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="notificaciones"
-    )
-    titulo = models.CharField(max_length=200)
-    mensaje = models.TextField()
-    leido = models.BooleanField(default=False)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['-fecha_creacion']
-
-    def __str__(self):
-        return f"{self.titulo} → {self.usuario}"
-
-
-class Reporte(models.Model):
-    """
-    Registro de reportes generados en el sistema.
-    Puede almacenar datos agregados o referencias a rifas/sanes.
-    """
-    TIPO_REPORTE = [
-        ('rifa', 'Rifa'),
-        ('san', 'San'),
-        ('usuario', 'Usuario'),
-        ('finanzas', 'Finanzas'),
-    ]
-
-    administrador = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="reportes_generados"
-    )
-    tipo = models.CharField(max_length=20, choices=TIPO_REPORTE)
-    descripcion = models.TextField()
-    archivo = models.FileField(upload_to="reportes/", null=True, blank=True)
-    fecha_generacion = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['-fecha_generacion']
-
-    def __str__(self):
-        return f"Reporte {self.tipo} ({self.fecha_generacion.date()})"
-
-
-class HistorialAccion(models.Model):
-    """
-    Auditoría básica de acciones importantes en el sistema.
-    Útil para control administrativo.
-    """
-    usuario = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="acciones"
-    )
-    accion = models.CharField(max_length=255)
-    detalle = models.TextField(blank=True, null=True)
-    fecha = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['-fecha']
-
-    def __str__(self):
-        return f"{self.usuario} → {self.accion} ({self.fecha})"
-
-class SorteoRifa(models.Model):
-    """
-    Registro histórico de cada sorteo de una rifa.
-    Permite llevar evidencia del proceso y guardar resultados previos.
-    """
-    rifa = models.ForeignKey("Rifa", on_delete=models.CASCADE, related_name="sorteos")
-    fecha_sorteo = models.DateTimeField(auto_now_add=True)
-    ticket_ganador = models.ForeignKey(
-        "Ticket",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="sorteos_ganados"
-    )
-    evidencia = models.FileField(upload_to="rifas/evidencias/", null=True, blank=True)
-
-    def __str__(self):
-        return f"Sorteo de {self.rifa.nombre} - {self.fecha_sorteo.strftime('%d/%m/%Y')}"
-
-
-
-class TurnoSan(models.Model):
-    """
-    Control más estructurado de los turnos en un sane.
-    Útil cuando los turnos se asignan de forma aleatoria o cambian con el tiempo.
-    """
-    san = models.ForeignKey("San", on_delete=models.CASCADE, related_name="turnos")
-    participante = models.ForeignKey(
-        "ParticipacionSan",
-        on_delete=models.CASCADE,
-        related_name="turnos"
-    )
-    numero_turno = models.PositiveIntegerField()
-    fecha_asignacion = models.DateTimeField(auto_now_add=True)
-    cumplido = models.BooleanField(default=False)
-
-    class Meta:
-        unique_together = ("san", "numero_turno")
-        ordering = ["numero_turno"]
-
-    def __str__(self):
-        return f"Turno {self.numero_turno} - {self.participante.usuario.username} en {self.san.nombre}"
-class Mensaje(models.Model):
-    """
-    Mensajería interna simple entre usuarios (ej. soporte o coordinación).
-    """
-    remitente = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="mensajes_enviados"
-    )
-    destinatario = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="mensajes_recibidos"
-    )
-    asunto = models.CharField(max_length=255)
-    contenido = models.TextField()
-    leido = models.BooleanField(default=False)
-    fecha_envio = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["-fecha_envio"]
-
-    def __str__(self):
-        return f"De {self.remitente.username} para {self.destinatario.username} - {self.asunto}"
-
-# ---------------------
 # MODELO DE COMENTARIOS
 # ---------------------
 class Comment(models.Model):
-    """Comentarios para rifas y sanes"""
+    """Comentarios para rifas y sanes con sistema de auditoría y moderación"""
+    ESTADOS_COMENTARIO = [
+        ('activo', 'Activo'),
+        ('moderado', 'Moderado'),
+        ('eliminado', 'Eliminado'),
+        ('oculto', 'Oculto'),
+    ]
+    
     # Usuario que hace el comentario
     usuario = models.ForeignKey(
         CustomUser, 
@@ -1201,19 +928,187 @@ class Comment(models.Model):
     fecha_actualizacion = models.DateTimeField(auto_now=True, verbose_name="Fecha de Actualización")
     
     # Estado del comentario
-    activo = models.BooleanField(default=True, verbose_name="Activo")
+    estado = models.CharField(
+        max_length=20, 
+        choices=ESTADOS_COMENTARIO, 
+        default='activo',
+        verbose_name="Estado"
+    )
     
+    # Campos de auditoría
+    fecha_moderacion = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de Moderación")
+    moderado_por = models.ForeignKey(
+        CustomUser, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='comentarios_moderados',
+        verbose_name="Moderado Por"
+    )
+    motivo_moderacion = models.TextField(blank=True, null=True, verbose_name="Motivo de Moderación")
+    
+    # Campos de edición
+    editado = models.BooleanField(default=False, verbose_name="Editado")
+    fecha_edicion = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de Edición")
+    texto_original = models.TextField(blank=True, null=True, verbose_name="Texto Original")
+    
+    # Sistema de votos
+    votos_positivos = models.PositiveIntegerField(default=0, verbose_name="Votos Positivos")
+    votos_negativos = models.PositiveIntegerField(default=0, verbose_name="Votos Negativos")
+    
+    # Respuestas a comentarios
+    comentario_padre = models.ForeignKey(
+        'self', 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True,
+        related_name='respuestas',
+        verbose_name="Comentario Padre"
+    )
+    
+    # Campos para compatibilidad
+    activo = models.BooleanField(default=True, verbose_name="Activo")
+
     class Meta:
         verbose_name = 'Comentario'
         verbose_name_plural = 'Comentarios'
         ordering = ['-fecha_creacion']
-    
+        indexes = [
+            models.Index(fields=['content_type', 'object_id']),
+            models.Index(fields=['usuario', 'estado']),
+            models.Index(fields=['fecha_creacion']),
+        ]
+
     def __str__(self):
         return f"Comentario de {self.usuario.username} en {self.content_object}"
+    
+    def save(self, *args, **kwargs):
+        # Si es una edición, guardar el texto original
+        if self.pk and self.editado and not self.texto_original:
+            try:
+                original = Comment.objects.get(pk=self.pk)
+                self.texto_original = original.texto
+            except Comment.DoesNotExist:
+                pass
+        
+        super().save(*args, **kwargs)
     
     def get_short_text(self):
         """Retorna el texto truncado para mostrar en listas"""
         return self.texto[:100] + "..." if len(self.texto) > 100 else self.texto
+    
+    def moderar(self, moderador, motivo, nuevo_estado='moderado'):
+        """Modera el comentario"""
+        self.estado = nuevo_estado
+        self.moderado_por = moderador
+        self.motivo_moderacion = motivo
+        self.fecha_moderacion = timezone.now()
+        self.save()
+        
+        # Crear log del sistema
+        SystemLog.log_action(
+            usuario=moderador,
+            tipo_accion='moderar_comentario',
+            descripcion=f'Comentario moderado: {motivo}',
+            nivel='warning',
+            content_object=self,
+            datos_adicionales={
+                'comentario_id': self.id,
+                'estado_anterior': 'activo',
+                'estado_nuevo': nuevo_estado,
+                'motivo': motivo
+            }
+        )
+    
+    def eliminar(self, moderador, motivo="Eliminado por moderador"):
+        """Elimina el comentario"""
+        self.estado = 'eliminado'
+        self.moderado_por = moderador
+        self.motivo_moderacion = motivo
+        self.fecha_moderacion = timezone.now()
+        self.save()
+        
+        # Crear log del sistema
+        SystemLog.log_action(
+            usuario=moderador,
+            tipo_accion='eliminar_comentario',
+            descripcion=f'Comentario eliminado: {motivo}',
+            nivel='warning',
+            content_object=self,
+            datos_adicionales={
+                'comentario_id': self.id,
+                'motivo': motivo
+            }
+        )
+    
+    def editar(self, nuevo_texto, usuario):
+        """Edita el comentario"""
+        if self.usuario == usuario or usuario.is_staff:
+            self.texto_original = self.texto
+            self.texto = nuevo_texto
+            self.editado = True
+            self.fecha_edicion = timezone.now()
+            self.save()
+            
+            # Crear log del sistema
+            SystemLog.log_action(
+                usuario=usuario,
+                tipo_accion='editar_comentario',
+                descripcion=f'Comentario editado',
+                nivel='info',
+                content_object=self
+            )
+            
+            return True
+        return False
+    
+    def votar(self, usuario, voto_positivo=True):
+        """Vota por el comentario"""
+        if self.usuario != usuario:  # No puede votar por su propio comentario
+            if voto_positivo:
+                self.votos_positivos += 1
+            else:
+                self.votos_negativos += 1
+            self.save()
+            
+            # Crear log del sistema
+            SystemLog.log_action(
+                usuario=usuario,
+                tipo_accion='votar_comentario',
+                descripcion=f'Voto {"positivo" if voto_positivo else "negativo"} en comentario',
+                nivel='info',
+                content_object=self
+            )
+            
+            return True
+        return False
+    
+    @property
+    def puntuacion_total(self):
+        """Retorna la puntuación total del comentario"""
+        return self.votos_positivos - self.votos_negativos
+    
+    @property
+    def es_respuesta(self):
+        """Verifica si es una respuesta a otro comentario"""
+        return self.comentario_padre is not None
+    
+    @property
+    def respuestas_count(self):
+        """Retorna el número de respuestas"""
+        return self.respuestas.filter(estado='activo').count()
+    
+    def puede_editar(self, usuario):
+        """Verifica si el usuario puede editar el comentario"""
+        return (self.usuario == usuario and 
+                self.estado == 'activo' and 
+                not self.editado)
+    
+    def puede_eliminar(self, usuario):
+        """Verifica si el usuario puede eliminar el comentario"""
+        return (self.usuario == usuario or 
+                usuario.is_staff or 
+                usuario.is_superuser)
 
 
 # ---------------------
@@ -1298,3 +1193,525 @@ class SystemLog(models.Model):
             user_agent=user_agent,
             datos_adicionales=datos_adicionales or {}
         )
+
+
+# ---------------------
+# MODELO DE PAGOS SIMULADOS
+# ---------------------
+class PagoSimulado(models.Model):
+    """Modelo para simular pagos con diferentes métodos de pago"""
+    METODOS_PAGO_SIMULADOS = [
+        ('paypal', 'PayPal'),
+        ('stripe', 'Stripe'),
+        ('nequi', 'Nequi'),
+        ('efectivo', 'Efectivo'),
+        ('transferencia', 'Transferencia Bancaria'),
+    ]
+    
+    ESTADOS_SIMULACION = [
+        ('pendiente', 'Pendiente de Procesamiento'),
+        ('procesando', 'Procesando'),
+        ('exitoso', 'Exitoso'),
+        ('fallido', 'Fallido'),
+        ('cancelado', 'Cancelado'),
+    ]
+    
+    # Identificación
+    codigo_transaccion = models.CharField(max_length=50, unique=True, editable=False, verbose_name="Código de Transacción")
+    
+    # Usuario y factura
+    usuario = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='pagos_simulados')
+    factura = models.ForeignKey(Factura, on_delete=models.CASCADE, related_name='pagos_simulados')
+    
+    # Información del pago
+    metodo_pago = models.CharField(max_length=20, choices=METODOS_PAGO_SIMULADOS, verbose_name="Método de Pago")
+    monto = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Monto")
+    moneda = models.CharField(max_length=3, default='USD', verbose_name="Moneda")
+    
+    # Estado de la simulación
+    estado = models.CharField(max_length=20, choices=ESTADOS_SIMULACION, default='pendiente', verbose_name="Estado")
+    
+    # Información de la transacción simulada
+    referencia_externa = models.CharField(max_length=100, blank=True, null=True, verbose_name="Referencia Externa")
+    fecha_procesamiento = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de Procesamiento")
+    
+    # Detalles de la simulación
+    tiempo_procesamiento = models.PositiveIntegerField(default=0, verbose_name="Tiempo de Procesamiento (segundos)")
+    intentos = models.PositiveIntegerField(default=1, verbose_name="Número de Intentos")
+    
+    # Timestamps
+    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
+    fecha_actualizacion = models.DateTimeField(auto_now=True, verbose_name="Última Actualización")
+
+    class Meta:
+        verbose_name = 'Pago Simulado'
+        verbose_name_plural = 'Pagos Simulados'
+        ordering = ['-fecha_creacion']
+
+    def save(self, *args, **kwargs):
+        if not self.codigo_transaccion:
+            self.codigo_transaccion = f"SIM-{uuid.uuid4().hex[:12].upper()}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Pago Simulado {self.codigo_transaccion} - {self.usuario.username}"
+    
+    def procesar_pago(self):
+        """Simula el procesamiento del pago"""
+        import time
+        import random
+        
+        self.estado = 'procesando'
+        self.save()
+
+        # Simular tiempo de procesamiento (1-5 segundos)
+        tiempo_procesamiento = random.randint(1, 5)
+        time.sleep(tiempo_procesamiento)
+        
+        # Simular éxito o fallo (90% éxito)
+        if random.random() < 0.9:
+            self.estado = 'exitoso'
+            self.fecha_procesamiento = timezone.now()
+            self.tiempo_procesamiento = tiempo_procesamiento
+            
+            # Actualizar la factura
+            self.factura.estado_pago = 'confirmado'
+            self.factura.monto_pagado = self.monto
+            self.factura.fecha_pago = timezone.now()
+            self.factura.save()
+            
+            # Crear log del sistema
+            SystemLog.log_action(
+                usuario=self.usuario,
+                tipo_accion='pagar',
+                descripcion=f'Pago simulado exitoso de {self.monto} {self.moneda}',
+                nivel='success',
+                content_object=self.factura
+            )
+        else:
+            self.estado = 'fallido'
+            self.tiempo_procesamiento = tiempo_procesamiento
+            
+            # Crear log del sistema
+            SystemLog.log_action(
+                usuario=self.usuario,
+                tipo_accion='pagar',
+                descripcion=f'Pago simulado fallido de {self.monto} {self.moneda}',
+                nivel='error',
+                content_object=self.factura
+            )
+        
+        self.save()
+        return self.estado == 'exitoso'
+    
+    def reintentar(self):
+        """Reintenta el procesamiento del pago"""
+        if self.estado in ['fallido', 'cancelado']:
+            self.intentos += 1
+            self.estado = 'pendiente'
+            self.save()
+            return self.procesar_pago()
+        return False
+
+
+# ---------------------
+# MODELO DE NOTIFICACIONES MEJORADO
+# ---------------------
+class NotificacionMejorada(models.Model):
+    """Sistema de notificaciones mejorado con diferentes tipos y canales"""
+    TIPOS_NOTIFICACION = [
+        ('pago', 'Pago'),
+        ('rifa', 'Rifa'),
+        ('san', 'San'),
+        ('sistema', 'Sistema'),
+        ('admin', 'Administrativa'),
+        ('recordatorio', 'Recordatorio'),
+    ]
+    
+    CANALES = [
+        ('email', 'Email'),
+        ('whatsapp', 'WhatsApp'),
+        ('sms', 'SMS'),
+        ('push', 'Notificación Push'),
+        ('interno', 'Interno'),
+    ]
+    
+    PRIORIDADES = [
+        ('baja', 'Baja'),
+        ('normal', 'Normal'),
+        ('alta', 'Alta'),
+        ('urgente', 'Urgente'),
+    ]
+    
+    # Usuario destinatario
+    usuario = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='notificaciones_mejoradas')
+    
+    # Contenido de la notificación
+    tipo = models.CharField(max_length=20, choices=TIPOS_NOTIFICACION, verbose_name="Tipo")
+    titulo = models.CharField(max_length=200, verbose_name="Título")
+    mensaje = models.TextField(verbose_name="Mensaje")
+    
+    # Configuración
+    canal = models.CharField(max_length=20, choices=CANALES, default='interno', verbose_name="Canal")
+    prioridad = models.CharField(max_length=20, choices=PRIORIDADES, default='normal', verbose_name="Prioridad")
+    
+    # Estado y seguimiento
+    leido = models.BooleanField(default=False, verbose_name="Leído")
+    enviado = models.BooleanField(default=False, verbose_name="Enviado")
+    fecha_envio = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de Envío")
+    
+    # Objeto relacionado (opcional)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
+    
+    # Timestamps
+    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
+    fecha_lectura = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de Lectura")
+
+    class Meta:
+        verbose_name = 'Notificación Mejorada'
+        verbose_name_plural = 'Notificaciones Mejoradas'
+        ordering = ['-fecha_creacion']
+        indexes = [
+            models.Index(fields=['usuario', 'leido']),
+            models.Index(fields=['tipo', 'canal']),
+            models.Index(fields=['prioridad']),
+        ]
+
+    def __str__(self):
+        return f"{self.tipo} - {self.usuario.username}: {self.titulo}"
+    
+    def marcar_leida(self):
+        """Marca la notificación como leída"""
+        self.leido = True
+        self.fecha_lectura = timezone.now()
+        self.save()
+    
+    def enviar_notificacion(self):
+        """Simula el envío de la notificación por el canal especificado"""
+        if not self.enviado:
+            self.enviado = True
+            self.fecha_envio = timezone.now()
+            self.save()
+            
+            # Simular envío según el canal
+            if self.canal == 'email':
+                self._simular_envio_email()
+            elif self.canal == 'whatsapp':
+                self._simular_envio_whatsapp()
+            elif self.canal == 'sms':
+                self._simular_envio_sms()
+            
+            # Crear log del sistema
+            SystemLog.log_action(
+                usuario=self.usuario,
+                tipo_accion='notificar',
+                descripcion=f'Notificación enviada por {self.canal}: {self.titulo}',
+                nivel='info',
+                content_object=self.content_object
+            )
+    
+    def _simular_envio_email(self):
+        """Simula el envío de email"""
+        # Aquí se implementaría la lógica real de envío de email
+        pass
+    
+    def _simular_envio_whatsapp(self):
+        """Simula el envío de WhatsApp"""
+        # Aquí se implementaría la lógica real de envío de WhatsApp
+        pass
+    
+    def _simular_envio_sms(self):
+        """Simula el envío de SMS"""
+        # Aquí se implementaría la lógica real de envío de SMS
+        pass
+
+
+# ---------------------
+# MODELOS DE SOPORTE ADICIONALES
+# ---------------------
+class Notificacion(models.Model):
+    """Notificaciones básicas del sistema"""
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="notificaciones"
+    )
+    titulo = models.CharField(max_length=200)
+    mensaje = models.TextField()
+    leido = models.BooleanField(default=False)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-fecha_creacion']
+
+    def __str__(self):
+        return f"{self.titulo} → {self.usuario}"
+
+
+class Reporte(models.Model):
+    """Registro de reportes generados en el sistema"""
+    TIPO_REPORTE = [
+        ('rifa', 'Rifa'),
+        ('san', 'San'),
+        ('usuario', 'Usuario'),
+        ('finanzas', 'Finanzas'),
+    ]
+
+    administrador = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reportes_generados"
+    )
+    tipo = models.CharField(max_length=20, choices=TIPO_REPORTE)
+    descripcion = models.TextField()
+    archivo = models.FileField(upload_to="reportes/", null=True, blank=True)
+    fecha_generacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-fecha_generacion']
+
+    def __str__(self):
+        return f"Reporte {self.tipo} ({self.fecha_generacion.date()})"
+
+
+class HistorialAccion(models.Model):
+    """Auditoría básica de acciones importantes en el sistema"""
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="acciones"
+    )
+    accion = models.CharField(max_length=255)
+    detalle = models.TextField(blank=True, null=True)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f"{self.usuario} → {self.accion} ({self.fecha})"
+
+
+class SorteoRifa(models.Model):
+    """Registro histórico de cada sorteo de una rifa"""
+    rifa = models.ForeignKey("Rifa", on_delete=models.CASCADE, related_name="sorteos")
+    fecha_sorteo = models.DateTimeField(auto_now_add=True)
+    ticket_ganador = models.ForeignKey(
+        "Ticket",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="sorteos_ganados"
+    )
+    evidencia = models.FileField(upload_to="rifas/evidencias/", null=True, blank=True)
+
+    def __str__(self):
+        return f"Sorteo de {self.rifa.titulo} - {self.fecha_sorteo.strftime('%d/%m/%Y')}"
+
+
+class TurnoSan(models.Model):
+    """Control de turnos en un san con validación de pagos previos"""
+    ESTADOS_TURNO = [
+        ('pendiente', 'Pendiente'),
+        ('activo', 'Activo'),
+        ('cumplido', 'Cumplido'),
+        ('cancelado', 'Cancelado'),
+    ]
+    
+    san = models.ForeignKey("San", on_delete=models.CASCADE, related_name="turnos")
+    participante = models.ForeignKey(
+        "ParticipacionSan",
+        on_delete=models.CASCADE,
+        related_name="turnos"
+    )
+    numero_turno = models.PositiveIntegerField(verbose_name="Número de Turno")
+    fecha_asignacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Asignación")
+    fecha_vencimiento = models.DateField(null=True, blank=True, verbose_name="Fecha de Vencimiento")
+    fecha_cumplimiento = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de Cumplimiento")
+    
+    # Estado del turno
+    estado = models.CharField(
+        max_length=20, 
+        choices=ESTADOS_TURNO, 
+        default='pendiente',
+        verbose_name="Estado del Turno"
+    )
+    
+    # Monto del turno
+    monto_turno = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=0.00,
+        verbose_name="Monto del Turno"
+    )
+    
+    # Validación de pagos previos
+    pagos_previos_validados = models.BooleanField(
+        default=False, 
+        verbose_name="Pagos Previos Validados"
+    )
+    
+    # Notas del turno
+    notas = models.TextField(blank=True, null=True, verbose_name="Notas del Turno")
+    
+    # Campo de compatibilidad
+    cumplido = models.BooleanField(default=False, verbose_name="Cumplido")
+
+    class Meta:
+        unique_together = ("san", "numero_turno")
+        ordering = ["numero_turno"]
+        verbose_name = 'Turno de San'
+        verbose_name_plural = 'Turnos de San'
+
+    def __str__(self):
+        return f"Turno {self.numero_turno} - {self.participante.usuario.username} en {self.san.nombre}"
+    
+    def save(self, *args, **kwargs):
+        # Calcular monto del turno si no está establecido
+        if not self.monto_turno:
+            self.monto_turno = self.san.precio_cuota
+        
+        # Establecer fecha de vencimiento si no está establecida
+        if not self.fecha_vencimiento:
+            if self.san.frecuencia_pago == 'semanal':
+                self.fecha_vencimiento = date.today() + timedelta(weeks=self.numero_turno)
+            elif self.san.frecuencia_pago == 'quincenal':
+                self.fecha_vencimiento = date.today() + timedelta(weeks=self.numero_turno * 2)
+            else:  # mensual
+                self.fecha_vencimiento = date.today() + timedelta(days=self.numero_turno * 30)
+        
+        # Sincronizar con el campo de compatibilidad
+        if self.estado == 'cumplido':
+            self.cumplido = True
+        
+        super().save(*args, **kwargs)
+    
+    def puede_activarse(self):
+        """Verifica si el turno puede activarse (todos los pagos previos validados)"""
+        if self.numero_turno == 1:
+            return True  # El primer turno siempre puede activarse
+        
+        # Verificar que todos los turnos previos estén cumplidos
+        turnos_previos = TurnoSan.objects.filter(
+            san=self.san,
+            numero_turno__lt=self.numero_turno
+        ).order_by('numero_turno')
+        
+        for turno_previo in turnos_previos:
+            if turno_previo.estado != 'cumplido':
+                return False
+        
+        return True
+    
+    def activar_turno(self):
+        """Activa el turno si se cumplen las condiciones"""
+        if self.puede_activarse():
+            self.estado = 'activo'
+            self.pagos_previos_validados = True
+            self.save()
+            
+            # Crear log del sistema
+            SystemLog.log_action(
+                usuario=self.participante.usuario,
+                tipo_accion='activar_turno',
+                descripcion=f'Turno {self.numero_turno} activado para {self.san.nombre}',
+                nivel='success',
+                content_object=self.san,
+                datos_adicionales={
+                    'numero_turno': self.numero_turno,
+                    'participante': self.participante.usuario.username
+                }
+            )
+            
+            return True
+        return False
+    
+    def cumplir_turno(self):
+        """Marca el turno como cumplido"""
+        if self.estado == 'activo':
+            self.estado = 'cumplido'
+            self.cumplido = True
+            self.fecha_cumplimiento = timezone.now()
+            self.save()
+            
+            # Crear log del sistema
+            SystemLog.log_action(
+                usuario=self.participante.usuario,
+                tipo_accion='cumplir_turno',
+                descripcion=f'Turno {self.numero_turno} cumplido para {self.san.nombre}',
+                nivel='success',
+                content_object=self.san,
+                datos_adicionales={
+                    'numero_turno': self.numero_turno,
+                    'monto': str(self.monto_turno)
+                }
+            )
+            
+            return True
+        return False
+    
+    def is_vencido(self):
+        """Verifica si el turno está vencido"""
+        return date.today() > self.fecha_vencimiento if self.fecha_vencimiento else False
+    
+    def get_proximo_turno(self):
+        """Retorna el próximo turno del SAN"""
+        try:
+            return TurnoSan.objects.get(
+                san=self.san,
+                numero_turno=self.numero_turno + 1
+            )
+        except TurnoSan.DoesNotExist:
+            return None
+    
+    def get_turno_anterior(self):
+        """Retorna el turno anterior del SAN"""
+        if self.numero_turno > 1:
+            try:
+                return TurnoSan.objects.get(
+                    san=self.san,
+                    numero_turno=self.numero_turno - 1
+                )
+            except TurnoSan.DoesNotExist:
+                return None
+        return None
+
+
+class Mensaje(models.Model):
+    """Mensajería interna entre usuarios"""
+    remitente = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="mensajes_enviados"
+    )
+    destinatario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="mensajes_recibidos"
+    )
+    asunto = models.CharField(max_length=255)
+    contenido = models.TextField()
+    leido = models.BooleanField(default=False)
+    fecha_envio = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-fecha_envio"]
+
+    def __str__(self):
+        return f"De {self.remitente.username} para {self.destinatario.username} - {self.asunto}"
+
+
+# ---------------------
+# FORMULARIOS
+# ---------------------
+class CambiarFotoPerfilForm(forms.ModelForm):
+    """Formulario para cambiar foto de perfil"""
+    class Meta:
+        model = CustomUser
+        fields = ['foto_perfil']

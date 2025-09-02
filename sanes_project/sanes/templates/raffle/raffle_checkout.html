@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Checkout - {{ rifa.titulo }} - Rifas Anica{% endblock %}
+{% block title %}Mis Tickets - {{ rifa.titulo }} - Rifas Anica{% endblock %}
 
 {% block content %}
 <div class="min-h-screen bg-light py-8 px-4 sm:px-6 lg:px-8">
@@ -14,9 +14,9 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
                 </a>
-                <h1 class="text-3xl font-bold text-dark">Checkout</h1>
+                <h1 class="text-3xl font-bold text-dark">Mis Tickets</h1>
             </div>
-            <p class="text-gray-600">Finaliza tu compra de tickets para "{{ rifa.titulo }}"</p>
+            <p class="text-gray-600">Tickets comprados para "{{ rifa.titulo }}"</p>
         </div>
 
         <!-- Messages -->
@@ -31,119 +31,44 @@
         {% endif %}
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Checkout Form -->
+            <!-- Tickets Information -->
             <div class="lg:col-span-1">
                 <div class="bg-white rounded-lg shadow-md p-6">
-                    <h2 class="text-xl font-bold text-dark mb-6">Información de Compra</h2>
+                    <h2 class="text-xl font-bold text-dark mb-6">Información de Tickets</h2>
                     
-                    <form method="post" class="space-y-6">
-                        {% csrf_token %}
-                        
-                        <!-- Ticket Quantity -->
+                    <div class="space-y-6">
+                        <!-- Tickets List -->
                         <div>
-                            <label for="cantidad" class="block text-sm font-medium text-gray-700 mb-2">
-                                Cantidad de Tickets
-                            </label>
-                            <select name="cantidad" id="cantidad" 
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                                    required>
-                                {% for i in "x"|ljust:max_tickets|make_list %}
-                                    <option value="{{ forloop.counter }}" {% if forloop.counter == cantidad_seleccionada %}selected{% endif %}>
-                                        {{ forloop.counter }} ticket{{ forloop.counter|pluralize }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <!-- Payment Method -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-3">Método de Pago</label>
+                            <h3 class="text-lg font-semibold text-dark mb-3">Tickets Comprados</h3>
                             <div class="space-y-3">
-                                <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                                    <input type="radio" name="metodo_pago" value="tarjeta" class="h-4 w-4 text-primary border-gray-300 focus:ring-primary" required>
-                                    <div class="ml-3 flex items-center">
-                                        <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
-                                        </svg>
-                                        <span class="text-sm font-medium text-dark">Tarjeta de crédito/débito</span>
+                                {% for ticket in tickets %}
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold">
+                                            {{ ticket.numero }}
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-dark">Ticket #{{ ticket.numero }}</p>
+                                            <p class="text-sm text-gray-600">Comprado el {{ ticket.fecha_compra|date:"d/m/Y H:i" }}</p>
+                                        </div>
                                     </div>
-                                </label>
-                                
-                                <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                                    <input type="radio" name="metodo_pago" value="transferencia" class="h-4 w-4 text-primary border-gray-300 focus:ring-primary">
-                                    <div class="ml-3 flex items-center">
-                                        <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
-                                        </svg>
-                                        <span class="text-sm font-medium text-dark">Transferencia bancaria</span>
+                                    <div class="text-right">
+                                        <p class="font-bold text-primary">${{ ticket.precio_pagado }}</p>
+                                        <p class="text-xs text-gray-500">{{ ticket.codigo }}</p>
                                     </div>
-                                </label>
-                                
-                                <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                                    <input type="radio" name="metodo_pago" value="efectivo" class="h-4 w-4 text-primary border-gray-300 focus:ring-primary">
-                                    <div class="ml-3 flex items-center">
-                                        <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                                        </svg>
-                                        <span class="text-sm font-medium text-dark">Efectivo</span>
-                                    </div>
-                                </label>
+                                </div>
+                                {% endfor %}
                             </div>
                         </div>
 
-                        <!-- Customer Information -->
-                        <div>
-                            <h3 class="text-lg font-bold text-dark mb-3">Información Personal</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
-                                    <input type="text" name="nombre" id="nombre" 
-                                           value="{{ user.first_name }}" 
-                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                                           required>
-                                </div>
-                                <div>
-                                    <label for="apellido" class="block text-sm font-medium text-gray-700 mb-1">Apellido</label>
-                                    <input type="text" name="apellido" id="apellido" 
-                                           value="{{ user.last_name }}" 
-                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                                           required>
-                                </div>
-                                <div>
-                                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                    <input type="email" name="email" id="email" 
-                                           value="{{ user.email }}" 
-                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                                           required>
-                                </div>
-                                <div>
-                                    <label for="telefono" class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                                    <input type="tel" name="telefono" id="telefono" 
-                                           value="{{ user.phone_number|default:'' }}" 
-                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                                           required>
-                                </div>
+                        <!-- Total Information -->
+                        <div class="border-t border-gray-200 pt-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-lg font-semibold text-dark">Total Pagado:</span>
+                                <span class="text-2xl font-bold text-primary">${{ total_pagado }}</span>
                             </div>
                         </div>
-
-                        <!-- Terms and Conditions -->
-                        <div>
-                            <label class="flex items-start space-x-3">
-                                <input type="checkbox" name="acepto_terminos" class="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary mt-1" required>
-                                <div class="text-sm text-gray-700">
-                                    <p>Acepto los <a href="#" class="text-primary hover:text-red-700 underline">términos y condiciones</a> y la <a href="#" class="text-primary hover:text-red-700 underline">política de privacidad</a>.</p>
-                                </div>
-                            </label>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <div class="pt-4">
-                            <button type="submit" 
-                                    class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-primary hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
-                                Proceder al Pago
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             </div>
 
@@ -176,8 +101,8 @@
                                 <span class="font-medium text-dark">${{ rifa.precio_ticket }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-600">Tickets disponibles:</span>
-                                <span class="font-medium text-dark">{{ rifa.tickets_disponibles }}</span>
+                                <span class="text-gray-600">Tickets comprados:</span>
+                                <span class="font-medium text-dark">{{ tickets.count }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Fecha de cierre:</span>
@@ -186,23 +111,28 @@
                         </div>
                     </div>
 
-                    <!-- Price Breakdown -->
-                    <div class="space-y-3 mb-6">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">Subtotal:</span>
-                            <span class="font-medium text-dark" id="subtotal">${{ rifa.precio_ticket }}</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">Comisión:</span>
-                            <span class="font-medium text-dark">$0.00</span>
-                        </div>
-                        <div class="border-t border-gray-200 pt-3">
-                            <div class="flex justify-between text-lg font-bold">
-                                <span class="text-dark">Total:</span>
-                                <span class="text-primary" id="total">${{ rifa.precio_ticket }}</span>
+                    <!-- Factura Information -->
+                    {% if factura %}
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-dark mb-3">Información de Factura</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Número de factura:</span>
+                                <span class="font-medium text-dark">{{ factura.codigo }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Estado:</span>
+                                <span class="font-medium {% if factura.estado_pago == 'confirmado' %}text-green-600{% elif factura.estado_pago == 'pendiente' %}text-yellow-600{% else %}text-red-600{% endif %}">
+                                    {{ factura.get_estado_pago_display }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Fecha de emisión:</span>
+                                <span class="font-medium text-dark">{{ factura.fecha_emision|date:"d/m/Y" }}</span>
                             </div>
                         </div>
                     </div>
+                    {% endif %}
 
                     <!-- Important Information -->
                     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -219,18 +149,5 @@
         </div>
     </div>
 </div>
-
-<script>
-    // Update total when quantity changes
-    document.getElementById('cantidad').addEventListener('change', function() {
-        const quantity = parseInt(this.value);
-        const pricePerTicket = {{ rifa.precio_ticket }};
-        const subtotal = quantity * pricePerTicket;
-        const total = subtotal; // No commission for now
-        
-        document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
-        document.getElementById('total').textContent = '$' + total.toFixed(2);
-    });
-</script>
 {% endblock %}
 

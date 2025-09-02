@@ -3,7 +3,8 @@ from rest_framework import serializers
 from django.contrib.contenttypes.models import ContentType
 from .models import (
     CustomUser, Factura, Rifa, Ticket, San, ParticipacionSan, 
-    Cupo, Orden, Pago, Comentario, Imagen
+    Cupo, Comment, SystemLog, PagoSimulado, NotificacionMejorada,
+    Notificacion, Reporte, HistorialAccion, SorteoRifa, TurnoSan, Mensaje
 )
 
 # ---------------------
@@ -187,37 +188,6 @@ class CupoCreateSerializer(serializers.ModelSerializer):
 
 
 # ---------------------
-# SERIALIZERS DE ORDEN
-# ---------------------
-class OrdenSerializer(serializers.ModelSerializer):
-    """Serializer para órdenes"""
-    usuario = CustomUserSerializer(read_only=True)
-    tipo_contenido = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = Orden
-        fields = [
-            'id', 'codigo', 'usuario', 'tipo_contenido', 'fecha_creacion',
-            'fecha_actualizacion', 'subtotal', 'impuestos', 'total',
-            'estado', 'notas'
-        ]
-        read_only_fields = ['id', 'codigo', 'fecha_creacion', 'fecha_actualizacion']
-    
-    def get_tipo_contenido(self, obj):
-        return obj.get_tipo_contenido()
-
-
-class OrdenCreateSerializer(serializers.ModelSerializer):
-    """Serializer para crear órdenes"""
-    class Meta:
-        model = Orden
-        fields = [
-            'usuario', 'content_type', 'object_id', 'subtotal',
-            'impuestos', 'total', 'notas'
-        ]
-
-
-# ---------------------
 # SERIALIZERS DE FACTURA
 # ---------------------
 class FacturaSerializer(serializers.ModelSerializer):
@@ -249,76 +219,71 @@ class FacturaCreateSerializer(serializers.ModelSerializer):
 
 
 # ---------------------
-# SERIALIZERS DE PAGO
+# SERIALIZERS DE PAGO SIMULADO
 # ---------------------
-class PagoSerializer(serializers.ModelSerializer):
-    """Serializer para pagos"""
+class PagoSimuladoSerializer(serializers.ModelSerializer):
+    """Serializer para pagos simulados"""
     usuario = CustomUserSerializer(read_only=True)
-    orden = OrdenSerializer(read_only=True)
     factura = FacturaSerializer(read_only=True)
-    tipo_contenido = serializers.SerializerMethodField()
     
     class Meta:
-        model = Pago
+        model = PagoSimulado
         fields = [
-            'id', 'codigo', 'usuario', 'tipo_contenido', 'fecha_pago',
-            'monto', 'estado', 'metodo_pago', 'comprobante_pago', 'notas',
-            'orden', 'factura'
+            'id', 'codigo_transaccion', 'usuario', 'factura', 'metodo_pago',
+            'monto', 'moneda', 'estado', 'referencia_externa', 'fecha_procesamiento',
+            'tiempo_procesamiento', 'intentos', 'fecha_creacion', 'fecha_actualizacion'
         ]
-        read_only_fields = ['id', 'codigo', 'fecha_pago']
-    
-    def get_tipo_contenido(self, obj):
-        return obj.get_tipo_contenido()
+        read_only_fields = ['id', 'codigo_transaccion', 'fecha_creacion']
 
 
-class PagoCreateSerializer(serializers.ModelSerializer):
-    """Serializer para crear pagos"""
+class PagoSimuladoCreateSerializer(serializers.ModelSerializer):
+    """Serializer para crear pagos simulados"""
     class Meta:
-        model = Pago
-        fields = [
-            'usuario', 'content_type', 'object_id', 'monto', 'estado',
-            'metodo_pago', 'comprobante_pago', 'notas', 'orden', 'factura'
-        ]
+        model = PagoSimulado
+        fields = ['factura', 'metodo_pago', 'monto', 'moneda']
 
 
 # ---------------------
-# SERIALIZERS DE COMENTARIO
+# SERIALIZERS DE COMMENT
 # ---------------------
-class ComentarioSerializer(serializers.ModelSerializer):
+class CommentSerializer(serializers.ModelSerializer):
     """Serializer para comentarios"""
     usuario = CustomUserSerializer(read_only=True)
     
     class Meta:
-        model = Comentario
+        model = Comment
         fields = [
-            'id', 'usuario', 'comentario', 'fecha_creacion', 'activo'
+            'id', 'usuario', 'content_type', 'object_id', 'comentario', 
+            'fecha_creacion', 'activo'
         ]
         read_only_fields = ['id', 'fecha_creacion']
 
 
-class ComentarioCreateSerializer(serializers.ModelSerializer):
+class CommentCreateSerializer(serializers.ModelSerializer):
     """Serializer para crear comentarios"""
     class Meta:
-        model = Comentario
+        model = Comment
         fields = ['content_type', 'object_id', 'usuario', 'comentario']
 
 
 # ---------------------
-# SERIALIZERS DE IMAGEN
+# SERIALIZERS DE NOTIFICACIÓN MEJORADA
 # ---------------------
-class ImagenSerializer(serializers.ModelSerializer):
-    """Serializer para imágenes"""
+class NotificacionMejoradaSerializer(serializers.ModelSerializer):
+    """Serializer para notificaciones mejoradas"""
+    usuario = CustomUserSerializer(read_only=True)
+    
     class Meta:
-        model = Imagen
+        model = NotificacionMejorada
         fields = [
-            'id', 'imagen', 'titulo', 'descripcion', 'orden', 'activa',
-            'fecha_creacion'
+            'id', 'usuario', 'tipo', 'titulo', 'mensaje', 'estado',
+            'fecha_creacion', 'fecha_lectura', 'datos_adicionales'
         ]
         read_only_fields = ['id', 'fecha_creacion']
 
 
-class ImagenCreateSerializer(serializers.ModelSerializer):
-    """Serializer para crear imágenes"""
+class NotificacionMejoradaCreateSerializer(serializers.ModelSerializer):
+    """Serializer para crear notificaciones"""
     class Meta:
-        model = Imagen
-        fields = ['content_type', 'object_id', 'imagen', 'titulo', 'descripcion', 'orden']
+        model = NotificacionMejorada
+        fields = ['usuario', 'tipo', 'titulo', 'mensaje', 'datos_adicionales']

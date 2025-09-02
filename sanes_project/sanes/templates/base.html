@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +11,7 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -31,13 +32,41 @@
         body {
             font-family: "Plus Jakarta Sans", "Noto Sans", sans-serif;
         }
+        
+        /* Transiciones suaves para el cambio de tema */
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        /* Modo oscuro personalizado */
+        .dark {
+            color-scheme: dark;
+        }
+        
+        /* Scrollbar personalizada para modo oscuro */
+        .dark ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .dark ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 4px;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
     </style>
 </head>
-<body class="bg-light min-h-screen">
+<body class="bg-light dark:bg-gray-900 min-h-screen transition-colors duration-300">
     <!-- Header -->
-    <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-accent px-4 sm:px-6 lg:px-10 py-3 bg-white shadow-sm">
+    <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-accent dark:border-gray-700 px-4 sm:px-6 lg:px-10 py-3 bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/20">
         <div class="flex items-center gap-4 sm:gap-8">
-            <div class="flex items-center gap-4 text-dark">
+            <div class="flex items-center gap-4 text-dark dark:text-white">
                 <div class="size-4">
                     <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <g clip-path="url(#clip0_6_535)">
@@ -52,33 +81,33 @@
                         </defs>
                     </svg>
                 </div>
-                <h2 class="text-dark text-lg font-bold leading-tight tracking-[-0.015em]">Rifas Anica</h2>
+                <h2 class="text-dark dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Rifas Anica</h2>
             </div>
             
             <!-- Desktop Navigation -->
             <div class="hidden sm:flex flex-1 justify-end gap-8" id="main-nav-desktop">
                 <div class="flex items-center gap-6 lg:gap-9">
-                    <a class="text-dark text-sm font-medium leading-normal hover:text-primary transition-colors" href="{% url 'home' %}">Inicio</a>
-                    <a class="text-dark text-sm font-medium leading-normal hover:text-primary transition-colors" href="{% url 'rifa_list' %}">Rifas</a>
-                    <a class="text-dark text-sm font-medium leading-normal hover:text-primary transition-colors" href="{% url 'san_list' %}">Sanes</a>
+                    <a class="text-dark dark:text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="{% url 'home' %}">Inicio</a>
+                    <a class="text-dark dark:text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="{% url 'rifa_list' %}">Rifas</a>
+                    <a class="text-dark dark:text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="{% url 'san_list' %}">Sanes</a>
                     {% if user.is_authenticated %}
-                        <a class="text-dark text-sm font-medium leading-normal hover:text-primary transition-colors" href="{% url 'factura_list' %}">Mis Facturas</a>
+                        <a class="text-dark dark:text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="{% url 'factura_list' %}">Mis Facturas</a>
                         {% if user.is_superuser %}
                             <div class="relative group">
-                                <button class="text-dark text-sm font-medium leading-normal hover:text-primary transition-colors flex items-center">
+                                <button class="text-dark dark:text-white text-sm font-medium leading-normal hover:text-primary transition-colors flex items-center">
                                     Admin
                                     <svg class="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                     </svg>
                                 </button>
-                                <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                                    <a href="{% url 'admin_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</a>
-                                    <a href="{% url 'admin_user_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Usuarios</a>
-                                    <a href="{% url 'admin_rifa_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Rifas</a>
-                                    <a href="{% url 'admin_san_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sanes</a>
-                                    <a href="{% url 'admin_factura_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Facturas</a>
-                                    <a href="{% url 'admin_reportes' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Reportes</a>
-                                    <a href="{% url 'admin_logs' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logs del Sistema</a>
+                                <div class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                                    <a href="{% url 'admin_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Dashboard</a>
+                                    <a href="{% url 'admin_user_list' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Usuarios</a>
+                                    <a href="{% url 'admin_rifa_list' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Rifas</a>
+                                    <a href="{% url 'admin_san_list' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Sanes</a>
+                                    <a href="{% url 'admin_factura_list' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Facturas</a>
+                                    <a href="{% url 'admin_reportes' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Reportes</a>
+                                    <a href="{% url 'admin_logs' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Logs del Sistema</a>
                                 </div>
                             </div>
                         {% endif %}
@@ -89,13 +118,13 @@
                         <a href="{% url 'register' %}" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-light text-sm font-bold leading-normal tracking-[0.015em] hover:bg-red-700 transition-colors">
                             <span class="truncate">Registrarse</span>
                         </a>
-                        <a href="{% url 'login' %}" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-accent text-dark text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-200 transition-colors">
+                        <a href="{% url 'login' %}" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-accent text-dark dark:text-gray-800 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-200 transition-colors">
                             <span class="truncate">Iniciar Sesión</span>
                         </a>
                     {% else %}
                         <!-- Notificaciones con campanita -->
                         <div class="relative mr-4">
-                            <button id="notificacionesBtn" class="text-dark hover:text-primary px-3 py-2 rounded-md text-sm font-medium relative">
+                            <button id="notificacionesBtn" class="text-dark dark:text-white hover:text-primary px-3 py-2 rounded-md text-sm font-medium relative">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"></path>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -105,36 +134,50 @@
                             </button>
                             
                             <!-- Dropdown de notificaciones -->
-                            <div id="notificacionesDropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-50 hidden">
-                                <div class="px-4 py-2 border-b border-gray-200">
-                                    <h3 class="text-sm font-semibold text-gray-900">Notificaciones</h3>
+                            <div id="notificacionesDropdown" class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 hidden">
+                                <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Notificaciones</h3>
                                 </div>
                                 <div id="notificacionesList" class="max-h-64 overflow-y-auto">
                                     <!-- Las notificaciones se cargarán aquí via AJAX -->
                                 </div>
-                                <div class="px-4 py-2 border-t border-gray-200">
-                                    <a href="{% url 'notificaciones_usuario' %}" class="text-sm text-blue-600 hover:text-blue-800 block text-center">
+                                <div class="px-4 py-2 border-t border-gray-200 dark:border-gray-700">
+                                    <a href="{% url 'notificaciones_usuario' %}" class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 block text-center">
                                         Ver todas las notificaciones
                                     </a>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Toggle del Modo Oscuro -->
+                        <div class="relative mr-4">
+                            <button id="darkModeToggle" class="text-dark dark:text-white hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors" title="Cambiar modo oscuro/claro">
+                                <!-- Icono del Sol (modo oscuro activo) -->
+                                <svg id="sunIcon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                                <!-- Icono de la Luna (modo claro activo) -->
+                                <svg id="moonIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                                </svg>
+                            </button>
+                        </div>
+
                         <div class="relative group">
-                            <button class="flex items-center text-dark hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            <button class="flex items-center text-dark dark:text-white hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
                                 <img src="{{ user.foto_perfil.url|default:'/static/images/default-avatar.png' }}" alt="Avatar" class="w-8 h-8 rounded-full mr-2">
                                 {{ user.get_full_name_or_username }}
                                 <svg class="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                 </svg>
                             </button>
-                            <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                                <a href="{% url 'user_profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Mi Perfil</a>
-                                <a href="{% url 'factura_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Mis Facturas</a>
-                                <a href="{% url 'historial_rifas' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Historial Rifas</a>
-                                <a href="{% url 'historial_sanes' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Historial Sanes</a>
-                                <hr class="my-1">
-                                <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Cerrar Sesión</a>
+                            <div class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                                <a href="{% url 'user_profile' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Mi Perfil</a>
+                                <a href="{% url 'factura_list' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Mis Facturas</a>
+                                <a href="{% url 'historial_rifas' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Historial Rifas</a>
+                                <a href="{% url 'historial_sanes' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Historial Sanes</a>
+                                <hr class="my-1 border-gray-200 dark:border-gray-700">
+                                <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Cerrar Sesión</a>
                             </div>
                         </div>
                     {% endif %}
@@ -143,7 +186,7 @@
         </div>
         
         <!-- Mobile menu button -->
-        <button class="sm:hidden text-dark focus:outline-none" onclick="toggleMobileMenu()">
+        <button class="sm:hidden text-dark dark:text-white focus:outline-none" onclick="toggleMobileMenu()">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
@@ -151,23 +194,23 @@
     </header>
 
     <!-- Mobile Navigation -->
-    <div id="mobile-menu" class="hidden sm:hidden flex flex-col items-center border-b border-solid border-b-accent bg-light py-4">
-        <a class="text-dark text-base font-medium leading-normal py-2 hover:text-primary" href="{% url 'home' %}">Inicio</a>
-        <a class="text-dark text-base font-medium leading-normal py-2 hover:text-primary" href="{% url 'rifa_list' %}">Rifas</a>
-        <a class="text-dark text-base font-medium leading-normal py-2 hover:text-primary" href="{% url 'san_list' %}">Sanes</a>
+    <div id="mobile-menu" class="hidden sm:hidden flex flex-col items-center border-b border-solid border-b-accent dark:border-gray-700 bg-light dark:bg-gray-900 py-4">
+        <a class="text-dark dark:text-white text-base font-medium leading-normal py-2 hover:text-primary" href="{% url 'home' %}">Inicio</a>
+        <a class="text-dark dark:text-white text-base font-medium leading-normal py-2 hover:text-primary" href="{% url 'rifa_list' %}">Rifas</a>
+        <a class="text-dark dark:text-white text-base font-medium leading-normal py-2 hover:text-primary" href="{% url 'san_list' %}">Sanes</a>
         {% if user.is_authenticated %}
-            <a class="text-dark text-base font-medium leading-normal py-2 hover:text-primary" href="{% url 'factura_list' %}">Mis Facturas</a>
+            <a class="text-dark dark:text-white text-base font-medium leading-normal py-2 hover:text-primary" href="{% url 'factura_list' %}">Mis Facturas</a>
             {% if user.is_superuser %}
                 <div class="w-full">
-                    <div class="text-dark text-base font-medium leading-normal py-2">Admin</div>
+                    <div class="text-dark dark:text-white text-base font-medium leading-normal py-2">Admin</div>
                     <div class="pl-4 space-y-1">
-                        <a class="text-dark text-sm font-medium leading-normal py-1 hover:text-primary block" href="{% url 'admin_dashboard' %}">Dashboard</a>
-                        <a class="text-dark text-sm font-medium leading-normal py-1 hover:text-primary block" href="{% url 'admin_user_list' %}">Usuarios</a>
-                        <a class="text-dark text-sm font-medium leading-normal py-1 hover:text-primary block" href="{% url 'admin_rifa_list' %}">Rifas</a>
-                        <a class="text-dark text-sm font-medium leading-normal py-1 hover:text-primary block" href="{% url 'admin_san_list' %}">Sanes</a>
-                        <a class="text-dark text-sm font-medium leading-normal py-1 hover:text-primary block" href="{% url 'admin_factura_list' %}">Facturas</a>
-                        <a class="text-dark text-sm font-medium leading-normal py-1 hover:text-primary block" href="{% url 'admin_reportes' %}">Reportes</a>
-                        <a class="text-dark text-sm font-medium leading-normal py-1 hover:text-primary block" href="{% url 'admin_logs' %}">Logs del Sistema</a>
+                        <a class="text-dark dark:text-white text-sm font-medium leading-normal py-1 hover:text-primary block" href="{% url 'admin_dashboard' %}">Dashboard</a>
+                        <a class="text-dark dark:text-white text-sm font-medium leading-normal py-1 hover:text-primary block" href="{% url 'admin_user_list' %}">Usuarios</a>
+                        <a class="text-dark dark:text-white text-sm font-medium leading-normal py-1 hover:text-primary block" href="{% url 'admin_rifa_list' %}">Rifas</a>
+                        <a class="text-dark dark:text-white text-sm font-medium leading-normal py-1 hover:text-primary block" href="{% url 'admin_san_list' %}">Sanes</a>
+                        <a class="text-dark dark:text-white text-sm font-medium leading-normal py-1 hover:text-primary block" href="{% url 'admin_factura_list' %}">Facturas</a>
+                        <a class="text-dark dark:text-white text-sm font-medium leading-normal py-1 hover:text-primary block" href="{% url 'admin_reportes' %}">Reportes</a>
+                        <a class="text-dark dark:text-white text-sm font-medium leading-normal py-1 hover:text-primary block" href="{% url 'admin_logs' %}">Logs del Sistema</a>
                     </div>
                 </div>
             {% endif %}
@@ -177,11 +220,11 @@
                 <a href="{% url 'register' %}" class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-light text-sm font-bold leading-normal tracking-[0.015em] hover:bg-red-700">
                     <span class="truncate">Registrarse</span>
                 </a>
-                <a href="{% url 'login' %}" class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-accent text-dark text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-200">
+                <a href="{% url 'login' %}" class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-accent text-dark dark:text-gray-800 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-200">
                     <span class="truncate">Iniciar Sesión</span>
                 </a>
             {% else %}
-                <a href="{% url 'user_profile' %}" class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-accent text-dark text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-200">
+                <a href="{% url 'user_profile' %}" class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-accent text-dark dark:text-gray-800 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-200">
                     <span class="truncate">Mi Perfil</span>
                 </a>
                 <a href="{% url 'logout' %}" class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-light text-sm font-bold leading-normal tracking-[0.015em] hover:bg-red-700">
@@ -195,7 +238,7 @@
     {% if messages %}
         <div class="fixed top-20 right-4 z-50 space-y-2">
             {% for message in messages %}
-                <div class="max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden">
+                <div class="max-w-sm w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 dark:ring-white dark:ring-opacity-10 overflow-hidden">
                     <div class="p-4">
                         <div class="flex items-start">
                             <div class="flex-shrink-0">
@@ -214,10 +257,10 @@
                                 {% endif %}
                             </div>
                             <div class="ml-3 w-0 flex-1 pt-0.5">
-                                <p class="text-sm font-medium text-gray-900">{{ message }}</p>
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ message }}</p>
                             </div>
                             <div class="ml-4 flex-shrink-0 flex">
-                                <button class="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                <button class="bg-white dark:bg-gray-800 rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
                                     <span class="sr-only">Cerrar</span>
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -233,56 +276,37 @@
 
     <!-- Content block -->
     <main class="flex-1">
-        {% block content %}
-        {% endblock %}
+        {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white py-8 mt-16">
+    <footer class="bg-white dark:bg-gray-800 border-t border-accent dark:border-gray-700 py-8 mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Rifas Anica</h3>
-                    <p class="text-gray-300">Tu plataforma confiable para rifas y sanes.</p>
-                </div>
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Enlaces</h3>
-                    <ul class="space-y-2">
-                        <li><a href="{% url 'home' %}" class="text-gray-300 hover:text-white transition-colors">Inicio</a></li>
-                        <li><a href="{% url 'rifa_list' %}" class="text-gray-300 hover:text-white transition-colors">Rifas</a></li>
-                        <li><a href="{% url 'san_list' %}" class="text-gray-300 hover:text-white transition-colors">Sanes</a></li>
-                        {% if user.is_authenticated %}
-                            <li><a href="{% url 'factura_list' %}" class="text-gray-300 hover:text-white transition-colors">Mis Facturas</a></li>
-                        {% endif %}
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Contacto</h3>
-                    <p class="text-gray-300">¿Necesitas ayuda? Contáctanos.</p>
-                </div>
-            </div>
-            <div class="border-t border-gray-700 mt-8 pt-8 text-center">
-                <p class="text-gray-300">&copy; 2024 Rifas Anica. Todos los derechos reservados.</p>
+            <div class="text-center">
+                <p class="text-dark dark:text-white text-sm">
+                    © 2024 Rifas Anica. Todos los derechos reservados.
+                </p>
             </div>
         </div>
     </footer>
 
     <script>
+        // Funcionalidad del menú móvil
         function toggleMobileMenu() {
-            const menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('hidden');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
         }
 
         // Auto-hide messages after 5 seconds
-        setTimeout(function() {
-            const messages = document.querySelectorAll('.fixed.top-20');
-            messages.forEach(function(message) {
-                message.style.display = 'none';
-            });
-        }, 5000);
-
-        // Funcionalidad de notificaciones
         document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const messages = document.querySelectorAll('.fixed');
+                messages.forEach(function(message) {
+                    message.style.display = 'none';
+                });
+            }, 5000);
+
+            // Funcionalidad de notificaciones
             const notificacionesBtn = document.getElementById('notificacionesBtn');
             const notificacionesDropdown = document.getElementById('notificacionesDropdown');
             const notificacionesCount = document.getElementById('notificacionesCount');
@@ -325,16 +349,16 @@
                             if (data.notificaciones.length > 0) {
                                 data.notificaciones.forEach(notif => {
                                     const notifElement = document.createElement('div');
-                                    notifElement.className = 'px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0';
+                                    notifElement.className = 'px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0';
                                     notifElement.innerHTML = `
                                         <div class="flex justify-between items-start">
                                             <div class="flex-1">
-                                                <h4 class="text-sm font-medium text-gray-900">${notif.titulo}</h4>
-                                                <p class="text-sm text-gray-600 mt-1">${notif.mensaje}</p>
-                                                <p class="text-xs text-gray-500 mt-2">${notif.fecha}</p>
+                                                <h4 class="text-sm font-medium text-gray-900 dark:text-white">${notif.titulo}</h4>
+                                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">${notif.mensaje}</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">${notif.fecha}</p>
                                             </div>
                                             <button onclick="marcarNotificacionLeida(${notif.id})" 
-                                                    class="ml-2 text-gray-400 hover:text-gray-600">
+                                                    class="ml-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                                 </svg>
@@ -344,7 +368,7 @@
                                     notificacionesList.appendChild(notifElement);
                                 });
                             } else {
-                                notificacionesList.innerHTML = '<div class="px-4 py-3 text-sm text-gray-500 text-center">No hay notificaciones nuevas</div>';
+                                notificacionesList.innerHTML = '<div class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">No hay notificaciones nuevas</div>';
                             }
                         })
                         .catch(error => {
@@ -373,6 +397,74 @@
 
                 // Recargar notificaciones cada 30 segundos
                 setInterval(cargarNotificaciones, 30000);
+            }
+
+            // Funcionalidad del Modo Oscuro
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const sunIcon = document.getElementById('sunIcon');
+            const moonIcon = document.getElementById('moonIcon');
+            
+            if (darkModeToggle) {
+                // Verificar si hay una preferencia guardada
+                const darkMode = localStorage.getItem('darkMode') === 'true';
+                
+                // Aplicar el modo inicial
+                if (darkMode) {
+                    document.documentElement.classList.add('dark');
+                    sunIcon.classList.remove('hidden');
+                    moonIcon.classList.add('hidden');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    sunIcon.classList.add('hidden');
+                    moonIcon.classList.remove('hidden');
+                }
+                
+                // Toggle del modo oscuro
+                darkModeToggle.addEventListener('click', function() {
+                    const isDark = document.documentElement.classList.contains('dark');
+                    
+                    if (isDark) {
+                        // Cambiar a modo claro
+                        document.documentElement.classList.remove('dark');
+                        localStorage.setItem('darkMode', 'false');
+                        sunIcon.classList.add('hidden');
+                        moonIcon.classList.remove('hidden');
+                    } else {
+                        // Cambiar a modo oscuro
+                        document.documentElement.classList.add('dark');
+                        localStorage.setItem('darkMode', 'true');
+                        sunIcon.classList.remove('hidden');
+                        moonIcon.classList.add('hidden');
+                    }
+                });
+                
+                // Detectar preferencia del sistema
+                if (localStorage.getItem('darkMode') === null) {
+                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    if (prefersDark) {
+                        document.documentElement.classList.add('dark');
+                        localStorage.setItem('darkMode', 'true');
+                        sunIcon.classList.remove('hidden');
+                        moonIcon.classList.add('hidden');
+                    }
+                }
+                
+                // Escuchar cambios en la preferencia del sistema
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+                    if (localStorage.getItem('darkMode') === null) {
+                        if (e.matches) {
+                            document.documentElement.classList.add('dark');
+                            localStorage.setItem('darkMode', 'true');
+                            sunIcon.classList.remove('hidden');
+                            moonIcon.classList.add('hidden');
+                        } else {
+                            document.documentElement.classList.remove('dark');
+                            localStorage.setItem('darkMode', 'false');
+                            sunIcon.classList.add('hidden');
+                            moonIcon.classList.remove('hidden');
+                        }
+                    }
+                });
             }
         });
     </script>

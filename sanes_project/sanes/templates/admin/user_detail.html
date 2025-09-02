@@ -93,7 +93,7 @@
                     </div>
                     <div class="bg-purple-50 p-4 rounded-lg">
                         <h3 class="text-sm font-medium text-purple-800">Tickets Comprados</h3>
-                        <p class="text-2xl font-bold text-purple-600">{{ tickets_comprados.count }}</p>
+                        <p class="text-2xl font-bold text-purple-600">{{ tickets_comprados }}</p>
                     </div>
                     <div class="bg-orange-50 p-4 rounded-lg">
                         <h3 class="text-sm font-medium text-orange-800">Participaciones en Sanes</h3>
@@ -222,7 +222,7 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            {% for ticket in tickets_comprados %}
+                            {% for ticket in tickets_comprados_list %}
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                     <a href="{% url 'rifa_detail' pk=ticket.rifa.pk %}" class="text-blue-600 hover:text-blue-900">

@@ -1,97 +1,243 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# 🎯 SANes & Rifas - Aplicación Móvil
 
-# Getting Started
+Aplicación móvil React Native para la gestión de SANes (Sociedades de Ahorro y Negocio) y rifas, replicando toda la funcionalidad del backend Django web.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## 📱 Características Principales
 
-## Step 1: Start Metro
+### 🔐 Autenticación
+- Registro de usuarios con validaciones
+- Inicio de sesión seguro
+- Gestión de tokens de autenticación
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+### 🏠 Pantalla Principal
+- Listado de SANes activos
+- Listado de rifas disponibles
+- Filtros por monto, frecuencia y plazas
+- Navegación intuitiva
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+### 📊 Detalles de SAN
+- Información completa del SAN
+- Visualización de turnos y pagos
+- Historial de contribuciones
+- Sistema de comentarios
+- Botón para unirse al SAN
 
-```sh
-# Using npm
+### 🎫 Detalles de Rifa
+- Información de la rifa
+- Compra de tickets con modal de selección
+- Historial de tickets comprados
+- Sistema de comentarios
+
+### 💳 Sistema de Pagos
+- Pagos digitales simulados (tarjeta, PayPal, Nequi)
+- Pagos en efectivo con referencias
+- Subida de comprobantes
+- Estados de pago (Pendiente → Validado → Rechazado)
+
+### 👤 Perfil de Usuario
+- Información personal editable
+- Estadísticas de participación
+- Historial de SANes y rifas
+- Gestión de facturas
+
+### 💬 Sistema de Comentarios
+- Comentarios en SANes y rifas
+- Respuestas anidadas
+- Moderación de contenido
+- Auditoría completa
+
+### 🔔 Notificaciones
+- Notificaciones de pagos
+- Alertas de turnos
+- Mensajes del administrador
+- Filtros por estado
+
+## 🛠️ Tecnologías Utilizadas
+
+- **React Native** - Framework móvil
+- **TypeScript** - Tipado estático
+- **React Navigation** - Navegación entre pantallas
+- **React Context API** - Gestión de estado global
+- **Axios** - Cliente HTTP
+- **AsyncStorage** - Almacenamiento local
+- **React Native Vector Icons** - Iconografía
+
+## 📋 Requisitos Previos
+
+- Node.js (versión 18 o superior)
+- npm o yarn
+- React Native CLI
+- Android Studio (para desarrollo Android)
+- JDK 11 o superior
+- Android SDK
+
+## 🚀 Instalación
+
+### 1. Clonar el repositorio
+```bash
+git clone <url-del-repositorio>
+cd app_project_sanes
+```
+
+### 2. Instalar dependencias
+```bash
+npm install
+# o
+yarn install
+```
+
+### 3. Configurar variables de entorno
+Crear un archivo `.env` en la raíz del proyecto:
+```env
+API_BASE_URL=http://192.168.1.106:8000
+```
+
+### 4. Configurar Android
+Asegúrate de que las variables de entorno estén configuradas:
+```bash
+export ANDROID_HOME=$HOME/Android/Sdk
+export PATH=$PATH:$ANDROID_HOME/emulator
+export PATH=$PATH:$ANDROID_HOME/tools
+export PATH=$PATH:$ANDROID_HOME/tools/bin
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+```
+
+### 5. Ejecutar en Android
+```bash
+# Iniciar Metro bundler
 npm start
 
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
+# En otra terminal, ejecutar la app
 npm run android
-
-# OR using Yarn
-yarn android
 ```
 
-### iOS
+## 📱 Estructura del Proyecto
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
+```
+src/
+├── contexts/          # Contextos de React (AuthContext)
+├── navigation/        # Configuración de navegación
+├── screens/          # Pantallas de la aplicación
+├── services/         # Servicios de API y utilidades
+└── types/            # Definiciones de TypeScript
 ```
 
-Then, and every time you update your native dependencies, run:
+## 🔧 Scripts Disponibles
 
-```sh
-bundle exec pod install
+- `npm start` - Inicia Metro bundler
+- `npm run android` - Ejecuta la app en Android
+- `npm run ios` - Ejecuta la app en iOS
+- `npm run build:android` - Construye APK de release
+- `npm run build:apk` - Construye APK de debug
+
+## 📱 Pantallas Implementadas
+
+1. **LoginScreen** - Inicio de sesión
+2. **RegisterScreen** - Registro de usuarios
+3. **HomeScreen** - Pantalla principal con listados
+4. **SanDetailScreen** - Detalle de SAN
+5. **RifaDetailScreen** - Detalle de rifa
+6. **ProfileScreen** - Perfil del usuario
+7. **NotificationsScreen** - Notificaciones
+8. **CommentsScreen** - Sistema de comentarios
+9. **PaymentScreen** - Procesamiento de pagos
+
+## 🔌 Integración con Backend
+
+La aplicación se conecta con el backend Django a través de APIs REST:
+
+- **Autenticación**: `/api/auth/login/`, `/api/auth/register/`
+- **SANes**: `/api/sanes/`, `/api/sanes/{id}/`
+- **Rifas**: `/api/rifas/`, `/api/rifas/{id}/`
+- **Pagos**: `/api/pagos/`, `/api/pagos/{id}/`
+- **Comentarios**: `/api/comentarios/`
+- **Notificaciones**: `/api/notificaciones/`
+
+## 🎨 Diseño y UX
+
+- **Mobile-first**: Diseño optimizado para dispositivos móviles
+- **Consistencia visual**: Paleta de colores y tipografía uniforme
+- **Navegación intuitiva**: Bottom tabs y navegación por stack
+- **Feedback visual**: Estados de carga, errores y éxito
+- **Accesibilidad**: Contraste adecuado y tamaños de texto legibles
+
+## 🔒 Seguridad
+
+- **Autenticación JWT**: Tokens seguros para sesiones
+- **Validación de formularios**: Validación tanto en cliente como servidor
+- **Sanitización de datos**: Prevención de inyección de código
+- **Almacenamiento seguro**: Tokens en AsyncStorage con encriptación
+
+## 📊 Estado de la Aplicación
+
+La aplicación mantiene el estado global a través de:
+
+- **AuthContext**: Estado de autenticación del usuario
+- **AsyncStorage**: Persistencia de datos locales
+- **API Service**: Comunicación con el backend
+- **React Navigation**: Estado de navegación
+
+## 🚀 Despliegue
+
+### Generar APK de Release
+```bash
+cd android
+./gradlew assembleRelease
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+El APK se generará en: `android/app/build/outputs/apk/release/app-release.apk`
 
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
+### Generar Bundle de Release
+```bash
+cd android
+./gradlew bundleRelease
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+## 🐛 Solución de Problemas
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+### Error de Metro
+```bash
+npm start --reset-cache
+```
 
-## Step 3: Modify your app
+### Error de Gradle
+```bash
+cd android
+./gradlew clean
+```
 
-Now that you have successfully run the app, let's make changes!
+### Error de Dependencias
+```bash
+rm -rf node_modules
+npm install
+```
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+## 📝 Notas de Desarrollo
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+- La aplicación está configurada para conectarse a `http://192.168.1.106:8000`
+- Todos los pagos son simulados para fines de demostración
+- Las notificaciones se simulan localmente si el backend no está disponible
+- La aplicación incluye manejo de errores robusto y estados de carga
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+## 🤝 Contribución
 
-## Congratulations! :tada:
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
 
-You've successfully run and modified your React Native App. :partying_face:
+## 📄 Licencia
 
-### Now what?
+Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+## 📞 Soporte
 
-# Troubleshooting
+Para soporte técnico o preguntas:
+- Crear un issue en el repositorio
+- Contactar al equipo de desarrollo
+- Revisar la documentación del backend Django
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+---
 
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+**Desarrollado con ❤️ para la comunidad de SANes y Rifas**

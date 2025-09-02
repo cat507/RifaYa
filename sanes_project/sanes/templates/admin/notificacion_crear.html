@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Crear Notificación{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Crear Notificación</h1>
+                    <p class="mt-2 text-gray-600">Envía una notificación personalizada a un usuario específico</p>
+                </div>
+                <a href="{% url 'notificaciones_admin_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Volver a la lista
+                </a>
+            </div>
+        </div>
+
+        <!-- Formulario -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Usuario destinatario -->
+                <div>
+                    <label for="{{ form.usuario.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.usuario.label }}
+                    </label>
+                    {{ form.usuario }}
+                    {% if form.usuario.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.usuario.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Selecciona el usuario que recibirá la notificación</p>
+                </div>
+
+                <!-- Tipo de notificación -->
+                <div>
+                    <label for="{{ form.tipo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.tipo.label }}
+                    </label>
+                    {{ form.tipo }}
+                    {% if form.tipo.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.tipo.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Categoriza la notificación para mejor organización</p>
+                </div>
+
+                <!-- Título -->
+                <div>
+                    <label for="{{ form.titulo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.titulo.label }}
+                    </label>
+                    {{ form.titulo }}
+                    {% if form.titulo.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.titulo.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Título breve y descriptivo de la notificación</p>
+                </div>
+
+                <!-- Mensaje -->
+                <div>
+                    <label for="{{ form.mensaje.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.mensaje.label }}
+                    </label>
+                    {{ form.mensaje }}
+                    {% if form.mensaje.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.mensaje.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Contenido detallado de la notificación</p>
+                </div>
+
+                <!-- Prioridad -->
+                <div>
+                    <label for="{{ form.prioridad.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.prioridad.label }}
+                    </label>
+                    {{ form.prioridad }}
+                    {% if form.prioridad.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.prioridad.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Define la urgencia de la notificación</p>
+                </div>
+
+                <!-- Método de envío -->
+                <div>
+                    <label for="{{ form.metodo_envio.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.metodo_envio.label }}
+                    </label>
+                    {{ form.metodo_envio }}
+                    {% if form.metodo_envio.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.metodo_envio.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Selecciona cómo se enviará la notificación</p>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <a href="{% url 'notificaciones_admin_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                        Enviar Notificación
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-blue-800">Información importante</h3>
+                    <div class="mt-2 text-sm text-blue-700">
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>Las notificaciones se guardarán en la base de datos para auditoría</li>
+                            <li>El usuario recibirá la notificación inmediatamente al ingresar al sitio</li>
+                            <li>Puedes seleccionar diferentes métodos de envío según la urgencia</li>
+                            <li>Todas las notificaciones quedan registradas con tu usuario como remitente</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación del formulario
+    const form = document.querySelector('form');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    form.addEventListener('submit', function(e) {
+        // Deshabilitar el botón para evitar envíos múltiples
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Enviando...
+        `;
+    });
+    
+    // Validación en tiempo real
+    const tituloInput = document.getElementById('{{ form.titulo.id_for_label }}');
+    const mensajeInput = document.getElementById('{{ form.mensaje.id_for_label }}');
+    
+    function validarCampo(input, minLength = 3) {
+        const value = input.value.trim();
+        const isValid = value.length >= minLength;
+        
+        if (isValid) {
+            input.classList.remove('border-red-300', 'focus:ring-red-500', 'focus:border-red-500');
+            input.classList.add('border-gray-300', 'focus:ring-primary', 'focus:border-primary');
+        } else {
+            input.classList.remove('border-gray-300', 'focus:ring-primary', 'focus:border-primary');
+            input.classList.add('border-red-300', 'focus:ring-red-500', 'focus:border-red-500');
+        }
+        
+        return isValid;
+    }
+    
+    tituloInput.addEventListener('blur', () => validarCampo(tituloInput, 5));
+    mensajeInput.addEventListener('blur', () => validarCampo(mensajeInput, 10));
+    
+    // Validación antes del envío
+    form.addEventListener('submit', function(e) {
+        const tituloValido = validarCampo(tituloInput, 5);
+        const mensajeValido = validarCampo(mensajeInput, 10);
+        
+        if (!tituloValido || !mensajeValido) {
+            e.preventDefault();
+            alert('Por favor, completa todos los campos correctamente antes de enviar.');
+            
+            // Rehabilitar el botón
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                </svg>
+                Enviar Notificación
+            `;
+        }
+    });
+});
+</script>
+{% endblock %}

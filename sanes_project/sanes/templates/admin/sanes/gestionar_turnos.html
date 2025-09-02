@@ -1,0 +1,344 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestionar Turnos - {{ san.nombre }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Gestionar Turnos del SAN</h1>
+                    <p class="mt-2 text-gray-600">{{ san.nombre }} - Control de turnos con validación de pagos previos</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'san_detail' san.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Volver al SAN
+                    </a>
+                    <a href="{% url 'turnos_san' san.id %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        Ver Turnos
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas de turnos -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Total Turnos</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ total_turnos }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Cumplidos</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ turnos_cumplidos }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Activos</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ turnos_activos }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Pendientes</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ turnos_pendientes }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información financiera -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Información Financiera</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Monto Acumulado</p>
+                    <p class="text-2xl font-bold text-green-600">${{ monto_acumulado|floatformat:2 }}</p>
+                    <p class="text-sm text-gray-600">{{ turnos_cumplidos }} turnos cumplidos × ${{ san.precio_cuota|floatformat:2 }}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Próximo Turno</p>
+                    {% if proximo_turno %}
+                        <p class="text-lg font-semibold text-blue-600">Turno {{ proximo_turno.numero_turno }}</p>
+                        <p class="text-sm text-gray-600">{{ proximo_turno.participante.usuario.get_full_name_or_username }}</p>
+                    {% else %}
+                        <p class="text-lg font-semibold text-gray-600">Todos los turnos completados</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Estado del SAN</p>
+                    <p class="text-lg font-semibold 
+                        {% if san.estado == 'activo' %}text-green-600
+                        {% elif san.estado == 'completado' %}text-blue-600
+                        {% else %}text-red-600{% endif %}">
+                        {{ san.get_estado_display }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones de gestión -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Acciones de Gestión</h3>
+            <div class="flex flex-wrap gap-4">
+                {% if participaciones_sin_turno %}
+                <form method="post" class="inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="crear_turnos">
+                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Crear Turnos para {{ participaciones_sin_turno.count }} Participaciones
+                    </button>
+                </form>
+                {% endif %}
+                
+                <a href="{% url 'asignar_turnos_san' san.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                    </svg>
+                    Reordenar Turnos
+                </a>
+            </div>
+        </div>
+
+        <!-- Lista de turnos -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-900">Lista de Turnos</h2>
+                <p class="text-sm text-gray-600 mt-1">Gestiona el estado de cada turno del SAN</p>
+            </div>
+            
+            {% if turnos %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Turno</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Participante</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fechas</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for turno in turnos %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-8 w-8">
+                                        <div class="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                            <span class="text-sm font-medium text-blue-900">{{ turno.numero_turno }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <div class="text-sm font-medium text-gray-900">Turno {{ turno.numero_turno }}</div>
+                                        <div class="text-sm text-gray-500">Posición {{ turno.participante.orden_cobro }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    {% if turno.participante.usuario.foto_perfil %}
+                                        <img class="h-8 w-8 rounded-full object-cover" src="{{ turno.participante.usuario.foto_perfil.url }}" alt="{{ turno.participante.usuario.username }}">
+                                    {% else %}
+                                        <div class="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
+                                            <span class="text-sm font-medium text-gray-700">{{ turno.participante.usuario.username|first|upper }}</span>
+                                        </div>
+                                    {% endif %}
+                                    <div class="ml-3">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ turno.participante.usuario.get_full_name_or_username }}
+                                        </div>
+                                        <div class="text-sm text-gray-500">{{ turno.participante.usuario.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if turno.estado == 'cumplido' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        Cumplido
+                                    </span>
+                                {% elif turno.estado == 'activo' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        Activo
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        Pendiente
+                                    </span>
+                                {% endif %}
+                            </td>
+                            
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                ${{ turno.monto_turno|floatformat:2 }}
+                            </td>
+                            
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <div>
+                                    <div>Asignado: {{ turno.fecha_asignacion|date:"d/m/Y" }}</div>
+                                    {% if turno.fecha_vencimiento %}
+                                        <div>Vence: {{ turno.fecha_vencimiento|date:"d/m/Y" }}</div>
+                                    {% endif %}
+                                    {% if turno.fecha_cumplimiento %}
+                                        <div class="text-green-600">Cumplido: {{ turno.fecha_cumplimiento|date:"d/m/Y" }}</div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex items-center space-x-2">
+                                    {% if turno.estado == 'pendiente' and turno.puede_activarse %}
+                                        <form method="post" class="inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="accion" value="activar_turno">
+                                            <input type="hidden" name="turno_id" value="{{ turno.id }}">
+                                            <button type="submit" class="text-green-600 hover:text-green-900" title="Activar turno">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    {% elif turno.estado == 'activo' %}
+                                        <form method="post" class="inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="accion" value="cumplir_turno">
+                                            <input type="hidden" name="turno_id" value="{{ turno.id }}">
+                                            <button type="submit" class="text-blue-600 hover:text-blue-900" title="Marcar como cumplido">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                    
+                                    {% if turno.estado == 'pendiente' and not turno.puede_activarse %}
+                                        <span class="text-gray-400" title="No se puede activar - turnos previos pendientes">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                            </svg>
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No hay turnos creados</h3>
+                <p class="mt-1 text-sm text-gray-500">Crea los turnos para todas las participaciones del SAN.</p>
+                {% if participaciones_sin_turno %}
+                <div class="mt-6">
+                    <form method="post" class="inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="accion" value="crear_turnos">
+                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Crear Turnos
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Confirmar acciones importantes
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const accion = this.querySelector('input[name="accion"]').value;
+            if (accion === 'crear_turnos') {
+                if (!confirm('¿Estás seguro de que quieres crear turnos para todas las participaciones? Esta acción no se puede deshacer.')) {
+                    e.preventDefault();
+                }
+            } else if (accion === 'activar_turno') {
+                if (!confirm('¿Estás seguro de que quieres activar este turno? Se verificará que todos los turnos previos estén cumplidos.')) {
+                    e.preventDefault();
+                }
+            } else if (accion === 'cumplir_turno') {
+                if (!confirm('¿Estás seguro de que quieres marcar este turno como cumplido? Se activará automáticamente el siguiente turno si es posible.')) {
+                    e.preventDefault();
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

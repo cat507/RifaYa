@@ -1,0 +1,323 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mis Notificaciones{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Mis Notificaciones</h1>
+            <p class="mt-2 text-gray-600">Mantente al día con todas tus notificaciones importantes</p>
+        </div>
+
+        <!-- Filtros y acciones -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm font-medium text-gray-700">Filtrar por:</span>
+                    <select id="filtro-estado" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        <option value="">Todos los estados</option>
+                        <option value="no_leida">No leídas</option>
+                        <option value="leida">Leídas</option>
+                    </select>
+                    <select id="filtro-tipo" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        <option value="">Todos los tipos</option>
+                        <option value="sistema">Sistema</option>
+                        <option value="pago">Pago</option>
+                        <option value="turno">Turno</option>
+                        <option value="rifa">Rifa</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button id="marcar-todas-leidas" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Marcar todas como leídas
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de notificaciones -->
+        <div class="space-y-4">
+            {% if notificaciones %}
+                {% for notificacion in notificaciones %}
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200 {% if not notificacion.leida %}border-l-4 border-l-primary{% endif %}">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <!-- Icono según tipo -->
+                                <div class="flex-shrink-0">
+                                    {% if notificacion.tipo == 'sistema' %}
+                                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                    {% elif notificacion.tipo == 'pago' %}
+                                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                            </svg>
+                                        </div>
+                                    {% elif notificacion.tipo == 'turno' %}
+                                        <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                    {% elif notificacion.tipo == 'rifa' %}
+                                        <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                            </svg>
+                                        </div>
+                                    {% elif notificacion.tipo == 'admin' %}
+                                        <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                            </svg>
+                                        </div>
+                                    {% else %}
+                                        <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"></path>
+                                            </svg>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Contenido -->
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center space-x-2">
+                                        <h3 class="text-lg font-medium text-gray-900 {% if not notificacion.leida %}font-semibold{% endif %}">
+                                            {{ notificacion.titulo }}
+                                        </h3>
+                                        {% if notificacion.prioridad == 'alta' %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                Alta
+                                            </span>
+                                        {% elif notificacion.prioridad == 'media' %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                Media
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="text-gray-600 mt-1">{{ notificacion.mensaje }}</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Metadatos -->
+                            <div class="flex items-center justify-between mt-4">
+                                <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                    <span class="flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        {{ notificacion.fecha_creacion|date:"d/m/Y H:i" }}
+                                    </span>
+                                    <span class="flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                        </svg>
+                                        {{ notificacion.get_tipo_display }}
+                                    </span>
+                                    {% if notificacion.metodo_envio %}
+                                    <span class="flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                        </svg>
+                                        {{ notificacion.get_metodo_envio_display }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Acciones -->
+                                <div class="flex items-center space-x-2">
+                                    {% if not notificacion.leida %}
+                                        <button class="marcar-leida-btn inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-primary bg-primary-light hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary" data-notificacion-id="{{ notificacion.id }}">
+                                            Marcar como leída
+                                        </button>
+                                    {% else %}
+                                        <span class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-500 bg-gray-100">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                            Leída
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <!-- Paginación -->
+                {% if is_paginated %}
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-700">
+                            Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ page_obj.paginator.count }} notificaciones
+                        </div>
+                        <div class="flex space-x-2">
+                            {% if page_obj.has_previous %}
+                                <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                                    Anterior
+                                </a>
+                            {% endif %}
+                            
+                            {% if page_obj.has_next %}
+                                <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                                    Siguiente
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+            {% else %}
+                <!-- Estado vacío -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No tienes notificaciones</h3>
+                    <p class="text-gray-600">Cuando recibas notificaciones importantes, aparecerán aquí.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filtros
+    const filtroEstado = document.getElementById('filtro-estado');
+    const filtroTipo = document.getElementById('filtro-tipo');
+    
+    function aplicarFiltros() {
+        const estado = filtroEstado.value;
+        const tipo = filtroTipo.value;
+        const url = new URL(window.location);
+        
+        if (estado) url.searchParams.set('estado', estado);
+        else url.searchParams.delete('estado');
+        
+        if (tipo) url.searchParams.set('tipo', tipo);
+        else url.searchParams.delete('tipo');
+        
+        window.location.href = url.toString();
+    }
+    
+    filtroEstado.addEventListener('change', aplicarFiltros);
+    filtroTipo.addEventListener('change', aplicarFiltros);
+    
+    // Marcar como leída
+    document.querySelectorAll('.marcar-leida-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const notificacionId = this.dataset.notificacionId;
+            marcarComoLeida(notificacionId, this);
+        });
+    });
+    
+    // Marcar todas como leídas
+    document.getElementById('marcar-todas-leidas').addEventListener('click', function() {
+        if (confirm('¿Estás seguro de que quieres marcar todas las notificaciones como leídas?')) {
+            marcarTodasComoLeidas();
+        }
+    });
+    
+    function marcarComoLeida(notificacionId, boton) {
+        fetch(`/notificaciones/marcar-leida/${notificacionId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Cambiar el botón por el indicador de leída
+                const contenedor = boton.parentElement;
+                contenedor.innerHTML = `
+                    <span class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-500 bg-gray-100">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Leída
+                    </span>
+                `;
+                
+                // Remover el borde izquierdo de la notificación
+                const notificacion = boton.closest('.bg-white');
+                notificacion.classList.remove('border-l-4', 'border-l-primary');
+                
+                // Actualizar contador en el header si existe
+                actualizarContadorNotificaciones();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al marcar la notificación como leída');
+        });
+    }
+    
+    function marcarTodasComoLeidas() {
+        fetch('/notificaciones/marcar-todas-leidas/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Recargar la página para mostrar el estado actualizado
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al marcar todas las notificaciones como leídas');
+        });
+    }
+    
+    function actualizarContadorNotificaciones() {
+        // Buscar el contador en el header
+        const contador = document.querySelector('[data-notificaciones-count]');
+        if (contador) {
+            const count = parseInt(contador.textContent) || 0;
+            if (count > 0) {
+                contador.textContent = count - 1;
+            }
+        }
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+{% endblock %}
